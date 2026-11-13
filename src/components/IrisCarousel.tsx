@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, memo } from "react";
 import { members } from "@/data/members";
 import MemberCard from "./MemberCard";
 
@@ -18,7 +18,7 @@ function lerp(start: number, end: number, factor: number): number {
   return start + (end - start) * factor;
 }
 
-export default function IrisCarousel({ className = "" }: IrisCarouselProps) {
+const IrisCarousel = memo(function IrisCarousel({ className = "" }: IrisCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -167,7 +167,8 @@ export default function IrisCarousel({ className = "" }: IrisCarouselProps) {
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    animationFrameId = requestAnimationFrame(animate);
+    // Run first frame immediately to position cards synchronously on mount
+    animate();
 
     return () => {
       cancelAnimationFrame(animationFrameId);
@@ -195,47 +196,27 @@ export default function IrisCarousel({ className = "" }: IrisCarouselProps) {
         ref={trackRef}
         className="relative w-0 h-0 flex items-center justify-center transform-style-3d will-change-transform"
       >
-        {members.map((member, index) => {
-          // Precompute initial layout positions for SSR
-          const total = members.length;
-          const theta = (index * 2 * Math.PI) / total;
-          const initRx = 480;
-          const initRz = 300;
-          const initRy = 40;
-          const initX = initRx * Math.sin(theta);
-          const initZ = initRz * Math.cos(theta);
-          const initY = initRy * Math.sin(theta) * 0.3;
-          const initRotY = -(initX / initRx) * 30;
-          const initD = (initZ + initRz) / (2 * initRz);
-          const initScale = 0.72 + 0.28 * initD;
-          const initOpacity = 0.45 + 0.55 * initD;
-          const initZIndex = Math.round(initD * 100);
-
-          return (
-            <div
-              key={member.id}
-              ref={(el) => {
-                cardRefs.current[index] = el;
-              }}
-              className="absolute top-1/2 left-1/2 transform-style-3d will-change-transform"
-              style={{
-                transform: `translate3d(${initX.toFixed(2)}px, ${initY.toFixed(2)}px, ${initZ.toFixed(2)}px) rotateY(${initRotY.toFixed(2)}deg) scale(${initScale.toFixed(3)})`,
-                opacity: initOpacity,
-                zIndex: initZIndex,
-              }}
-            >
-              <div className="-translate-x-1/2 -translate-y-1/2">
-                <MemberCard
-                  member={member}
-                  isHovered={hoveredId === member.id}
-                  onHover={handleHover}
-                  priority={index < 4}
-                />
-              </div>
+        {members.map((member, index) => (
+          <div
+            key={member.id}
+            ref={(el) => {
+              cardRefs.current[index] = el;
+            }}
+            className="absolute top-1/2 left-1/2 transform-style-3d will-change-transform"
+          >
+            <div className="-translate-x-1/2 -translate-y-1/2">
+              <MemberCard
+                member={member}
+                isHovered={hoveredId === member.id}
+                onHover={handleHover}
+                priority={index < 4}
+              />
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );
-}
+});
+
+export default IrisCarousel;

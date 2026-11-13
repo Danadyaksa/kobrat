@@ -37,7 +37,7 @@ export default function Home() {
         </div>
         <div className="hidden sm:flex items-center gap-4 text-zinc-600">
           <span>JAKARTA, INDONESIA</span>
-          <span className="text-zinc-700">//</span>
+          <span className="text-zinc-700">{"//"}</span>
           <span className="text-zinc-500">EST. 2024</span>
         </div>
       </footer>

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Image from "next/image";
 import { Member } from "@/data/members";
 
@@ -10,7 +11,7 @@ export interface MemberCardProps {
   priority?: boolean;
 }
 
-export default function MemberCard({
+const MemberCard = memo(function MemberCard({
   member,
   isHovered,
   onHover,
@@ -21,6 +22,14 @@ export default function MemberCard({
       className="relative w-[150px] h-[200px] md:w-[170px] md:h-[230px] lg:w-[190px] lg:h-[255px] cursor-pointer pointer-events-auto select-none group"
       onMouseEnter={() => onHover(member.id)}
       onMouseLeave={() => onHover(null)}
+      onFocus={() => onHover(member.id)}
+      onBlur={() => onHover(null)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onHover(isHovered ? null : member.id);
+        }
+      }}
       onClick={(e) => {
         e.preventDefault();
         console.log(`[KOBRAT] Selected member #${member.id}: ${member.name} (${member.nickname})`);
@@ -95,4 +104,6 @@ export default function MemberCard({
       </div>
     </div>
   );
-}
+});
+
+export default MemberCard;

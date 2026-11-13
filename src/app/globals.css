@@ -19,7 +19,6 @@ body {
   color: var(--foreground);
   overflow-x: hidden;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  user-select: none;
 }
 
 /* 3D Perspective & Preservation */

@@ -15,41 +15,51 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   const [isDone, setIsDone] = useState<boolean>(false);
 
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const ctx = gsap.context(() => {
       const counterObj = { value: 0 };
 
       const tl = gsap.timeline({
         onComplete: () => {
+          setProgress(100);
           setIsDone(true);
           onCompleteRef.current?.();
         },
       });
 
-      // 1. Smoothly increment counter from 0 to 100 over ~1.8 seconds
+      const counterDuration = prefersReducedMotion ? 0.05 : 1.8;
+      const pauseDuration = prefersReducedMotion ? 0.05 : 0.2;
+      const curtainDuration = prefersReducedMotion ? 0.1 : 1.1;
+
+      // 1. Smoothly increment counter from 0 to 100
       tl.to(counterObj, {
         value: 100,
-        duration: 1.8,
-        ease: "power2.inOut",
+        duration: counterDuration,
+        ease: prefersReducedMotion ? "none" : "power2.inOut",
         onUpdate: () => {
           const rounded = Math.round(counterObj.value);
-          setProgress(rounded);
           if (counterRef.current) {
             counterRef.current.textContent = `${rounded}%`;
           }
         },
       });
 
-      // 2. Pause at 100% for ~200ms
-      tl.to({}, { duration: 0.2 });
+      // 2. Pause at 100%
+      tl.to({}, { duration: pauseDuration });
 
       // 3. Slide the curtain upwards with high-impact power4 easing
       tl.to(containerRef.current, {
         yPercent: -100,
-        duration: 1.1,
-        ease: "power4.inOut",
+        duration: curtainDuration,
+        ease: prefersReducedMotion ? "none" : "power4.inOut",
       });
     }, containerRef);
 
