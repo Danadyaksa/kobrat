@@ -1,0 +1,75 @@
+export interface Member {
+  id: number;
+  name: string;
+  nickname: string;
+  role: string;
+  image: string;
+  instagram?: string;
+}
+
+export const members: Member[] = [
+  {
+    id: 1,
+    name: "Aksa",
+    nickname: "The Architect",
+    role: "Vision & Creative Direction",
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80",
+    instagram: "@aksa"
+  },
+  {
+    id: 2,
+    name: "Rafif",
+    nickname: "The Navigator",
+    role: "Ops & Logistics",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
+    instagram: "@rafif"
+  },
+  {
+    id: 3,
+    name: "Dimas",
+    nickname: "The Catalyst",
+    role: "Energy & Hype",
+    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80",
+    instagram: "@dimas"
+  },
+  {
+    id: 4,
+    name: "Reza",
+    nickname: "The Sound",
+    role: "Vibe & Playlist Curator",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&auto=format&fit=crop&q=80",
+    instagram: "@reza"
+  },
+  {
+    id: 5,
+    name: "Farhan",
+    nickname: "The Driver",
+    role: "Midnight Escapades",
+    image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600&auto=format&fit=crop&q=80",
+    instagram: "@farhan"
+  },
+  {
+    id: 6,
+    name: "Bagas",
+    nickname: "The Chronicler",
+    role: "Camera & Memories",
+    image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&auto=format&fit=crop&q=80",
+    instagram: "@bagas"
+  },
+  {
+    id: 7,
+    name: "Arya",
+    nickname: "The Strategist",
+    role: "Plans & Reservations",
+    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80",
+    instagram: "@arya"
+  },
+  {
+    id: 8,
+    name: "Gilang",
+    nickname: "The Anchor",
+    role: "Voice of Reason",
+    image: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=600&auto=format&fit=crop&q=80",
+    instagram: "@gilang"
+  }
+];
