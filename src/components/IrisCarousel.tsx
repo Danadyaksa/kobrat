@@ -14,11 +14,10 @@ const IrisCarousel = memo(function IrisCarousel() {
     currentRot: 0,
     targetRot: 0,
     mouseTarget: 0,
-    mouseX: 0,
     isHovered: false,
-    rx: 480,
-    rz: 280,
-    ry: 32,
+    rx: 600,
+    ry: 235,
+    rz: 320,
   });
 
   const handleHover = useCallback((id: number | null) => {
@@ -30,17 +29,17 @@ const IrisCarousel = memo(function IrisCarousel() {
     function updateDimensions() {
       const w = window.innerWidth;
       if (w >= 1200) {
-        stateRef.current.rx = 520;
-        stateRef.current.rz = 290;
-        stateRef.current.ry = 32;
+        stateRef.current.rx = 620;
+        stateRef.current.ry = 240;
+        stateRef.current.rz = 320;
       } else if (w >= 768) {
-        stateRef.current.rx = 380;
-        stateRef.current.rz = 220;
-        stateRef.current.ry = 24;
+        stateRef.current.rx = 440;
+        stateRef.current.ry = 200;
+        stateRef.current.rz = 240;
       } else {
-        stateRef.current.rx = 200;
-        stateRef.current.rz = 130;
-        stateRef.current.ry = 16;
+        stateRef.current.rx = 240;
+        stateRef.current.ry = 180;
+        stateRef.current.rz = 160;
       }
     }
 
@@ -52,7 +51,7 @@ const IrisCarousel = memo(function IrisCarousel() {
   useEffect(() => {
     function handleMouseMove(e: MouseEvent) {
       const cx = window.innerWidth / 2;
-      const norm = (e.clientX - cx) / cx; // -1 to 1
+      const norm = (e.clientX - cx) / cx;
       stateRef.current.mouseTarget = norm * 0.45;
     }
 
@@ -68,15 +67,14 @@ const IrisCarousel = memo(function IrisCarousel() {
     function renderLoop() {
       const s = stateRef.current;
 
-      // When hovering, pause/slow rotation; otherwise ambient spin + mouse parallax
-      const baseSpeed = s.isHovered ? 0.0003 : 0.0022;
+      const baseSpeed = s.isHovered ? 0.0002 : 0.0018;
       s.targetRot += baseSpeed;
       s.currentRot += (s.targetRot + s.mouseTarget - s.currentRot) * 0.06;
 
       const rot = s.currentRot;
       const rx = s.rx;
-      const rz = s.rz;
       const ry = s.ry;
+      const rz = s.rz;
 
       for (let i = 0; i < numCards; i++) {
         const el = cardRefs.current[i];
@@ -84,17 +82,15 @@ const IrisCarousel = memo(function IrisCarousel() {
 
         const phi = i * step + rot;
         const x = rx * Math.sin(phi);
+        const y = ry * Math.cos(phi);
         const z = rz * Math.cos(phi);
-        const y = ry * Math.sin(phi) * 0.3;
 
-        // Depth calculation
-        const norm = (z + rz) / (2 * rz); // 0 (back) to 1 (front)
+        const norm = (z + rz) / (2 * rz);
         const scale = 0.72 + 0.28 * norm;
-        const opacity = 0.4 + 0.6 * norm;
+        const opacity = 0.45 + 0.55 * norm;
         const zIndex = Math.round(norm * 100);
 
-        // Subtle billboarding angle
-        const rotY = -(x / rx) * 22;
+        const rotY = -(x / rx) * 15;
 
         el.style.transform = `translate3d(calc(-50% + ${x.toFixed(2)}px), calc(-50% + ${y.toFixed(2)}px), ${z.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
         el.style.opacity = opacity.toFixed(3);
