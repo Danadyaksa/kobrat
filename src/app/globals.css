@@ -92,6 +92,25 @@ body {
   transform: translateY(-1.3em) rotate(0.001deg);
 }
 
+/* 3D Spinning Pixel Icon (Matches Elliot's 12-step voxel rotation) */
+@keyframes pixelSpin {
+  0% {
+    transform: perspective(300px) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(300px) rotateY(360deg);
+  }
+}
+
+.pixel-spin-3d {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  animation: pixelSpin 1.6s steps(12) infinite;
+  will-change: transform;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

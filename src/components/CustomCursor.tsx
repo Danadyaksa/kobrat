@@ -171,7 +171,9 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
         ref={pillRef}
         className="fixed top-0 left-0 pointer-events-none z-[9999] will-change-transform flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-[#0c0c0c] text-white font-mono text-[11px] uppercase tracking-[0.02em] shadow-[0_8px_24px_rgba(0,0,0,0.25)] border border-white/10 select-none"
       >
-        <PixelEye className="w-[14px] h-[7px] text-white shrink-0" />
+        <span className="pixel-spin-3d">
+          <PixelEye className="w-[14px] h-[7px] text-white shrink-0" />
+        </span>
         <span className="whitespace-nowrap font-medium leading-none">
           {pillText}
         </span>
