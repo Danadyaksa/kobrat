@@ -11,7 +11,7 @@ interface CustomCursorProps {
 export default function CustomCursor({ isDark = false }: CustomCursorProps) {
   const dotWrapRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLDivElement>(null);
-  const [pillText, setPillText] = useState<string>("VIEW CASE");
+  const [pillText, setPillText] = useState<string>("VIEW PROFILE");
   const [cursorKind, setCursorKind] = useState<"default" | "link" | "pill">("default");
   const [isPressed, setIsPressed] = useState<boolean>(false);
 
@@ -64,7 +64,7 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
       const interactive = target?.closest('a, button, [role="button"], input, label, .nav-item');
 
       if (card) {
-        const text = card.getAttribute("data-cursor") || "VIEW CASE";
+        const text = card.getAttribute("data-cursor") || "VIEW PROFILE";
         if (card !== currentCard) {
           currentCard = card;
           setPillText(text);

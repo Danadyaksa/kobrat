@@ -18,6 +18,7 @@ const IrisCarousel = memo(function IrisCarousel({
   const trackRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [featuredIndex, setFeaturedIndex] = useState<number>(0);
 
   const stateRef = useRef({
     currentRot: 0,
@@ -29,7 +30,15 @@ const IrisCarousel = memo(function IrisCarousel({
     rz: 230,
     burstProgress: 0,
     singleCardScale: 0,
+    featuredIndex: 0,
   });
+
+  // Pick random member photo for the initial preloader card on every refresh
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * members.length);
+    setFeaturedIndex(randomIndex);
+    stateRef.current.featuredIndex = randomIndex;
+  }, []);
 
   const handleHover = useCallback((id: number | null) => {
     setHoveredId(id);
@@ -67,7 +76,7 @@ const IrisCarousel = memo(function IrisCarousel({
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
-  // Animate Card 0 scale when single card phase begins (Image 2)
+  // Animate featured card scale when single card phase begins
   useEffect(() => {
     if (!showSingleCard) {
       stateRef.current.singleCardScale = 0;
@@ -85,7 +94,7 @@ const IrisCarousel = memo(function IrisCarousel({
     };
   }, [showSingleCard]);
 
-  // Animate the fan-out / burst expansion from Card 0 to the full 3D ring!
+  // Animate the fan-out / burst expansion from the featured card to the full 3D ring!
   useEffect(() => {
     if (!isBursting) {
       stateRef.current.burstProgress = 0;
@@ -125,6 +134,7 @@ const IrisCarousel = memo(function IrisCarousel({
       const s = stateRef.current;
       const burst = s.burstProgress;
       const singleScale = s.singleCardScale;
+      const featIdx = s.featuredIndex;
 
       if (burst > 0) {
         // Soft, luxurious rotation speed
@@ -143,8 +153,8 @@ const IrisCarousel = memo(function IrisCarousel({
         if (!el) continue;
 
         if (burst === 0) {
-          // Preloader state: only Card 0 scales up in center once showSingleCard is triggered
-          if (i === 0) {
+          // Preloader state: only the randomly chosen featured card scales up in center
+          if (i === featIdx) {
             el.style.transform = `translate3d(-50%, -50%, 0) scale(${singleScale.toFixed(3)})`;
             el.style.opacity = singleScale > 0.01 ? "1" : "0";
             el.style.zIndex = "55"; // Visible on top of preloader black veil (z-40)
@@ -168,8 +178,8 @@ const IrisCarousel = memo(function IrisCarousel({
         const depthOpacity = 0.45 + 0.55 * norm;
         const zIndex = Math.round(norm * 100);
 
-        if (i === 0) {
-          // Card 0 smoothly interpolates from center (0, 0) into its orbit position
+        if (i === featIdx) {
+          // Featured card smoothly interpolates from center (0, 0) into its orbit position
           const curX = targetX;
           const curY = targetY;
           const curZ = targetZ;
@@ -180,8 +190,9 @@ const IrisCarousel = memo(function IrisCarousel({
           el.style.opacity = depthOpacity.toFixed(3);
           el.style.zIndex = zIndex.toString();
         } else {
-          // Cards 1-7 stagger outward from behind Card 0
-          const cardBurst = Math.min(1, Math.max(0, burst * 1.35 - i * 0.04));
+          // The other 7 cards stagger outward from behind the featured card
+          const diff = (i - featIdx + numCards) % numCards;
+          const cardBurst = Math.min(1, Math.max(0, burst * 1.35 - diff * 0.04));
           const curX = targetX;
           const curY = targetY;
           const curZ = targetZ;
@@ -205,7 +216,7 @@ const IrisCarousel = memo(function IrisCarousel({
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 flex items-center justify-center pointer-events-none perspective-1200 overflow-visible"
+      className="absolute inset-0 flex items-center justify-center pointer-events-none perspective-1200 overflow-visible -translate-y-5 md:-translate-y-7"
     >
       <div
         ref={trackRef}
@@ -217,19 +228,19 @@ const IrisCarousel = memo(function IrisCarousel({
             ref={(node) => {
               cardRefs.current[i] = node;
             }}
-            data-cursor="VIEW CASE"
+            data-cursor="VIEW PROFILE"
             className="absolute left-1/2 top-1/2 w-[120px] h-[160px] md:w-[130px] md:h-[172px] pointer-events-auto will-change-transform select-none cursor-pointer"
             style={{
               transform: "translate3d(-50%, -50%, 0) scale(0)",
               opacity: 0,
-              zIndex: i === 0 ? 55 : 1,
+              zIndex: i === featuredIndex ? 55 : 1,
             }}
           >
             <MemberCard
               member={member}
               isHovered={hoveredId === member.id}
               onHover={handleHover}
-              priority={i === 0}
+              priority={i === featuredIndex}
             />
           </div>
         ))}
