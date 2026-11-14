@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, UnifrakturMaguntia } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
 
@@ -13,24 +13,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const gothic = UnifrakturMaguntia({
-  weight: "400",
-  variable: "--font-gothic",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "KOBRAT — 8 Members Circle",
-  description: "A collective of eight friends navigating chaos, memories, and late-night drives.",
+  title: "kobrat",
+  description: "A collective of eight friends creating intuitive digital experiences.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${gothic.variable} dark h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#09090b] text-[#f4f4f5] flex flex-col font-sans">
+      <body className="min-h-full bg-white text-[#0c0c0c] flex flex-col font-sans selection:bg-[#0c0c0c] selection:text-white">
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>

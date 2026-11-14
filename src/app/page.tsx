@@ -8,7 +8,7 @@ import Hero from "@/components/Hero";
 export default function Home() {
   const [introComplete, setIntroComplete] = useState<boolean>(false);
 
-  // Safety fallback: Ensure intro transitions even if tab is unfocused during load
+  // Safety fallback
   useEffect(() => {
     const fallbackTimer = setTimeout(() => {
       setIntroComplete(true);
@@ -18,11 +18,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#09090b] text-[#f4f4f5] flex flex-col selection:bg-white selection:text-black">
-      {/* Preloader Curtain Overlay */}
+    <div className="relative min-h-screen bg-white text-[#0c0c0c] flex flex-col selection:bg-[#0c0c0c] selection:text-white">
+      {/* Preloader Curtain Overlay - Black Intro */}
       <Preloader onComplete={() => setIntroComplete(true)} />
 
-      {/* Sticky / Fixed Navigation Header */}
+      {/* Navigation Header */}
       <Header />
 
       {/* Main Hero Section */}
@@ -30,15 +30,13 @@ export default function Home() {
         <Hero introComplete={introComplete} />
       </main>
 
-      {/* Footer / Secondary Strip */}
-      <footer className="fixed bottom-0 inset-x-0 z-30 px-6 md:px-12 py-3.5 flex items-center justify-between text-[10px] md:text-xs tracking-widest text-[#71717a] uppercase font-mono pointer-events-none border-t border-white/[0.03] bg-[#09090b]/30 backdrop-blur-[2px]">
-        <div>
-          <span>© 2024 KOBRAT ARCHIVE — ALL RIGHTS RESERVED</span>
-        </div>
-        <div className="hidden sm:flex items-center gap-4 text-zinc-600">
-          <span>JAKARTA, INDONESIA</span>
-          <span className="text-zinc-700">{"//"}</span>
-          <span className="text-zinc-500">EST. 2024</span>
+      {/* Clean Bottom Meta */}
+      <footer className="fixed bottom-0 inset-x-0 z-30 px-[3vw] py-4 flex items-center justify-between text-[10px] font-mono tracking-[0.04em] text-[#767676] uppercase pointer-events-none">
+        <span>© 2024 KOBRAT</span>
+        <div className="hidden sm:flex items-center gap-3">
+          <span>JAKARTA</span>
+          <span>{"//"}</span>
+          <span>EST. 2024</span>
         </div>
       </footer>
     </div>
