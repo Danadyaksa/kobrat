@@ -42,7 +42,11 @@ export default function Header({ introComplete = true }: HeaderProps) {
   }, []);
 
   return (
-    <header className="fixed top-0 inset-x-0 z-[70] transition-colors duration-400 pointer-events-none">
+    <header
+      className={`fixed top-0 inset-x-0 z-[70] transition-opacity duration-500 pointer-events-none ${
+        introComplete ? "opacity-100 pointer-events-auto" : "opacity-0"
+      }`}
+    >
       <div className="h-[52px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-6 pointer-events-auto">
         {/* Left: Local Time */}
         <div className="font-mono text-[10px] uppercase tracking-[0.04em] text-[#767676] flex items-center gap-2 select-none">
@@ -53,9 +57,7 @@ export default function Header({ introComplete = true }: HeaderProps) {
         <Link
           href="/"
           style={{ fontFamily: "var(--font-wordmark)" }}
-          className={`header-wordmark text-[24px] text-[#0c0c0c] lowercase leading-none select-none hover:opacity-80 transition-opacity ${
-            introComplete ? "opacity-100" : "opacity-0"
-          }`}
+          className="header-wordmark text-[24px] text-[#0c0c0c] lowercase leading-none select-none hover:opacity-80 transition-opacity"
         >
           kobrat
         </Link>

@@ -147,7 +147,7 @@ const IrisCarousel = memo(function IrisCarousel({
           if (i === 0) {
             el.style.transform = `translate3d(-50%, -50%, 0) scale(${singleScale.toFixed(3)})`;
             el.style.opacity = singleScale > 0.01 ? "1" : "0";
-            el.style.zIndex = "55"; // Visible on top of preloader curtain
+            el.style.zIndex = "55"; // Visible on top of preloader black veil (z-40)
           } else {
             el.style.transform = `translate3d(-50%, -50%, 0) scale(0)`;
             el.style.opacity = "0";

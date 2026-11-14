@@ -37,8 +37,8 @@ export default function Home() {
       {/* Navigation Header */}
       <Header introComplete={introComplete} />
 
-      {/* Main Hero Section */}
-      <main className="flex-1 flex flex-col relative w-full overflow-hidden z-20">
+      {/* Main Hero Section at z-[50] */}
+      <main className="flex-1 flex flex-col relative w-full overflow-hidden z-[50]">
         <Hero
           introComplete={introComplete}
           showSingleCard={showSingleCard}

@@ -19,7 +19,6 @@ export default function Preloader({
 }: PreloaderProps) {
   const veilRef = useRef<HTMLDivElement>(null);
   const frontRef = useRef<HTMLDivElement>(null);
-  const sideTextsRef = useRef<HTMLDivElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
   const wordmarkWrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -40,10 +39,6 @@ export default function Preloader({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
 
     const svg = svgRef.current;
     const textBase = textBaseRef.current;
@@ -71,7 +66,6 @@ export default function Preloader({
     const setupMask = () => {
       try {
         const bbox = textBase.getBBox();
-        // Generous vertical padding to ensure ascenders (k, b, t) are NEVER clipped at the top
         const padY = Math.max(36, bbox.height * 0.6);
         const padX = Math.max(26, bbox.width * 0.2);
 
@@ -82,7 +76,6 @@ export default function Preloader({
 
         svg.setAttribute("viewBox", `${vx} ${vy} ${vw} ${vh}`);
 
-        // Generate pixel grid cells for dissolving wipe effect
         const cellSize = Math.max(6, bbox.height / 10);
         const cols = Math.ceil(vw / cellSize);
         const rows = Math.ceil(vh / cellSize);
@@ -116,8 +109,16 @@ export default function Preloader({
     }
 
     const ctx = gsap.context(() => {
+      // Ensure initial state is clean with 0 transform
+      gsap.set(wordmarkWrap, {
+        x: 0,
+        y: 0,
+        scale: 1,
+        transformOrigin: "50% 50%",
+      });
+
       const progressObj = { value: 0 };
-      const duration = prefersReducedMotion ? 0.25 : 1.25;
+      const duration = 1.15;
 
       const tl = gsap.timeline({
         delay: 0.05,
@@ -131,13 +132,12 @@ export default function Preloader({
           counter.textContent = `${val}%`;
         }
 
-        // Scramble letters with lowercase characters
         const totalChars = TARGET_WORD.length;
         const resolved = Math.floor((val / 100) * totalChars);
 
         let scrambled = "";
         for (let i = 0; i < totalChars; i++) {
-          if (i < resolved || val >= 98) {
+          if (i < resolved || val >= 96) {
             scrambled += TARGET_WORD[i];
           } else {
             scrambled +=
@@ -185,38 +185,51 @@ export default function Preloader({
         if (counter) counter.textContent = "100%";
       });
 
-      // 2. Wordmark glides directly up to the top header position (duration: 0.7s)
+      // Dynamic measurement matching Elliot's site:
+      // The wordmark glides UP directly to the header logo position:
+      // target Y is 26px from top, origin is window.innerHeight / 2
       tl.to(
         wordmarkWrap,
         {
-          y: () => 26 - window.innerHeight / 2,
-          scale: 0.31,
-          duration: 0.7,
+          y: () => -(window.innerHeight / 2 - 26),
+          scale: 0.3158,
+          duration: 0.85,
           ease: "expo.inOut",
-          transformOrigin: "50% 50%",
         },
-        "+=0.05"
+        "+=0.04"
       );
 
-      // 3. Card 0 appears in the center of the black screen (exact Image 2!)
+      // 2. Card 0 appears in the center of the black screen while wordmark glides up
       tl.call(
         () => {
           onShowSingleCardRef.current?.();
         },
         [],
-        "-=0.2"
+        "-=0.45"
       );
 
-      // Hold single card for 0.4s
+      // Hold single card in center
       tl.to({}, { duration: 0.4 });
 
-      // 4. Trigger burst!
-      tl.addLabel("burst", "+=0.05");
+      // 3. Trigger burst!
+      tl.addLabel("burst", "+=0.04");
       tl.call(
         () => {
           onBurstRef.current?.();
+          onCompleteRef.current?.(); // Reveal header wordmark underneath seamlessly!
         },
         [],
+        "burst"
+      );
+
+      // Turn wordmark text fill to dark (#0c0c0c) as background turns white
+      tl.to(
+        [textBase, textFill],
+        {
+          fill: "#0c0c0c",
+          duration: 0.35,
+          ease: "sine.inOut",
+        },
         "burst"
       );
 
@@ -232,27 +245,15 @@ export default function Preloader({
         "burst"
       );
 
-      // Turn text fill to dark (#0c0c0c)
-      tl.to(
-        [textBase, textFill],
-        {
-          fill: "#0c0c0c",
-          duration: 0.4,
-          ease: "sine.inOut",
-        },
-        "burst"
-      );
-
-      // Fade out front layer and call onComplete
+      // Fade out front layer and unmount cleanly
       tl.to(
         front,
         {
           opacity: 0,
-          duration: 0.45,
+          duration: 0.35,
           ease: "power2.out",
           onComplete: () => {
             setIsDone(true);
-            onCompleteRef.current?.();
           },
         },
         "burst+=0.1"
@@ -266,24 +267,19 @@ export default function Preloader({
 
   return (
     <>
-      {/* Black curtain veil at z-[45] - sits underneath Card 0 (z-[50]/z-[55]) */}
+      {/* Black curtain veil at z-[40] */}
       <div
         ref={veilRef}
-        className="fixed inset-0 z-[45] bg-[#0c0c0c] pointer-events-none select-none will-change-transform"
+        className="fixed inset-0 z-[40] bg-[#0c0c0c] pointer-events-none select-none will-change-transform"
       />
 
-      {/* Front layer at z-[60] - sits above Card 0 */}
+      {/* Front layer at z-[60] - sits above veil and Card 0 */}
       <div
         ref={frontRef}
         className="fixed inset-0 z-[60] text-white flex flex-col items-center justify-between pointer-events-none select-none will-change-transform"
       >
-        {/* Top Bar: Loading counter + spinner */}
-        <div
-          ref={sideTextsRef}
-          className="h-[52px] px-[3vw] flex items-center justify-between w-full pointer-events-none"
-        >
-          <div />
-
+        {/* Top Bar: Loading counter + spinner on the right */}
+        <div className="h-[52px] px-[3vw] flex items-center justify-end w-full pointer-events-none">
           <div className="flex items-center gap-2">
             <span
               ref={counterRef}
@@ -298,10 +294,17 @@ export default function Preloader({
           </div>
         </div>
 
-        {/* Wordmark: Perfectly centered initially, glides to header at 100% */}
+        {/* Wordmark: Perfectly centered via inset-0 + margin:auto, glides directly to header */}
         <div
           ref={wordmarkWrapRef}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(76vw,480px)] flex items-center justify-center will-change-transform pointer-events-none"
+          style={{
+            position: "fixed",
+            inset: 0,
+            margin: "auto",
+            width: "min(78vw, 420px)",
+            height: "120px",
+          }}
+          className="flex items-center justify-center will-change-transform pointer-events-none"
         >
           <svg
             ref={svgRef}
