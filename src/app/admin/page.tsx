@@ -43,14 +43,12 @@ function AdminContent() {
     role: string;
     instagram: string;
     bio: string;
-    image: string;
   }>({
     name: "",
     nickname: "",
     role: "",
     instagram: "",
     bio: "",
-    image: "",
   });
 
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -100,7 +98,6 @@ function AdminContent() {
       role: member.role,
       instagram: member.instagram || "",
       bio: member.bio || "",
-      image: member.image,
     });
     setPreviewUrl(member.image);
     setUploadedFile(null);
@@ -168,7 +165,7 @@ function AdminContent() {
     if (!editingMember) return;
 
     setIsSaving(true);
-    let finalImageUrl = formData.image;
+    let finalImageUrl = editingMember.image;
 
     try {
       // 1. Upload new image if a file was selected or cropped
@@ -539,29 +536,14 @@ function AdminContent() {
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={handleDrop}
                         onClick={() => fileInputRef.current?.click()}
-                        className="border border-dashed border-[#d4d4d8] hover:border-[#0c0c0c] bg-white rounded-[5px] p-2.5 text-center cursor-pointer transition-colors"
+                        className="border border-dashed border-[#d4d4d8] hover:border-[#0c0c0c] bg-white rounded-[5px] p-3 text-center cursor-pointer transition-colors"
                       >
                         <div className="font-mono text-[10px] text-[#71717a] font-medium">
-                          {uploadedFile ? `✓ ${uploadedFile.name}` : "Atau drag & drop file foto ke sini"}
+                          {uploadedFile ? `✓ ${uploadedFile.name} (siap disimpan)` : "Atau drag & drop file foto ke sini"}
                         </div>
-                      </div>
-
-                      {/* Direct URL Alternative */}
-                      <div className="pt-2 border-t border-[#e5e7eb]">
-                        <span className="block text-[9px] font-mono text-[#a1a1aa] uppercase mb-1">
-                          ATAU PASTE URL GAMBAR:
-                        </span>
-                        <input
-                          type="url"
-                          placeholder="https://..."
-                          value={formData.image}
-                          onChange={(e) => {
-                            setFormData({ ...formData, image: e.target.value });
-                            setPreviewUrl(e.target.value);
-                            setUploadedFile(null);
-                          }}
-                          className="w-full h-[32px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[11px] font-mono text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
-                        />
+                        <div className="font-mono text-[9px] text-[#a1a1aa] mt-0.5 uppercase">
+                          JPG, PNG, WEBP • OTOMATIS BUKA CROPPER 3:4
+                        </div>
                       </div>
                     </div>
                   </div>
