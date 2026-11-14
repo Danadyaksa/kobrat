@@ -7,15 +7,17 @@ import Hero from "@/components/Hero";
 import CustomCursor from "@/components/CustomCursor";
 
 export default function Home() {
+  const [showSingleCard, setShowSingleCard] = useState<boolean>(false);
   const [isBursting, setIsBursting] = useState<boolean>(false);
   const [introComplete, setIntroComplete] = useState<boolean>(false);
 
   // Safety fallback
   useEffect(() => {
     const fallbackTimer = setTimeout(() => {
+      setShowSingleCard(true);
       setIsBursting(true);
       setIntroComplete(true);
-    }, 4500);
+    }, 6000);
 
     return () => clearTimeout(fallbackTimer);
   }, []);
@@ -25,18 +27,23 @@ export default function Home() {
       {/* Sleek Custom Cursor */}
       <CustomCursor isDark={!introComplete} />
 
-      {/* Preloader Curtain Overlay with Progressive SVG Wipe Mask & Single Card */}
+      {/* Preloader Curtain Overlay (Veil at z-45, Front at z-60) */}
       <Preloader
+        onShowSingleCard={() => setShowSingleCard(true)}
         onBurst={() => setIsBursting(true)}
         onComplete={() => setIntroComplete(true)}
       />
 
       {/* Navigation Header */}
-      <Header />
+      <Header introComplete={introComplete} />
 
-      {/* Main Hero Section */}
-      <main className="flex-1 flex flex-col relative w-full overflow-hidden">
-        <Hero introComplete={introComplete} isBursting={isBursting} />
+      {/* Main Hero Section at z-50 */}
+      <main className="flex-1 flex flex-col relative w-full overflow-hidden z-50">
+        <Hero
+          introComplete={introComplete}
+          showSingleCard={showSingleCard}
+          isBursting={isBursting}
+        />
       </main>
 
       {/* Clean Bottom Meta */}

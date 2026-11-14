@@ -6,10 +6,14 @@ import { members } from "@/data/members";
 import MemberCard from "./MemberCard";
 
 interface IrisCarouselProps {
+  showSingleCard?: boolean;
   isBursting?: boolean;
 }
 
-const IrisCarousel = memo(function IrisCarousel({ isBursting = true }: IrisCarouselProps) {
+const IrisCarousel = memo(function IrisCarousel({
+  showSingleCard = false,
+  isBursting = false,
+}: IrisCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -20,10 +24,11 @@ const IrisCarousel = memo(function IrisCarousel({ isBursting = true }: IrisCarou
     targetRot: 0,
     mouseTarget: 0,
     isHovered: false,
-    rx: 520,
-    ry: 155,
-    rz: 260,
+    rx: 620,
+    ry: 210,
+    rz: 240,
     burstProgress: 0,
+    singleCardScale: 0,
   });
 
   const handleHover = useCallback((id: number | null) => {
@@ -31,24 +36,29 @@ const IrisCarousel = memo(function IrisCarousel({ isBursting = true }: IrisCarou
     stateRef.current.isHovered = id !== null;
   }, []);
 
-  // Update responsive radii so cards NEVER clip top or bottom
+  // Compute responsive ellipse radii so cards frame the text and NEVER clip top/bottom
   useEffect(() => {
     function updateDimensions() {
       const w = window.innerWidth;
       const h = window.innerHeight;
 
+      // Card height is ~175px on desktop, ~155px on mobile
+      const cardHeight = w < 768 ? 155 : 175;
+      const verticalClearance = 40; // padding from header and footer
+      const maxAvailableRy = (h - 52 - 50 - cardHeight - verticalClearance) / 2;
+
       if (w >= 1200) {
-        stateRef.current.rx = Math.min(540, w * 0.42);
-        stateRef.current.ry = Math.min(160, (h - 260) * 0.45);
-        stateRef.current.rz = 280;
+        stateRef.current.rx = Math.min(640, w * 0.42);
+        stateRef.current.ry = Math.max(150, Math.min(225, maxAvailableRy));
+        stateRef.current.rz = 240;
       } else if (w >= 768) {
-        stateRef.current.rx = Math.min(380, w * 0.44);
-        stateRef.current.ry = Math.min(140, (h - 260) * 0.42);
-        stateRef.current.rz = 220;
+        stateRef.current.rx = Math.min(450, w * 0.43);
+        stateRef.current.ry = Math.max(130, Math.min(195, maxAvailableRy));
+        stateRef.current.rz = 200;
       } else {
-        stateRef.current.rx = Math.min(190, w * 0.46);
-        stateRef.current.ry = Math.min(130, (h - 240) * 0.4);
-        stateRef.current.rz = 150;
+        stateRef.current.rx = Math.min(200, w * 0.45);
+        stateRef.current.ry = Math.max(115, Math.min(160, maxAvailableRy));
+        stateRef.current.rz = 140;
       }
     }
 
@@ -57,7 +67,25 @@ const IrisCarousel = memo(function IrisCarousel({ isBursting = true }: IrisCarou
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
-  // Animate the fan-out / burst expansion from 1 card to the 3D ring!
+  // Animate Card 0 scale when single card phase begins (Image 2)
+  useEffect(() => {
+    if (!showSingleCard) {
+      stateRef.current.singleCardScale = 0;
+      return;
+    }
+
+    const tween = gsap.to(stateRef.current, {
+      singleCardScale: 1,
+      duration: 0.65,
+      ease: "expo.out",
+    });
+
+    return () => {
+      tween.kill();
+    };
+  }, [showSingleCard]);
+
+  // Animate the fan-out / burst expansion from Card 0 to the full 3D ring!
   useEffect(() => {
     if (!isBursting) {
       stateRef.current.burstProgress = 0;
@@ -66,7 +94,7 @@ const IrisCarousel = memo(function IrisCarousel({ isBursting = true }: IrisCarou
 
     const tween = gsap.to(stateRef.current, {
       burstProgress: 1,
-      duration: 1.4,
+      duration: 1.6,
       ease: "expo.out",
     });
 
@@ -75,12 +103,12 @@ const IrisCarousel = memo(function IrisCarousel({ isBursting = true }: IrisCarou
     };
   }, [isBursting]);
 
-  // Mouse parallax tracking
+  // Subtle mouse parallax tracking
   useEffect(() => {
     function handleMouseMove(e: MouseEvent) {
       const cx = window.innerWidth / 2;
       const norm = (e.clientX - cx) / cx;
-      stateRef.current.mouseTarget = norm * 0.4;
+      stateRef.current.mouseTarget = norm * 0.35;
     }
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
@@ -96,10 +124,13 @@ const IrisCarousel = memo(function IrisCarousel({ isBursting = true }: IrisCarou
     function renderLoop() {
       const s = stateRef.current;
       const burst = s.burstProgress;
+      const singleScale = s.singleCardScale;
 
-      const baseSpeed = s.isHovered ? 0.0002 : 0.0018;
-      s.targetRot += baseSpeed;
-      s.currentRot += (s.targetRot + s.mouseTarget - s.currentRot) * 0.06;
+      if (burst > 0) {
+        const baseSpeed = s.isHovered ? 0.0002 : 0.0016;
+        s.targetRot += baseSpeed;
+        s.currentRot += (s.targetRot + s.mouseTarget - s.currentRot) * 0.05;
+      }
 
       const rot = s.currentRot;
       const rx = s.rx * burst;
@@ -110,27 +141,57 @@ const IrisCarousel = memo(function IrisCarousel({ isBursting = true }: IrisCarou
         const el = cardRefs.current[i];
         if (!el) continue;
 
-        // Individual card stagger during burst
-        const cardBurst = Math.min(1, Math.max(0, burst * 1.3 - i * 0.035));
+        if (burst === 0) {
+          // Preloader state: only Card 0 scales up in center once showSingleCard is triggered
+          if (i === 0) {
+            el.style.transform = `translate3d(-50%, -50%, 0) scale(${singleScale.toFixed(3)})`;
+            el.style.opacity = singleScale > 0.01 ? "1" : "0";
+            el.style.zIndex = "55"; // Visible on top of preloader curtain
+          } else {
+            el.style.transform = `translate3d(-50%, -50%, 0) scale(0)`;
+            el.style.opacity = "0";
+            el.style.zIndex = "1";
+          }
+          continue;
+        }
 
+        // Active Burst / Carousel state:
         const phi = i * step + rot;
-        const x = rx * Math.sin(phi);
-        const y = ry * Math.cos(phi);
-        const z = rz * Math.cos(phi);
+        const targetX = rx * Math.sin(phi);
+        const targetY = ry * Math.cos(phi);
+        const targetZ = rz * Math.cos(phi);
 
         // Depth calculation
-        const norm = (z + rz) / (2 * (rz || 1));
-        const targetScale = 0.72 + 0.28 * norm;
-        const scale = i === 0 ? targetScale : targetScale * cardBurst;
-        const opacity = (0.42 + 0.58 * norm) * (i === 0 ? 1 : cardBurst);
+        const norm = (targetZ + rz) / (2 * (rz || 1));
+        const depthScale = 0.72 + 0.28 * norm;
+        const depthOpacity = 0.45 + 0.55 * norm;
         const zIndex = Math.round(norm * 100);
 
-        // Subtle concave curve
-        const rotY = -(x / (rx || 1)) * 14;
+        if (i === 0) {
+          // Card 0 smoothly interpolates from center (0, 0) into its orbit position
+          const curX = targetX;
+          const curY = targetY;
+          const curZ = targetZ;
+          const scale = depthScale;
+          const rotY = -(curX / (s.rx || 1)) * 12;
 
-        el.style.transform = `translate3d(calc(-50% + ${x.toFixed(2)}px), calc(-50% + ${y.toFixed(2)}px), ${z.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-        el.style.opacity = opacity.toFixed(3);
-        el.style.zIndex = zIndex.toString();
+          el.style.transform = `translate3d(calc(-50% + ${curX.toFixed(2)}px), calc(-50% + ${curY.toFixed(2)}px), ${curZ.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+          el.style.opacity = depthOpacity.toFixed(3);
+          el.style.zIndex = zIndex.toString();
+        } else {
+          // Cards 1-7 stagger outward from behind Card 0
+          const cardBurst = Math.min(1, Math.max(0, burst * 1.35 - i * 0.04));
+          const curX = targetX;
+          const curY = targetY;
+          const curZ = targetZ;
+          const scale = depthScale * cardBurst;
+          const opacity = depthOpacity * cardBurst;
+          const rotY = -(curX / (s.rx || 1)) * 12;
+
+          el.style.transform = `translate3d(calc(-50% + ${curX.toFixed(2)}px), calc(-50% + ${curY.toFixed(2)}px), ${curZ.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+          el.style.opacity = opacity.toFixed(3);
+          el.style.zIndex = zIndex.toString();
+        }
       }
 
       animId = requestAnimationFrame(renderLoop);
@@ -155,18 +216,18 @@ const IrisCarousel = memo(function IrisCarousel({ isBursting = true }: IrisCarou
             ref={(node) => {
               cardRefs.current[i] = node;
             }}
-            className="absolute left-1/2 top-1/2 w-[135px] h-[175px] md:w-[145px] md:h-[190px] pointer-events-auto will-change-transform select-none"
+            className="absolute left-1/2 top-1/2 w-[125px] h-[165px] md:w-[135px] md:h-[178px] pointer-events-auto will-change-transform select-none"
             style={{
               transform: "translate3d(-50%, -50%, 0) scale(0)",
               opacity: 0,
-              zIndex: 1,
+              zIndex: i === 0 ? 55 : 1,
             }}
           >
             <MemberCard
               member={member}
               isHovered={hoveredId === member.id}
               onHover={handleHover}
-              priority={i < 3}
+              priority={i === 0}
             />
           </div>
         ))}

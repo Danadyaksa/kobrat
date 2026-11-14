@@ -6,12 +6,17 @@ import IrisCarousel from "./IrisCarousel";
 
 interface HeroProps {
   introComplete: boolean;
+  showSingleCard?: boolean;
   isBursting?: boolean;
 }
 
 const CHARS = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~|}{[]:;?><";
 
-export default function Hero({ introComplete, isBursting = true }: HeroProps) {
+export default function Hero({
+  introComplete,
+  showSingleCard = false,
+  isBursting = false,
+}: HeroProps) {
   const containerRef = useRef<HTMLElement>(null);
   const [displayText, setDisplayText] = useState(
     "8 minds on one wavelength creating intuitive digital experiences."
@@ -60,13 +65,17 @@ export default function Hero({ introComplete, isBursting = true }: HeroProps) {
     <section
       ref={containerRef}
       id="home"
-      className="relative w-full min-h-screen flex items-center justify-center px-[3vw] pt-[52px] pb-[60px] overflow-hidden select-none bg-white"
+      className="relative w-full min-h-screen flex items-center justify-center px-[3vw] pt-[52px] pb-[60px] overflow-hidden select-none bg-transparent"
     >
       {/* 3D Rotating Iris Carousel with Burst Expansion */}
-      <IrisCarousel isBursting={isBursting} />
+      <IrisCarousel showSingleCard={showSingleCard} isBursting={isBursting} />
 
-      {/* Center Copy Block */}
-      <div className="relative z-30 max-w-[580px] pointer-events-none flex flex-col items-center text-center gap-4 px-4">
+      {/* Center Copy Block - hidden during preloader, smoothly fades in once burst/intro completes */}
+      <div
+        className={`relative z-40 max-w-[620px] pointer-events-none flex flex-col items-center text-center gap-4 px-4 transition-opacity duration-600 ${
+          introComplete ? "opacity-100" : "opacity-0"
+        }`}
+      >
         {/* Display Title with We're and exact Gossip HighPixel name mark */}
         <h1 className="text-[clamp(24px,2.5vw,42px)] leading-[1.22] tracking-[-0.035em] text-[#0c0c0c] font-normal select-none">
           We’re{" "}

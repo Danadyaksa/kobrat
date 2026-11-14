@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-export default function Header() {
+interface HeaderProps {
+  introComplete?: boolean;
+}
+
+export default function Header({ introComplete = true }: HeaderProps) {
   const [time, setTime] = useState<string>("--:--");
 
   useEffect(() => {
@@ -23,8 +27,8 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="fixed top-0 inset-x-0 z-40 transition-colors duration-400">
-      <div className="h-[52px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+    <header className="fixed top-0 inset-x-0 z-40 transition-colors duration-400 pointer-events-none">
+      <div className="h-[52px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-6 pointer-events-auto">
         {/* Left: Local Time */}
         <div className="font-mono text-[10px] uppercase tracking-[0.04em] text-[#767676] flex items-center gap-2 select-none">
           <time className="text-[#767676]">{time}</time>
@@ -34,7 +38,9 @@ export default function Header() {
         <Link
           href="/"
           style={{ fontFamily: "var(--font-wordmark)" }}
-          className="text-[24px] text-[#0c0c0c] lowercase leading-none select-none hover:opacity-80 transition-opacity"
+          className={`header-wordmark text-[24px] text-[#0c0c0c] lowercase leading-none select-none hover:opacity-80 transition-opacity ${
+            introComplete ? "opacity-100" : "opacity-0"
+          }`}
         >
           kobrat
         </Link>
