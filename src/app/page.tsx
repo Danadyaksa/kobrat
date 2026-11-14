@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import Preloader from "@/components/Preloader";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import CustomCursor from "@/components/CustomCursor";
 
 export default function Home() {
+  const [isBursting, setIsBursting] = useState<boolean>(false);
   const [introComplete, setIntroComplete] = useState<boolean>(false);
 
   // Safety fallback
   useEffect(() => {
     const fallbackTimer = setTimeout(() => {
+      setIsBursting(true);
       setIntroComplete(true);
     }, 4500);
 
@@ -18,16 +21,22 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-white text-[#0c0c0c] flex flex-col selection:bg-[#0c0c0c] selection:text-white">
-      {/* Preloader Curtain Overlay - Black Intro */}
-      <Preloader onComplete={() => setIntroComplete(true)} />
+    <div className="relative min-h-screen bg-white text-[#0c0c0c] flex flex-col selection:bg-[#0c0c0c] selection:text-white cursor-default">
+      {/* Sleek Custom Cursor */}
+      <CustomCursor isDark={!introComplete} />
+
+      {/* Preloader Curtain Overlay with Progressive SVG Wipe Mask & Single Card */}
+      <Preloader
+        onBurst={() => setIsBursting(true)}
+        onComplete={() => setIntroComplete(true)}
+      />
 
       {/* Navigation Header */}
       <Header />
 
       {/* Main Hero Section */}
       <main className="flex-1 flex flex-col relative w-full overflow-hidden">
-        <Hero introComplete={introComplete} />
+        <Hero introComplete={introComplete} isBursting={isBursting} />
       </main>
 
       {/* Clean Bottom Meta */}
