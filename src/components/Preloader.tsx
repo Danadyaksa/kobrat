@@ -72,8 +72,8 @@ export default function Preloader({
       try {
         const bbox = textBase.getBBox();
         // Generous vertical padding to ensure ascenders (k, b, t) are NEVER clipped at the top
-        const padY = Math.max(40, bbox.height * 0.6);
-        const padX = Math.max(30, bbox.width * 0.2);
+        const padY = Math.max(36, bbox.height * 0.6);
+        const padX = Math.max(26, bbox.width * 0.2);
 
         const vx = bbox.x - padX;
         const vy = bbox.y - padY;
@@ -83,7 +83,7 @@ export default function Preloader({
         svg.setAttribute("viewBox", `${vx} ${vy} ${vw} ${vh}`);
 
         // Generate pixel grid cells for dissolving wipe effect
-        const cellSize = Math.max(7, bbox.height / 10);
+        const cellSize = Math.max(6, bbox.height / 10);
         const cols = Math.ceil(vw / cellSize);
         const rows = Math.ceil(vh / cellSize);
 
@@ -92,7 +92,6 @@ export default function Preloader({
           for (let r = 0; r < rows; r++) {
             const x = vx + c * cellSize;
             const y = vy + r * cellSize;
-            // GLSL-style pseudo-random hash
             const hash =
               Math.sin(12.9898 * c + 78.233 * r) * 43758.5453;
             const rand = hash - Math.floor(hash);
@@ -106,7 +105,7 @@ export default function Preloader({
         }
         cells.sort((a, b) => a.order - b.order);
       } catch {
-        svg.setAttribute("viewBox", "-40 -100 500 200");
+        svg.setAttribute("viewBox", "-30 -80 440 160");
       }
     };
 
@@ -118,7 +117,7 @@ export default function Preloader({
 
     const ctx = gsap.context(() => {
       const progressObj = { value: 0 };
-      const duration = prefersReducedMotion ? 0.25 : 1.2;
+      const duration = prefersReducedMotion ? 0.25 : 1.25;
 
       const tl = gsap.timeline({
         delay: 0.05,
@@ -191,7 +190,7 @@ export default function Preloader({
         wordmarkWrap,
         {
           y: () => 26 - window.innerHeight / 2,
-          scale: 0.25,
+          scale: 0.31,
           duration: 0.7,
           ease: "expo.inOut",
           transformOrigin: "50% 50%",
@@ -304,7 +303,7 @@ export default function Preloader({
         {/* Wordmark: Perfectly centered initially, glides to header at 100% */}
         <div
           ref={wordmarkWrapRef}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(82vw,620px)] flex items-center justify-center will-change-transform pointer-events-none"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(76vw,480px)] flex items-center justify-center will-change-transform pointer-events-none"
         >
           <svg
             ref={svgRef}
@@ -337,7 +336,7 @@ export default function Preloader({
               fill="#ffffff35"
               style={{
                 fontFamily: "var(--font-wordmark)",
-                fontSize: "96px",
+                fontSize: "76px",
                 letterSpacing: "0px",
               }}
             >
@@ -354,7 +353,7 @@ export default function Preloader({
               mask="url(#intro-name-mask)"
               style={{
                 fontFamily: "var(--font-wordmark)",
-                fontSize: "96px",
+                fontSize: "76px",
                 letterSpacing: "0px",
               }}
             >

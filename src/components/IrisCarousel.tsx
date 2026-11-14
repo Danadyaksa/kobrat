@@ -24,9 +24,9 @@ const IrisCarousel = memo(function IrisCarousel({
     targetRot: 0,
     mouseTarget: 0,
     isHovered: false,
-    rx: 620,
-    ry: 210,
-    rz: 240,
+    rx: 580,
+    ry: 185,
+    rz: 230,
     burstProgress: 0,
     singleCardScale: 0,
   });
@@ -42,23 +42,23 @@ const IrisCarousel = memo(function IrisCarousel({
       const w = window.innerWidth;
       const h = window.innerHeight;
 
-      // Card height is ~175px on desktop, ~155px on mobile
-      const cardHeight = w < 768 ? 155 : 175;
-      const verticalClearance = 40; // padding from header and footer
+      // Card height: ~170px desktop, ~150px mobile
+      const cardHeight = w < 768 ? 150 : 170;
+      const verticalClearance = 40;
       const maxAvailableRy = (h - 52 - 50 - cardHeight - verticalClearance) / 2;
 
       if (w >= 1200) {
-        stateRef.current.rx = Math.min(640, w * 0.42);
-        stateRef.current.ry = Math.max(150, Math.min(225, maxAvailableRy));
-        stateRef.current.rz = 240;
+        stateRef.current.rx = Math.min(600, w * 0.41);
+        stateRef.current.ry = Math.max(145, Math.min(195, maxAvailableRy));
+        stateRef.current.rz = 230;
       } else if (w >= 768) {
-        stateRef.current.rx = Math.min(450, w * 0.43);
-        stateRef.current.ry = Math.max(130, Math.min(195, maxAvailableRy));
-        stateRef.current.rz = 200;
+        stateRef.current.rx = Math.min(430, w * 0.42);
+        stateRef.current.ry = Math.max(125, Math.min(175, maxAvailableRy));
+        stateRef.current.rz = 190;
       } else {
-        stateRef.current.rx = Math.min(200, w * 0.45);
-        stateRef.current.ry = Math.max(115, Math.min(160, maxAvailableRy));
-        stateRef.current.rz = 140;
+        stateRef.current.rx = Math.min(195, w * 0.44);
+        stateRef.current.ry = Math.max(110, Math.min(150, maxAvailableRy));
+        stateRef.current.rz = 135;
       }
     }
 
@@ -103,19 +103,19 @@ const IrisCarousel = memo(function IrisCarousel({
     };
   }, [isBursting]);
 
-  // Subtle mouse parallax tracking
+  // Subtle mouse parallax tracking with soft damping
   useEffect(() => {
     function handleMouseMove(e: MouseEvent) {
       const cx = window.innerWidth / 2;
       const norm = (e.clientX - cx) / cx;
-      stateRef.current.mouseTarget = norm * 0.35;
+      stateRef.current.mouseTarget = norm * 0.28;
     }
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Continuous RAF render loop
+  // Continuous RAF render loop - matches Elliot's exact ~90s smooth speed
   useEffect(() => {
     let animId: number;
     const numCards = members.length;
@@ -127,9 +127,10 @@ const IrisCarousel = memo(function IrisCarousel({
       const singleScale = s.singleCardScale;
 
       if (burst > 0) {
-        const baseSpeed = s.isHovered ? 0.0002 : 0.0016;
+        // Soft, luxurious rotation speed
+        const baseSpeed = s.isHovered ? 0.00012 : 0.00065;
         s.targetRot += baseSpeed;
-        s.currentRot += (s.targetRot + s.mouseTarget - s.currentRot) * 0.05;
+        s.currentRot += (s.targetRot + s.mouseTarget - s.currentRot) * 0.035;
       }
 
       const rot = s.currentRot;
@@ -163,7 +164,7 @@ const IrisCarousel = memo(function IrisCarousel({
 
         // Depth calculation
         const norm = (targetZ + rz) / (2 * (rz || 1));
-        const depthScale = 0.72 + 0.28 * norm;
+        const depthScale = 0.74 + 0.26 * norm;
         const depthOpacity = 0.45 + 0.55 * norm;
         const zIndex = Math.round(norm * 100);
 
@@ -216,7 +217,8 @@ const IrisCarousel = memo(function IrisCarousel({
             ref={(node) => {
               cardRefs.current[i] = node;
             }}
-            className="absolute left-1/2 top-1/2 w-[125px] h-[165px] md:w-[135px] md:h-[178px] pointer-events-auto will-change-transform select-none"
+            data-cursor={`${member.name} // ${member.role}`}
+            className="absolute left-1/2 top-1/2 w-[120px] h-[160px] md:w-[130px] md:h-[172px] pointer-events-auto will-change-transform select-none cursor-pointer"
             style={{
               transform: "translate3d(-50%, -50%, 0) scale(0)",
               opacity: 0,

@@ -70,18 +70,23 @@ export default function Hero({
       {/* 3D Rotating Iris Carousel with Burst Expansion */}
       <IrisCarousel showSingleCard={showSingleCard} isBursting={isBursting} />
 
-      {/* Center Copy Block - hidden during preloader, smoothly fades in once burst/intro completes */}
+      {/* Center Copy Block - refined proportion matching ellioteriksson.com */}
       <div
-        className={`relative z-40 max-w-[620px] pointer-events-none flex flex-col items-center text-center gap-4 px-4 transition-opacity duration-600 ${
+        className={`relative z-40 max-w-[500px] pointer-events-none flex flex-col items-center text-center gap-2.5 px-4 transition-opacity duration-600 ${
           introComplete ? "opacity-100" : "opacity-0"
         }`}
       >
-        {/* Display Title with We're and exact Gossip HighPixel name mark */}
-        <h1 className="text-[clamp(24px,2.5vw,42px)] leading-[1.22] tracking-[-0.035em] text-[#0c0c0c] font-normal select-none">
+        {/* Subtle pretitle matching Elliot's BASED IN STOCKHOLM */}
+        <span className="font-mono text-[10px] md:text-[11px] uppercase tracking-[0.08em] text-[#767676] select-none">
+          Friendship Circle
+        </span>
+
+        {/* Display Title - refined elegant font size */}
+        <h1 className="text-[clamp(18px,min(2.1vw,2.9svh),27px)] leading-[1.32] tracking-[-0.03em] text-[#0c0c0c] font-normal select-none">
           We’re{" "}
           <span
             style={{ fontFamily: "var(--font-wordmark)" }}
-            className="text-[1.35em] lowercase leading-none inline-block text-[#0c0c0c]"
+            className="text-[1.22em] lowercase leading-none inline-block text-[#0c0c0c]"
           >
             kobrat
           </span>
@@ -99,7 +104,7 @@ export default function Hero({
               viewBox="0 0 9 9"
               fill="currentColor"
               shapeRendering="crispEdges"
-              className="w-[18px] h-[18px]"
+              className="w-[16px] h-[16px]"
             >
               <path d="M4 0h1v1h-1zM4 1h1v1h-1zM4 2h1v1h-1zM0 3h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h2v1h-2zM4 4h1v1h-1zM7 4h2v1h-2zM1 5h2v1h-2zM4 5h1v1h-1zM6 5h2v1h-2zM2 6h5v1h-5zM3 7h3v1h-3zM4 8h1v1h-1z" />
             </svg>
