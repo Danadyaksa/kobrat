@@ -19,20 +19,11 @@ const MemberCard = memo(function MemberCard({
 }: MemberCardProps) {
   return (
     <div
-      role="button"
-      tabIndex={0}
-      aria-label={`${member.name} - ${member.role}`}
       className="relative w-full h-full cursor-pointer focus:outline-none"
       onMouseEnter={() => onHover(member.id)}
       onMouseLeave={() => onHover(null)}
       onFocus={() => onHover(member.id)}
       onBlur={() => onHover(null)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onHover(isHovered ? null : member.id);
-        }
-      }}
     >
       {/* Inner card with exact Elliot scale & elevation */}
       <div

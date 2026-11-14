@@ -60,8 +60,20 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
       pillYTo(e.clientY);
 
       const target = document.elementFromPoint(e.clientX, e.clientY);
+      const isInput = target?.closest('input, textarea, select, [contenteditable="true"]');
+      if (isInput) {
+        if (currentCard) {
+          currentCard = null;
+          gsap.to(pill, { scale: 0.4, autoAlpha: 0, duration: 0.15 });
+        }
+        gsap.to(dotWrap, { autoAlpha: 0, duration: 0.15 });
+        return;
+      } else {
+        gsap.to(dotWrap, { autoAlpha: 1, duration: 0.15 });
+      }
+
       const card = target?.closest("[data-cursor]");
-      const interactive = target?.closest('a, button, [role="button"], input, label, .nav-item');
+      const interactive = target?.closest('a, button, [role="button"], label, .nav-item');
 
       if (card) {
         const text = card.getAttribute("data-cursor") || "VIEW PROFILE";

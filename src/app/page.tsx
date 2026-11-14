@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Preloader from "@/components/Preloader";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -49,8 +50,10 @@ export default function Home() {
       {/* Clean Bottom Meta */}
       <footer className="fixed bottom-0 inset-x-0 z-30 px-[3vw] py-4 flex items-center justify-between text-[10px] font-mono tracking-[0.04em] text-[#767676] uppercase pointer-events-none">
         <span>© 2024 KOBRAT</span>
-        <div className="hidden sm:flex items-center gap-3">
-          <span>CIRCLE</span>
+        <div className="hidden sm:flex items-center gap-3 pointer-events-auto">
+          <Link href="/admin" className="hover:text-[#0c0c0c] transition-colors">
+            ADMIN
+          </Link>
           <span>{"//"}</span>
           <span>EST. 2024</span>
         </div>

@@ -72,10 +72,10 @@ export default function Header({ introComplete = true }: HeaderProps) {
             <span className="sr-only">Members</span>
             <RollingText text="MEMBERS" />
           </a>
-          <a href="#contact" className="nav-item">
-            <span className="sr-only">Contact</span>
-            <RollingText text="CONTACT" />
-          </a>
+          <Link href="/admin" className="nav-item">
+            <span className="sr-only">Admin</span>
+            <RollingText text="ADMIN" />
+          </Link>
           <div className="flex items-center text-[#767676] font-mono text-[12px] uppercase ml-1">
             <button
               type="button"

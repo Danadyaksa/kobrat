@@ -15,8 +15,10 @@ const PROFILE_GRID = [
 ];
 
 export default function ThreeProfileIcon({
+  size,
   className = "w-[18px] h-[18px] shrink-0",
 }: {
+  size?: number;
   className?: string;
 }) {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -126,9 +128,12 @@ export default function ThreeProfileIcon({
     };
   }, []);
 
+  const sizeStyle = size ? { width: `${size}px`, height: `${size}px` } : undefined;
+
   return (
     <div
       ref={mountRef}
+      style={sizeStyle}
       className={`inline-flex items-center justify-center shrink-0 ${className}`}
       aria-hidden="true"
     />

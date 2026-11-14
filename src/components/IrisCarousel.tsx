@@ -1,8 +1,9 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import gsap from "gsap";
-import { members } from "@/data/members";
+import { Member, members } from "@/data/members";
 import MemberCard from "./MemberCard";
 
 interface IrisCarouselProps {
@@ -16,9 +17,25 @@ const IrisCarousel = memo(function IrisCarousel({
 }: IrisCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const cardRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const [memberList, setMemberList] = useState<Member[]>(members);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [featuredIndex, setFeaturedIndex] = useState<number>(0);
+
+  // Sync with live database from /api/members
+  useEffect(() => {
+    fetch("/api/members")
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("Failed");
+      })
+      .then((data: Member[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setMemberList(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const stateRef = useRef({
     currentRot: 0,
@@ -127,7 +144,7 @@ const IrisCarousel = memo(function IrisCarousel({
   // Continuous RAF render loop - matches Elliot's exact ~90s smooth speed
   useEffect(() => {
     let animId: number;
-    const numCards = members.length;
+    const numCards = memberList.length || members.length;
     const step = (Math.PI * 2) / numCards;
 
     function renderLoop() {
@@ -222,14 +239,16 @@ const IrisCarousel = memo(function IrisCarousel({
         ref={trackRef}
         className="relative w-full h-full flex items-center justify-center transform-style-3d will-change-transform"
       >
-        {members.map((member, i) => (
-          <div
+        {memberList.map((member, i) => (
+          <Link
             key={member.id}
+            href={`/members/${member.id}`}
+            aria-label={`${member.name} - ${member.role}`}
             ref={(node) => {
               cardRefs.current[i] = node;
             }}
             data-cursor="VIEW PROFILE"
-            className="absolute left-1/2 top-1/2 w-[120px] h-[160px] md:w-[130px] md:h-[172px] pointer-events-auto will-change-transform select-none cursor-pointer"
+            className="absolute left-1/2 top-1/2 w-[120px] h-[160px] md:w-[130px] md:h-[172px] pointer-events-auto will-change-transform select-none cursor-pointer block focus:outline-none"
             style={{
               transform: "translate3d(-50%, -50%, 0) scale(0)",
               opacity: 0,
@@ -242,7 +261,7 @@ const IrisCarousel = memo(function IrisCarousel({
               onHover={handleHover}
               priority={i === featuredIndex}
             />
-          </div>
+          </Link>
         ))}
       </div>
     </div>
