@@ -217,7 +217,7 @@ const IrisCarousel = memo(function IrisCarousel({
             ref={(node) => {
               cardRefs.current[i] = node;
             }}
-            data-cursor={`${member.name} // ${member.role}`}
+            data-cursor="VIEW CASE"
             className="absolute left-1/2 top-1/2 w-[120px] h-[160px] md:w-[130px] md:h-[172px] pointer-events-auto will-change-transform select-none cursor-pointer"
             style={{
               transform: "translate3d(-50%, -50%, 0) scale(0)",

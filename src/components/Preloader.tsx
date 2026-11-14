@@ -277,14 +277,12 @@ export default function Preloader({
         ref={frontRef}
         className="fixed inset-0 z-[60] text-white flex flex-col items-center justify-between pointer-events-none select-none will-change-transform"
       >
-        {/* Top Bar: Left Role & Right Loading counter + spinner */}
+        {/* Top Bar: Loading counter + spinner */}
         <div
           ref={sideTextsRef}
           className="h-[52px] px-[3vw] flex items-center justify-between w-full pointer-events-none"
         >
-          <span className="font-mono text-[11px] uppercase tracking-[0.04em] text-[#ffffff8c]">
-            Friendship circle
-          </span>
+          <div />
 
           <div className="flex items-center gap-2">
             <span

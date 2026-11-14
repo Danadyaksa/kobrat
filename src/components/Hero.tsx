@@ -72,21 +72,16 @@ export default function Hero({
 
       {/* Center Copy Block - refined proportion matching ellioteriksson.com */}
       <div
-        className={`relative z-40 max-w-[500px] pointer-events-none flex flex-col items-center text-center gap-2.5 px-4 transition-opacity duration-600 ${
+        className={`relative z-40 max-w-[560px] pointer-events-none flex flex-col items-center text-center gap-3 px-4 transition-opacity duration-600 ${
           introComplete ? "opacity-100" : "opacity-0"
         }`}
       >
-        {/* Subtle pretitle matching Elliot's BASED IN STOCKHOLM */}
-        <span className="font-mono text-[10px] md:text-[11px] uppercase tracking-[0.08em] text-[#767676] select-none">
-          Friendship Circle
-        </span>
-
-        {/* Display Title - refined elegant font size */}
-        <h1 className="text-[clamp(18px,min(2.1vw,2.9svh),27px)] leading-[1.32] tracking-[-0.03em] text-[#0c0c0c] font-normal select-none">
+        {/* Display Title - refined slightly enlarged font size */}
+        <h1 className="text-[clamp(21px,min(2.4vw,3.2svh),31px)] leading-[1.32] tracking-[-0.03em] text-[#0c0c0c] font-normal select-none">
           We’re{" "}
           <span
             style={{ fontFamily: "var(--font-wordmark)" }}
-            className="text-[1.22em] lowercase leading-none inline-block text-[#0c0c0c]"
+            className="text-[1.24em] lowercase leading-none inline-block text-[#0c0c0c]"
           >
             kobrat
           </span>
