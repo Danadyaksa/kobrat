@@ -64,16 +64,11 @@ export default function Hero({ introComplete }: HeroProps) {
       {/* 3D Rotating Iris Carousel */}
       <IrisCarousel />
 
-      {/* Center Copy Block - Elliot Eriksson 1:1 Layout */}
+      {/* Center Copy Block */}
       <div className="relative z-30 max-w-[620px] pointer-events-none flex flex-col items-center text-center gap-4 md:gap-6 px-4">
-        {/* Pretitle */}
-        <p className="font-mono text-[11px] uppercase tracking-[0.04em] text-[#767676] select-none">
-          Based in Jakarta
-        </p>
-
-        {/* Display Title with exact Gossip HighPixel name mark */}
+        {/* Display Title with We're and exact Gossip HighPixel name mark */}
         <h1 className="text-[clamp(26px,2.8vw,46px)] leading-[1.2] tracking-[-0.035em] text-[#0c0c0c] font-normal select-none">
-          I’m{" "}
+          We’re{" "}
           <span
             style={{ fontFamily: "var(--font-wordmark)" }}
             className="text-[1.35em] lowercase leading-none inline-block text-[#0c0c0c]"

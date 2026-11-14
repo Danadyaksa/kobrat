@@ -34,7 +34,7 @@ export default function Home() {
       <footer className="fixed bottom-0 inset-x-0 z-30 px-[3vw] py-4 flex items-center justify-between text-[10px] font-mono tracking-[0.04em] text-[#767676] uppercase pointer-events-none">
         <span>© 2024 KOBRAT</span>
         <div className="hidden sm:flex items-center gap-3">
-          <span>JAKARTA</span>
+          <span>CIRCLE</span>
           <span>{"//"}</span>
           <span>EST. 2024</span>
         </div>

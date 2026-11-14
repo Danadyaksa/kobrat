@@ -10,7 +10,6 @@ export default function Header() {
     function updateClock() {
       const now = new Date();
       const formatted = new Intl.DateTimeFormat("en-GB", {
-        timeZone: "Asia/Jakarta",
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
@@ -26,13 +25,9 @@ export default function Header() {
   return (
     <header className="fixed top-0 inset-x-0 z-40 transition-colors duration-400">
       <div className="h-[52px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-6">
-        {/* Left: Location & Local Time */}
+        {/* Left: Local Time */}
         <div className="font-mono text-[10px] uppercase tracking-[0.04em] text-[#767676] flex items-center gap-2 select-none">
-          <span>Currently in</span>
-          <span className="text-[#0c0c0c] underline decoration-dotted underline-offset-4">
-            Jakarta
-          </span>
-          <time className="text-[#767676] ml-1">{time}</time>
+          <time className="text-[#767676]">{time}</time>
         </div>
 
         {/* Center: Wordmark in exact Gossip font */}
