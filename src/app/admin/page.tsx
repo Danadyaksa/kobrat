@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Member } from "@/data/members";
 import CustomCursor from "@/components/CustomCursor";
 import ThreePixelEye from "@/components/ThreePixelEye";
+import ImageCropperModal from "@/components/ImageCropperModal";
 
 function RollingText({ text }: { text: string }) {
   return (
@@ -55,6 +56,9 @@ function AdminContent() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isCropperOpen, setIsCropperOpen] = useState<boolean>(false);
+  const [rawImageToCrop, setRawImageToCrop] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch members on load
@@ -76,7 +80,7 @@ function AdminContent() {
     loadMembers();
   }, []);
 
-  // Handle ?edit=id query param
+  // Handle ?edit=id query param (only once per query value)
   const handledEditQueryRef = useRef<string | null>(null);
   useEffect(() => {
     if (editQueryId && members.length > 0 && handledEditQueryRef.current !== editQueryId) {
@@ -107,27 +111,48 @@ function AdminContent() {
     setEditingMember(null);
     setUploadedFile(null);
     setPreviewUrl("");
+    setIsCropperOpen(false);
+    setRawImageToCrop(null);
     if (typeof window !== "undefined" && window.location.search) {
       window.history.replaceState(null, "", "/admin");
     }
   };
 
+  // Directly select image file and open cropper
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setUploadedFile(file);
       const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
+      setRawImageToCrop(objectUrl);
+      setIsCropperOpen(true);
     }
+    // Reset so re-selecting same file triggers onChange
+    e.target.value = "";
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("image/")) {
-      setUploadedFile(file);
       const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
+      setRawImageToCrop(objectUrl);
+      setIsCropperOpen(true);
+    }
+  };
+
+  // When user applies crop in ImageCropperModal
+  const handleCropComplete = (croppedFile: File, croppedPreviewUrl: string) => {
+    setUploadedFile(croppedFile);
+    setPreviewUrl(croppedPreviewUrl);
+    setIsCropperOpen(false);
+    setRawImageToCrop(null);
+    showToast("Foto berhasil di-crop (rasio 3:4)");
+  };
+
+  const openExistingImageCropper = () => {
+    if (previewUrl) {
+      setRawImageToCrop(previewUrl);
+      setIsCropperOpen(true);
     }
   };
 
@@ -146,7 +171,7 @@ function AdminContent() {
     let finalImageUrl = formData.image;
 
     try {
-      // 1. Upload new image if a file was selected
+      // 1. Upload new image if a file was selected or cropped
       if (uploadedFile) {
         setIsUploading(true);
         const uploadForm = new FormData();
@@ -194,11 +219,11 @@ function AdminContent() {
         await loadMembers();
       }
 
-      showToast(`Saved changes for ${updatedMember.name}`);
+      showToast(`Berhasil menyimpan data ${updatedMember.name}`);
       closeEditModal();
     } catch (err: unknown) {
       console.error("Save error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to save";
+      const errorMessage = err instanceof Error ? err.message : "Gagal menyimpan data";
       alert(errorMessage);
     } finally {
       setIsSaving(false);
@@ -322,7 +347,7 @@ function AdminContent() {
               >
                 <div>
                   {/* Photo Preview Container */}
-                  <div className="relative w-full aspect-[4/5] rounded-[6px] overflow-hidden bg-[#f4f4f5] mb-4 border border-[#f0f0f0]">
+                  <div className="relative w-full aspect-[3/4] rounded-[6px] overflow-hidden bg-[#f4f4f5] mb-4 border border-[#f0f0f0]">
                     <Image
                       src={member.image}
                       alt={member.name}
@@ -388,29 +413,29 @@ function AdminContent() {
       {/* Edit Member Modal / Drawer */}
       <AnimatePresence>
         {editingMember && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeEditModal}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             />
 
-            {/* Modal Dialog Card */}
+            {/* Modal Dialog Card with Fixed Header & Sticky Footer */}
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 12 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-[620px] max-h-[90vh] overflow-y-auto bg-white rounded-[10px] shadow-[0_20px_50px_rgba(0,0,0,0.18)] border border-[#e5e7eb] p-6 sm:p-8 z-10"
+              className="relative w-full max-w-[640px] max-h-[92vh] bg-white rounded-[10px] shadow-[0_25px_60px_rgba(0,0,0,0.22)] border border-[#e5e7eb] flex flex-col z-10 overflow-hidden"
             >
-              {/* Modal Header */}
-              <div className="flex items-start justify-between gap-4 pb-5 border-b border-[#e5e7eb]">
+              {/* Modal Header - Fixed at Top */}
+              <div className="shrink-0 px-6 sm:px-8 py-4 sm:py-5 border-b border-[#e5e7eb] flex items-start justify-between gap-4 bg-white">
                 <div>
                   <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.08em] text-[#767676] mb-1">
-                    <span>EDIT MEMBER</span>
+                    <span>EDIT MEMBER PROFILE</span>
                     <span>//</span>
                     <span>0{editingMember.id}</span>
                   </div>
@@ -433,60 +458,98 @@ function AdminContent() {
                 </button>
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleSave} className="mt-6 space-y-5">
-                
-                {/* Photo Upload & Preview Section */}
+              {/* Form Body - Scrollable */}
+              <form
+                id="edit-member-form"
+                onSubmit={handleSave}
+                className="flex-1 overflow-y-auto px-6 sm:px-8 py-5 space-y-5"
+              >
+                {/* Photo Upload & Cropping Section */}
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-2">
-                    MEMBER PORTRAIT PHOTO
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676]">
+                      FOTO PROFIL // 3:4 PORTRAIT
+                    </label>
+                    <span className="text-[9px] font-mono text-[#a1a1aa] uppercase">
+                      RATIO: 3:4
+                    </span>
+                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-4 items-center">
-                    {/* Portrait Preview Box */}
-                    <div className="relative w-full aspect-[3/4] max-w-[140px] rounded-[6px] overflow-hidden bg-[#f4f4f5] border border-[#e5e7eb] shadow-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-[130px_1fr] gap-4 sm:gap-5 items-start bg-[#f9fafb] border border-[#e5e7eb] rounded-[8px] p-4">
+                    {/* Portrait Preview Box with Click-to-Change */}
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="group relative w-full aspect-[3/4] max-w-[130px] mx-auto sm:mx-0 rounded-[6px] overflow-hidden bg-[#f4f4f5] border border-[#e5e7eb] shadow-sm cursor-pointer"
+                      title="Klik untuk memilih foto"
+                    >
                       {previewUrl ? (
                         <Image
                           src={previewUrl}
                           alt="Preview"
                           fill
-                          className="object-cover"
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] font-mono text-[#a1a1aa]">
-                          NO PHOTO
+                        <div className="w-full h-full flex flex-col items-center justify-center text-[10px] font-mono text-[#a1a1aa] gap-1 p-2 text-center">
+                          <span>NO PHOTO</span>
                         </div>
                       )}
+                      
+                      {/* Hover Overlay */}
+                      <div className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-2 text-center text-white">
+                        <span className="text-[15px]">📷</span>
+                        <span className="font-mono text-[9px] uppercase tracking-[0.06em] font-medium leading-tight">
+                          GANTI FOTO
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Upload Controls */}
-                    <div className="space-y-3">
-                      {/* Drag and Drop Zone */}
+                    {/* Controls */}
+                    <div className="space-y-3 flex flex-col justify-center">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+
+                      {/* Prominent Action Buttons */}
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="h-[36px] px-4 rounded-[5px] bg-[#0c0c0c] hover:bg-[#27272a] text-white font-mono text-[11px] uppercase tracking-[0.06em] font-medium flex items-center gap-2 cursor-pointer shadow-sm transition-colors"
+                        >
+                          <span>📁 PILIH FOTO LANGSUNG</span>
+                        </button>
+
+                        {previewUrl && (
+                          <button
+                            type="button"
+                            onClick={openExistingImageCropper}
+                            className="h-[36px] px-3.5 rounded-[5px] border border-[#d4d4d8] hover:border-[#0c0c0c] bg-white text-[#0c0c0c] font-mono text-[10px] uppercase tracking-[0.06em] flex items-center gap-1.5 cursor-pointer transition-colors"
+                          >
+                            <span>✂ SESUAIKAN / CROP</span>
+                          </button>
+                        )}
+                      </div>
+
                       <div
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={handleDrop}
                         onClick={() => fileInputRef.current?.click()}
-                        className="border border-dashed border-[#d4d4d8] hover:border-[#0c0c0c] bg-[#fafafa] hover:bg-[#f4f4f5] rounded-[6px] p-4 text-center cursor-pointer transition-colors"
+                        className="border border-dashed border-[#d4d4d8] hover:border-[#0c0c0c] bg-white rounded-[5px] p-2.5 text-center cursor-pointer transition-colors"
                       >
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="hidden"
-                        />
-                        <div className="font-mono text-[11px] text-[#0c0c0c] font-medium">
-                          {uploadedFile ? uploadedFile.name : "CHOOSE IMAGE FILE OR DROP HERE"}
-                        </div>
-                        <div className="font-mono text-[9px] text-[#a1a1aa] mt-0.5 uppercase">
-                          PNG, JPG, WEBP UP TO 10MB
+                        <div className="font-mono text-[10px] text-[#71717a] font-medium">
+                          {uploadedFile ? `✓ ${uploadedFile.name}` : "Atau drag & drop file foto ke sini"}
                         </div>
                       </div>
 
                       {/* Direct URL Alternative */}
-                      <div>
+                      <div className="pt-2 border-t border-[#e5e7eb]">
                         <span className="block text-[9px] font-mono text-[#a1a1aa] uppercase mb-1">
-                          OR DIRECT IMAGE URL:
+                          ATAU PASTE URL GAMBAR:
                         </span>
                         <input
                           type="url"
@@ -497,7 +560,7 @@ function AdminContent() {
                             setPreviewUrl(e.target.value);
                             setUploadedFile(null);
                           }}
-                          className="w-full h-[34px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[11px] font-mono text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
+                          className="w-full h-[32px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[11px] font-mono text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
                         />
                       </div>
                     </div>
@@ -508,7 +571,7 @@ function AdminContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                      NAME *
+                      NAMA LENGKAP / PANGGILAN *
                     </label>
                     <input
                       type="text"
@@ -568,42 +631,63 @@ function AdminContent() {
                 {/* Bio / Persona Statement */}
                 <div>
                   <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                    BIO / STATEMENT
+                    BIO / KUTIPAN PROFIL
                   </label>
                   <textarea
                     rows={3}
                     value={formData.bio}
                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                    placeholder="Short narrative or quote shown on the member profile page..."
+                    placeholder="Deskripsi singkat yang tampil di halaman profil anggota..."
                     className="w-full p-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors resize-none"
                   />
                 </div>
+              </form>
 
-                {/* Action Buttons */}
-                <div className="pt-4 border-t border-[#e5e7eb] flex items-center justify-end gap-3">
+              {/* Modal Footer - STICKY AT BOTTOM, 100% ALWAYS VISIBLE */}
+              <div className="shrink-0 px-6 sm:px-8 py-4 bg-[#fbfbfb] border-t border-[#e5e7eb] flex items-center justify-between gap-3 z-20">
+                <div className="font-mono text-[10px] text-[#767676] uppercase hidden sm:block">
+                  {uploadedFile ? "● FOTO DISESUAIKAN (3:4)" : "SIAP SIMPAN PERUBAHAN"}
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <button
                     type="button"
                     onClick={closeEditModal}
                     disabled={isSaving}
-                    className="h-[38px] px-5 rounded-[5px] border border-[#e5e7eb] hover:bg-[#f4f4f5] text-[#0c0c0c] text-[11px] font-mono uppercase tracking-[0.04em] transition-colors"
+                    className="h-[40px] px-5 rounded-[5px] border border-[#e5e7eb] hover:bg-white text-[#0c0c0c] text-[11px] font-mono uppercase tracking-[0.04em] transition-colors cursor-pointer"
                   >
-                    CANCEL
+                    BATAL
                   </button>
 
                   <button
                     type="submit"
+                    form="edit-member-form"
                     disabled={isSaving}
-                    className="h-[38px] px-6 rounded-[5px] bg-[#0c0c0c] hover:bg-[#27272a] text-white text-[11px] font-mono uppercase tracking-[0.06em] font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="h-[40px] px-7 rounded-[5px] bg-[#0c0c0c] hover:bg-[#27272a] text-white text-[11px] font-mono uppercase tracking-[0.06em] font-medium transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-md"
                   >
                     {isSaving && (
                       <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
                     )}
-                    <span>{isSaving ? "SAVING..." : "SAVE CHANGES"}</span>
+                    <span>{isSaving ? "MENYIMPAN..." : "SIMPAN PERUBAHAN"}</span>
                   </button>
                 </div>
-              </form>
+              </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Interactive 3:4 Image Cropper Modal */}
+      <AnimatePresence>
+        {isCropperOpen && rawImageToCrop && (
+          <ImageCropperModal
+            imageSrc={rawImageToCrop}
+            onCropComplete={handleCropComplete}
+            onCancel={() => {
+              setIsCropperOpen(false);
+              setRawImageToCrop(null);
+            }}
+          />
         )}
       </AnimatePresence>
 
