@@ -2,23 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import ThreePixelEye from "./ThreePixelEye";
 
 interface CustomCursorProps {
   isDark?: boolean;
-}
-
-function PixelEye({ className = "w-[14px] h-[7px] shrink-0" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 8 4"
-      fill="currentColor"
-      shapeRendering="crispEdges"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M1 0h6v1h-6zM0 1h1v1h-1zM3 1h2v1h-2zM7 1h1v1h-1zM1 2h1v1h-1zM3 2h2v1h-2zM6 2h1v1h-1zM2 3h4v1h-4z" />
-    </svg>
-  );
 }
 
 export default function CustomCursor({ isDark = false }: CustomCursorProps) {
@@ -169,11 +156,9 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
       {/* Floating Pill Badge when hovering cards (Exact match to Elliot Eriksson) */}
       <div
         ref={pillRef}
-        className="fixed top-0 left-0 pointer-events-none z-[9999] will-change-transform flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-[#0c0c0c] text-white font-mono text-[11px] uppercase tracking-[0.02em] shadow-[0_8px_24px_rgba(0,0,0,0.25)] border border-white/10 select-none"
+        className="fixed top-0 left-0 pointer-events-none z-[9999] will-change-transform flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#0c0c0c] text-white font-mono text-[11px] uppercase tracking-[0.02em] shadow-[0_8px_24px_rgba(0,0,0,0.25)] border border-white/10 select-none"
       >
-        <span className="pixel-spin-3d">
-          <PixelEye className="w-[14px] h-[7px] text-white shrink-0" />
-        </span>
+        <ThreePixelEye />
         <span className="whitespace-nowrap font-medium leading-none">
           {pillText}
         </span>
