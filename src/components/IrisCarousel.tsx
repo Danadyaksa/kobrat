@@ -247,7 +247,7 @@ const IrisCarousel = memo(function IrisCarousel({
           <TransitionLink
             key={member.id}
             href={`/members/${member.id}`}
-            aria-label={`${member.name} - ${member.role}`}
+            aria-label={member.name}
             ref={(node) => {
               cardRefs.current[i] = node as unknown as HTMLAnchorElement;
             }}

@@ -54,13 +54,11 @@ function AdminContent() {
   const [formData, setFormData] = useState<{
     name: string;
     nickname: string;
-    role: string;
     instagram: string;
     bio: string;
   }>({
     name: "",
     nickname: "",
-    role: "",
     instagram: "",
     bio: "",
   });
@@ -109,7 +107,6 @@ function AdminContent() {
     setFormData({
       name: member.name,
       nickname: member.nickname,
-      role: member.role,
       instagram: member.instagram || "",
       bio: member.bio || "",
     });
@@ -207,7 +204,6 @@ function AdminContent() {
         ...editingMember,
         name: formData.name.trim(),
         nickname: formData.nickname.trim(),
-        role: formData.role.trim(),
         instagram: formData.instagram.trim(),
         bio: formData.bio.trim(),
         image: finalImageUrl,
@@ -245,8 +241,7 @@ function AdminContent() {
   const filteredMembers = members.filter(
     (m) =>
       m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.nickname.toLowerCase().includes(search.toLowerCase()) ||
-      m.role.toLowerCase().includes(search.toLowerCase())
+      m.nickname.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -308,7 +303,7 @@ function AdminContent() {
               member dashboard
             </h1>
             <p className="text-[13px] font-mono text-[#767676] mt-1">
-              Update member portraits, names, roles, and credentials in real-time.
+              Update member portraits, names, and profiles in real-time.
             </p>
           </div>
 
@@ -316,7 +311,7 @@ function AdminContent() {
           <div className="relative w-full md:w-[280px]">
             <input
               type="text"
-              placeholder="FILTER BY NAME / ROLE..."
+              placeholder="FILTER BY NAME..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full h-[38px] px-3.5 bg-white border border-[#e4e4e7] rounded-[6px] text-[11px] font-mono tracking-[0.04em] uppercase text-[#0c0c0c] placeholder:text-[#a1a1aa] focus:outline-none focus:border-[#0c0c0c] transition-colors"
@@ -382,10 +377,6 @@ function AdminContent() {
                         {member.nickname}
                       </span>
                     </div>
-
-                    <p className="font-mono text-[11px] text-[#767676] leading-snug line-clamp-1">
-                      {member.role}
-                    </p>
 
                     {member.instagram && (
                       <p className="font-mono text-[10px] text-[#a1a1aa] pt-0.5">
@@ -592,34 +583,18 @@ function AdminContent() {
                   </div>
                 </div>
 
-                {/* Role & Instagram row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                      ROLE *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.role}
-                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                      placeholder="e.g. Vision & Direction"
-                      className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                      INSTAGRAM HANDLE
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.instagram}
-                      onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
-                      placeholder="@username"
-                      className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
-                    />
-                  </div>
+                {/* Instagram Handle */}
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
+                    INSTAGRAM HANDLE
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.instagram}
+                    onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                    placeholder="@username"
+                    className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
+                  />
                 </div>
 
                 {/* Bio / Persona Statement */}

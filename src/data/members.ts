@@ -4,7 +4,7 @@ export interface Member {
   id: number;
   name: string;
   nickname: string;
-  role: string;
+  role?: string;
   image: string;
   instagram?: string;
   bio?: string;
