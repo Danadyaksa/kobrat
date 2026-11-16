@@ -88,7 +88,7 @@ export default function Hero({
         </h1>
 
         {/* Scroll indicator pixel arrow */}
-        <div className="mt-2 pointer-events-auto">
+        <div className="mt-2 pointer-events-auto z-50">
           <a
             href="#gallery"
             aria-label="Scroll down to gallery"

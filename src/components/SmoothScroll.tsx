@@ -3,6 +3,13 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 
+let globalLenis: Lenis | null = null;
+
+export function getLenis(): Lenis | null {
+  if (typeof window === "undefined") return null;
+  return globalLenis || (window as unknown as { __lenis?: Lenis }).__lenis || null;
+}
+
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const lenis = new Lenis({
@@ -12,6 +19,9 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       gestureOrientation: "vertical",
       smoothWheel: true,
     });
+
+    globalLenis = lenis;
+    (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
 
     let animationFrameId: number;
     function raf(time: number) {
@@ -24,6 +34,10 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     return () => {
       cancelAnimationFrame(animationFrameId);
       lenis.destroy();
+      globalLenis = null;
+      if (typeof window !== "undefined") {
+        delete (window as unknown as { __lenis?: Lenis }).__lenis;
+      }
     };
   }, []);
 

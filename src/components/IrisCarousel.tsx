@@ -5,6 +5,7 @@ import TransitionLink from "./TransitionLink";
 import gsap from "gsap";
 import { Member, members, getMemberSlug } from "@/data/members";
 import MemberCard from "./MemberCard";
+import { getLenis } from "./SmoothScroll";
 
 interface IrisCarouselProps {
   showSingleCard?: boolean;
@@ -48,6 +49,15 @@ const IrisCarousel = memo(function IrisCarousel({
     burstProgress: isBursting ? 1 : 0,
     singleCardScale: showSingleCard ? 1 : 0,
     featuredIndex: 0,
+    // Reactive Scroll & Dynamic Physics (matches ellioteriksson.com)
+    scrollBoost: 0,
+    wheelVelocity: 0,
+    isDragging: false,
+    dragStartX: 0,
+    lastDragX: 0,
+    lastDragTime: 0,
+    dragVelocity: 0,
+    dragDistance: 0,
   });
 
   // Pick random member photo for the initial preloader card on every refresh
@@ -145,23 +155,133 @@ const IrisCarousel = memo(function IrisCarousel({
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Continuous RAF render loop - matches Elliot's exact ~90s smooth speed
+  // Wheel impulse listener (immediate reactive kick on mouse wheel or trackpad flick)
+  useEffect(() => {
+    function handleWheel(e: WheelEvent) {
+      // Normalize delta across browsers
+      const delta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 120);
+      stateRef.current.wheelVelocity += delta * 0.00015;
+    }
+
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  // Interactive Drag & Momentum Handling
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const s = stateRef.current;
+    s.isDragging = true;
+    s.dragStartX = e.clientX;
+    s.lastDragX = e.clientX;
+    s.lastDragTime = performance.now();
+    s.dragVelocity = 0;
+    s.dragDistance = 0;
+  }, []);
+
+  useEffect(() => {
+    function handleGlobalPointerMove(e: PointerEvent) {
+      const s = stateRef.current;
+      if (!s.isDragging) return;
+
+      const now = performance.now();
+      const dt = Math.max(1, now - s.lastDragTime);
+      const deltaX = e.clientX - s.lastDragX;
+      s.dragDistance += Math.abs(deltaX);
+
+      // Map horizontal pixel drag to angular rotation in radians
+      const radDelta = deltaX / (s.rx * 1.8);
+      s.currentRot += radDelta;
+      s.targetRot += radDelta;
+
+      // Capture instantaneous flick velocity
+      s.dragVelocity = (radDelta / dt) * 16.67;
+
+      s.lastDragX = e.clientX;
+      s.lastDragTime = now;
+    }
+
+    function handleGlobalPointerUp() {
+      stateRef.current.isDragging = false;
+    }
+
+    window.addEventListener("pointermove", handleGlobalPointerMove);
+    window.addEventListener("pointerup", handleGlobalPointerUp);
+    window.addEventListener("pointercancel", handleGlobalPointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handleGlobalPointerMove);
+      window.removeEventListener("pointerup", handleGlobalPointerUp);
+      window.removeEventListener("pointercancel", handleGlobalPointerUp);
+    };
+  }, []);
+
+  // Continuous RAF render loop with scroll reactivity & physics (matches ellioteriksson.com)
   useEffect(() => {
     let animId: number;
+    let lastTime = performance.now();
+    let lastScrollY = typeof window !== "undefined" ? window.scrollY : 0;
     const numCards = memberList.length || members.length;
     const step = (Math.PI * 2) / numCards;
 
-    function renderLoop() {
+    function renderLoop(now: number) {
+      const dtMs = Math.min(50, Math.max(1, now - lastTime));
+      const dtSec = dtMs / 1000;
+      lastTime = now;
+      const frameDelta = dtSec * 60; // normalized to 60fps
+
       const s = stateRef.current;
       const burst = s.burstProgress;
       const singleScale = s.singleCardScale;
       const featIdx = s.featuredIndex;
 
       if (burst > 0) {
-        // Soft, luxurious rotation speed
-        const baseSpeed = s.isHovered ? 0.00012 : 0.00065;
-        s.targetRot += baseSpeed;
-        s.currentRot += (s.targetRot + s.mouseTarget - s.currentRot) * 0.035;
+        // Query Lenis scroll velocity or calculate fallback from window.scrollY
+        const lenis = getLenis();
+        const lenisVel = lenis?.velocity ?? 0;
+
+        const curScrollY = window.scrollY;
+        const nativeVel = ((curScrollY - lastScrollY) / dtMs) * 16.67;
+        lastScrollY = curScrollY;
+
+        // Use whichever velocity source has active motion
+        const effectiveVel = Math.abs(lenisVel) > 0.05 ? lenisVel : nativeVel;
+
+        // Calculate dynamic reactive boost from page scrolling
+        // Normal scroll (vel ~ 25px): ~0.0042 boost (~7x faster)
+        // Fast scroll (vel ~ 60px): ~0.010 boost (~16x faster)
+        // Hard flick / heavy scroll: capped at 0.025 (~38x faster)
+        const targetBoost = Math.max(
+          -0.025,
+          Math.min(0.025, (effectiveVel / 30) * 0.0045)
+        );
+
+        // Framerate-independent exponential smoothing
+        const smoothFactor = 1 - Math.pow(0.02, dtSec);
+        s.scrollBoost += (targetBoost - s.scrollBoost) * smoothFactor;
+        if (Math.abs(s.scrollBoost) < 1e-6) s.scrollBoost = 0;
+
+        // Decay wheel velocity impulse smoothly
+        s.wheelVelocity *= Math.pow(0.06, dtSec);
+        if (Math.abs(s.wheelVelocity) < 1e-6) s.wheelVelocity = 0;
+
+        // Decay drag velocity flick momentum
+        if (!s.isDragging) {
+          s.dragVelocity *= Math.pow(0.08, dtSec);
+          if (Math.abs(s.dragVelocity) < 1e-6) s.dragVelocity = 0;
+        }
+
+        // Base idle speed (gently slows when hovered to allow easy reading / clicking)
+        const targetBaseSpeed = s.isHovered ? 0.0001 : 0.00065;
+
+        // Combined dynamic angular velocity
+        const dynamicSpeed = s.isDragging
+          ? 0
+          : (targetBaseSpeed + s.scrollBoost + s.wheelVelocity + s.dragVelocity) *
+            frameDelta;
+
+        s.targetRot += dynamicSpeed;
+        s.currentRot +=
+          (s.targetRot + s.mouseTarget - s.currentRot) * (0.08 * frameDelta);
       }
 
       const rot = s.currentRot;
@@ -232,16 +352,17 @@ const IrisCarousel = memo(function IrisCarousel({
 
     animId = requestAnimationFrame(renderLoop);
     return () => cancelAnimationFrame(animId);
-  }, []);
+  }, [memberList.length]);
 
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 flex items-center justify-center pointer-events-none perspective-1200 overflow-visible -translate-y-5 md:-translate-y-7"
+      className="absolute inset-0 flex items-center justify-center pointer-events-none perspective-1200 overflow-visible -translate-y-5 md:-translate-y-7 select-none touch-pan-y"
     >
       <div
         ref={trackRef}
-        className="relative w-full h-full flex items-center justify-center transform-style-3d will-change-transform"
+        onPointerDown={handlePointerDown}
+        className="relative w-full h-full flex items-center justify-center transform-style-3d will-change-transform pointer-events-none"
       >
         {memberList.map((member, i) => (
           <TransitionLink
@@ -252,6 +373,14 @@ const IrisCarousel = memo(function IrisCarousel({
               cardRefs.current[i] = node as unknown as HTMLAnchorElement;
             }}
             data-cursor="VIEW PROFILE"
+            onPointerDown={handlePointerDown}
+            onClick={(e) => {
+              // If user was dragging horizontally (> 6px), cancel link navigation
+              if (stateRef.current.dragDistance > 6) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
             className="absolute left-1/2 top-1/2 w-[120px] h-[160px] md:w-[130px] md:h-[172px] pointer-events-auto will-change-transform select-none cursor-pointer block focus:outline-none"
             style={{
               transform: "translate3d(-50%, -50%, 0) scale(0)",
