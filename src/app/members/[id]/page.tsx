@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getMembers, Member } from "@/data/members";
-import CustomCursor from "@/components/CustomCursor";
 import ThreePixelEye from "@/components/ThreePixelEye";
 
 interface PageProps {
@@ -60,9 +59,6 @@ async function MemberContent({ params }: PageProps) {
 
   return (
     <div className="relative min-h-screen bg-white text-[#0c0c0c] flex flex-col selection:bg-[#0c0c0c] selection:text-white cursor-default">
-      {/* Sleek Custom Cursor */}
-      <CustomCursor />
-
       {/* Top Header */}
       <header className="fixed top-0 inset-x-0 z-[70] bg-white/85 backdrop-blur-md border-b border-[#f0f0f0]">
         <div className="h-[52px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-4">

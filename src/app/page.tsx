@@ -5,15 +5,26 @@ import Link from "next/link";
 import Preloader from "@/components/Preloader";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import CustomCursor from "@/components/CustomCursor";
+import { usePageTransition } from "@/components/PageTransition";
 
 export default function Home() {
-  const [showSingleCard, setShowSingleCard] = useState<boolean>(false);
-  const [isBursting, setIsBursting] = useState<boolean>(false);
-  const [introComplete, setIntroComplete] = useState<boolean>(false);
+  const { introSeen } = usePageTransition();
+  const [showSingleCard, setShowSingleCard] = useState<boolean>(introSeen);
+  const [isBursting, setIsBursting] = useState<boolean>(introSeen);
+  const [introComplete, setIntroComplete] = useState<boolean>(introSeen);
 
-  // Safety fallback
   useEffect(() => {
+    if (introSeen) {
+      setShowSingleCard(true);
+      setIsBursting(true);
+      setIntroComplete(true);
+    }
+  }, [introSeen]);
+
+  // Safety fallback for first visit
+  useEffect(() => {
+    if (introSeen) return;
+
     const fallbackTimer = setTimeout(() => {
       setShowSingleCard(true);
       setIsBursting(true);
@@ -21,14 +32,11 @@ export default function Home() {
     }, 6000);
 
     return () => clearTimeout(fallbackTimer);
-  }, []);
+  }, [introSeen]);
 
   return (
     <div className="relative min-h-screen bg-white text-[#0c0c0c] flex flex-col selection:bg-[#0c0c0c] selection:text-white cursor-default">
-      {/* Sleek Custom Cursor */}
-      <CustomCursor isDark={!introComplete} />
-
-      {/* Preloader Curtain Overlay (Veil at z-45, Front at z-60) */}
+      {/* Preloader Curtain Overlay (Only runs on initial refresh / first visit) */}
       <Preloader
         onShowSingleCard={() => setShowSingleCard(true)}
         onBurst={() => setIsBursting(true)}

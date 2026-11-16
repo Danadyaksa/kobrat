@@ -45,8 +45,8 @@ const IrisCarousel = memo(function IrisCarousel({
     rx: 580,
     ry: 185,
     rz: 230,
-    burstProgress: 0,
-    singleCardScale: 0,
+    burstProgress: isBursting ? 1 : 0,
+    singleCardScale: showSingleCard ? 1 : 0,
     featuredIndex: 0,
   });
 
@@ -100,6 +100,8 @@ const IrisCarousel = memo(function IrisCarousel({
       return;
     }
 
+    if (stateRef.current.singleCardScale >= 1) return;
+
     const tween = gsap.to(stateRef.current, {
       singleCardScale: 1,
       duration: 0.65,
@@ -117,6 +119,8 @@ const IrisCarousel = memo(function IrisCarousel({
       stateRef.current.burstProgress = 0;
       return;
     }
+
+    if (stateRef.current.burstProgress >= 1) return;
 
     const tween = gsap.to(stateRef.current, {
       burstProgress: 1,

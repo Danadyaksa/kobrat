@@ -3,17 +3,38 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import ThreePixelEye from "./ThreePixelEye";
+import { usePageTransition } from "./PageTransition";
 
 interface CustomCursorProps {
   isDark?: boolean;
 }
 
 export default function CustomCursor({ isDark = false }: CustomCursorProps) {
+  const { isTransitioning, introSeen } = usePageTransition();
+  const [isHomePreloader, setIsHomePreloader] = useState(false);
   const dotWrapRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLDivElement>(null);
   const [pillText, setPillText] = useState<string>("VIEW PROFILE");
   const [cursorKind, setCursorKind] = useState<"default" | "link" | "pill">("default");
   const [isPressed, setIsPressed] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsHomePreloader(window.location.pathname === "/" && !introSeen);
+    }
+  }, [introSeen]);
+
+  // During transition or home preloader, screen is dark: force white dot
+  const effectiveDark = isDark || isTransitioning || isHomePreloader;
+
+  useEffect(() => {
+    if (isTransitioning) {
+      setCursorKind("default");
+      if (pillRef.current) {
+        gsap.to(pillRef.current, { scale: 0.4, autoAlpha: 0, duration: 0.15 });
+      }
+    }
+  }, [isTransitioning]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -144,17 +165,17 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
       {/* Default Soft Dot / Circular Translucent Lens on Link Hover */}
       <div
         ref={dotWrapRef}
-        className="fixed top-0 left-0 pointer-events-none z-[9998] will-change-transform flex items-center justify-center"
+        className="fixed top-0 left-0 pointer-events-none z-[99998] will-change-transform flex items-center justify-center"
       >
         <div
           className={`rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
             cursorKind === "pill"
               ? "scale-0 opacity-0"
               : cursorKind === "link"
-              ? isDark
+              ? effectiveDark
                 ? "w-10 h-10 bg-white/60 shadow-[0_0_0_1px_rgba(0,0,0,0.3)] backdrop-blur-[1px]"
                 : "w-10 h-10 bg-[#0c0c0c]/60 shadow-[0_0_0_1px_rgba(255,255,255,0.7)] backdrop-blur-[1px]"
-              : isDark
+              : effectiveDark
               ? `w-2.5 h-2.5 bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.6)] ${
                   isPressed ? "scale-75" : "scale-100"
                 }`
@@ -168,7 +189,7 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
       {/* Floating Pill Badge when hovering cards (Exact match to Elliot Eriksson) */}
       <div
         ref={pillRef}
-        className="fixed top-0 left-0 pointer-events-none z-[9999] will-change-transform flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#0c0c0c] text-white font-mono text-[11px] uppercase tracking-[0.02em] shadow-[0_8px_24px_rgba(0,0,0,0.25)] border border-white/10 select-none"
+        className="fixed top-0 left-0 pointer-events-none z-[99999] will-change-transform flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#0c0c0c] text-white font-mono text-[11px] uppercase tracking-[0.02em] shadow-[0_8px_24px_rgba(0,0,0,0.25)] border border-white/10 select-none"
       >
         <ThreePixelEye />
         <span className="whitespace-nowrap font-medium leading-none">

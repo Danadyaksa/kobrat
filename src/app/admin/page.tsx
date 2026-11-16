@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { Member } from "@/data/members";
-import CustomCursor from "@/components/CustomCursor";
 import ThreePixelEye from "@/components/ThreePixelEye";
 import ImageCropperModal from "@/components/ImageCropperModal";
 
@@ -252,8 +251,6 @@ function AdminContent() {
 
   return (
     <div className="relative min-h-screen bg-[#fafafa] text-[#0c0c0c] flex flex-col selection:bg-[#0c0c0c] selection:text-white cursor-default">
-      <CustomCursor />
-
       {/* Top Header */}
       <header className="sticky top-0 z-[70] bg-white/90 backdrop-blur-md border-b border-[#e5e7eb]">
         <div className="h-[56px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-4">

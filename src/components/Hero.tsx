@@ -11,6 +11,8 @@ interface HeroProps {
 }
 
 const CHARS = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~|}{[]:;?><";
+const TARGET_TEXT =
+  "8 minds on one wavelength creating intuitive digital experiences.";
 
 export default function Hero({
   introComplete,
@@ -18,15 +20,12 @@ export default function Hero({
   isBursting = false,
 }: HeroProps) {
   const containerRef = useRef<HTMLElement>(null);
-  const [displayText, setDisplayText] = useState(
-    "8 minds on one wavelength creating intuitive digital experiences."
-  );
+  const [displayText, setDisplayText] = useState(TARGET_TEXT);
 
   useEffect(() => {
     if (!introComplete) return;
 
-    const targetText =
-      "8 minds on one wavelength creating intuitive digital experiences.";
+    const targetText = TARGET_TEXT;
     const duration = 1.2;
     const progressObj = { progress: 0 };
 

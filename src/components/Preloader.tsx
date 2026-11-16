@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { usePageTransition } from "./PageTransition";
 
 interface PreloaderProps {
   onShowSingleCard?: () => void;
@@ -17,6 +18,7 @@ export default function Preloader({
   onBurst,
   onComplete,
 }: PreloaderProps) {
+  const { introSeen, setIntroSeen } = usePageTransition();
   const veilRef = useRef<HTMLDivElement>(null);
   const frontRef = useRef<HTMLDivElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
@@ -26,7 +28,7 @@ export default function Preloader({
   const textBaseRef = useRef<SVGTextElement>(null);
   const textFillRef = useRef<SVGTextElement>(null);
 
-  const [isDone, setIsDone] = useState(false);
+  const [isDone, setIsDone] = useState(introSeen);
   const onShowSingleCardRef = useRef(onShowSingleCard);
   const onBurstRef = useRef(onBurst);
   const onCompleteRef = useRef(onComplete);
@@ -39,6 +41,13 @@ export default function Preloader({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (introSeen) {
+      onShowSingleCardRef.current?.();
+      onBurstRef.current?.();
+      onCompleteRef.current?.();
+      setIsDone(true);
+      return;
+    }
 
     const svg = svgRef.current;
     const textBase = textBaseRef.current;
@@ -215,6 +224,7 @@ export default function Preloader({
       tl.addLabel("burst", "+=0.04");
       tl.call(
         () => {
+          setIntroSeen(true);
           onBurstRef.current?.();
           onCompleteRef.current?.(); // Reveal header wordmark underneath seamlessly!
         },
@@ -261,9 +271,9 @@ export default function Preloader({
     }, veil);
 
     return () => ctx.revert();
-  }, []);
+  }, [introSeen, setIntroSeen]);
 
-  if (isDone) return null;
+  if (isDone || introSeen) return null;
 
   return (
     <>
