@@ -133,71 +133,32 @@ export default function CollectiveGallery() {
               {featuredMoments[0].title}
             </h3>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-1.5">
-                {featuredMoments[0].members.map((slug) => (
-                  <TransitionLink
-                    key={slug}
-                    href={`/${slug}`}
-                    data-cursor="VIEW PROFILE"
-                    className="font-mono text-[10px] uppercase tracking-[0.04em] px-2.5 py-1 rounded-full bg-black/5 hover:bg-[#0c0c0c] hover:text-white transition-colors text-[#0c0c0c]"
-                  >
-                    @{slug}
-                  </TransitionLink>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setLightboxMoment(featuredMoments[0])}
-                data-cursor="VIEW"
-                className="group flex items-center gap-1 font-sans text-[14px] font-normal tracking-[-0.01em] text-[#0c0c0c] hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
-              >
-                <span>View moment</span>
-                <span className="transition-transform duration-200 group-hover:translate-x-1">
-                  →
-                </span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setLightboxMoment(featuredMoments[0])}
+              data-cursor="VIEW"
+              className="group flex items-center gap-1 font-sans text-[14px] font-normal tracking-[-0.01em] text-[#0c0c0c] hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
+            >
+              <span>View moment</span>
+              <span className="transition-transform duration-200 group-hover:translate-x-1">
+                →
+              </span>
+            </button>
           </div>
 
-          {/* Massive Technical Crop Frame + Artwork */}
-          <div className="h-[76vh] mx-[3vw] mb-[4vh] border border-dashed border-[#0c0c0c]/30 rounded-lg p-3 md:p-5 flex flex-col justify-between bg-white/10 overflow-hidden">
-            {/* Technical Crop Meta Header */}
-            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.08em] text-[#0c0c0c]/60 pb-2 border-b border-[#0c0c0c]/15">
-              <div className="flex items-center gap-5">
-                <span>OVERSCAN</span>
-                <span>[ 16:9 ]</span>
-                <span className="hidden sm:inline">CROP</span>
-              </div>
-              <div className="flex items-center gap-5">
-                <span className="hidden md:inline">ACTION SAFE</span>
-                <span>1632 × 918</span>
-                <span className="hidden sm:inline">1499 × 864</span>
-              </div>
-            </div>
-
-            {/* Giant Artwork Container */}
-            <div
-              onClick={() => setLightboxMoment(featuredMoments[0])}
-              className="relative flex-1 w-full my-2.5 rounded overflow-hidden cursor-pointer group"
-            >
-              <Image
-                src={featuredMoments[0].image}
-                alt={featuredMoments[0].title}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
-
-            {/* Technical Bottom Markers */}
-            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.06em] text-[#0c0c0c]/50 pt-2 border-t border-[#0c0c0c]/15">
-              <span>{featuredMoments[0].camera}</span>
-              <span>{featuredMoments[0].location}</span>
-              <span>{featuredMoments[0].date}</span>
-            </div>
+          {/* Clean Grand Artwork Container */}
+          <div
+            onClick={() => setLightboxMoment(featuredMoments[0])}
+            className="flex-1 w-full mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
+          >
+            <Image
+              src={featuredMoments[0].image}
+              alt={featuredMoments[0].title}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+            />
           </div>
         </motion.div>
 
@@ -220,71 +181,31 @@ export default function CollectiveGallery() {
               {featuredMoments[1].title}
             </h3>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-1.5">
-                {featuredMoments[1].members.slice(0, 4).map((slug) => (
-                  <TransitionLink
-                    key={slug}
-                    href={`/${slug}`}
-                    data-cursor="VIEW PROFILE"
-                    className="font-mono text-[10px] uppercase tracking-[0.04em] px-2.5 py-1 rounded-full bg-black/5 hover:bg-[#0c0c0c] hover:text-white transition-colors text-[#0c0c0c]"
-                  >
-                    @{slug}
-                  </TransitionLink>
-                ))}
-                <span className="font-mono text-[10px] text-[#767676]">+4</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setLightboxMoment(featuredMoments[1])}
-                data-cursor="VIEW"
-                className="group flex items-center gap-1 font-sans text-[14px] font-normal tracking-[-0.01em] text-[#0c0c0c] hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
-              >
-                <span>View moment</span>
-                <span className="transition-transform duration-200 group-hover:translate-x-1">
-                  →
-                </span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setLightboxMoment(featuredMoments[1])}
+              data-cursor="VIEW"
+              className="group flex items-center gap-1 font-sans text-[14px] font-normal tracking-[-0.01em] text-[#0c0c0c] hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
+            >
+              <span>View moment</span>
+              <span className="transition-transform duration-200 group-hover:translate-x-1">
+                →
+              </span>
+            </button>
           </div>
 
-          {/* Massive Technical Crop Frame + Artwork */}
-          <div className="h-[76vh] mx-[3vw] mb-[4vh] border border-dashed border-[#0c0c0c]/30 rounded-lg p-3 md:p-5 flex flex-col justify-between bg-white/10 overflow-hidden">
-            {/* Technical Crop Meta Header */}
-            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.08em] text-[#0c0c0c]/60 pb-2 border-b border-[#0c0c0c]/15">
-              <div className="flex items-center gap-5">
-                <span>OVERSCAN</span>
-                <span>[ 16:9 ]</span>
-                <span className="hidden sm:inline">CROP</span>
-              </div>
-              <div className="flex items-center gap-5">
-                <span className="hidden md:inline">ACTION SAFE</span>
-                <span>1632 × 918</span>
-                <span className="hidden sm:inline">1499 × 864</span>
-              </div>
-            </div>
-
-            {/* Giant Artwork Container */}
-            <div
-              onClick={() => setLightboxMoment(featuredMoments[1])}
-              className="relative flex-1 w-full my-2.5 rounded overflow-hidden cursor-pointer group"
-            >
-              <Image
-                src={featuredMoments[1].image}
-                alt={featuredMoments[1].title}
-                fill
-                sizes="100vw"
-                className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
-
-            {/* Technical Bottom Markers */}
-            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.06em] text-[#0c0c0c]/50 pt-2 border-t border-[#0c0c0c]/15">
-              <span>{featuredMoments[1].camera}</span>
-              <span>{featuredMoments[1].location}</span>
-              <span>{featuredMoments[1].date}</span>
-            </div>
+          {/* Clean Grand Artwork Container */}
+          <div
+            onClick={() => setLightboxMoment(featuredMoments[1])}
+            className="flex-1 w-full mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
+          >
+            <Image
+              src={featuredMoments[1].image}
+              alt={featuredMoments[1].title}
+              fill
+              sizes="100vw"
+              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+            />
           </div>
         </motion.div>
 
@@ -305,71 +226,31 @@ export default function CollectiveGallery() {
               {featuredMoments[2].title}
             </h3>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-1.5">
-                {featuredMoments[2].members.slice(0, 4).map((slug) => (
-                  <TransitionLink
-                    key={slug}
-                    href={`/${slug}`}
-                    data-cursor="VIEW PROFILE"
-                    className="font-mono text-[10px] uppercase tracking-[0.04em] px-2.5 py-1 rounded-full bg-black/5 hover:bg-[#0c0c0c] hover:text-white transition-colors text-[#0c0c0c]"
-                  >
-                    @{slug}
-                  </TransitionLink>
-                ))}
-                <span className="font-mono text-[10px] text-[#767676]">+4</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setLightboxMoment(featuredMoments[2])}
-                data-cursor="VIEW"
-                className="group flex items-center gap-1 font-sans text-[14px] font-normal tracking-[-0.01em] text-[#0c0c0c] hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
-              >
-                <span>View moment</span>
-                <span className="transition-transform duration-200 group-hover:translate-x-1">
-                  →
-                </span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setLightboxMoment(featuredMoments[2])}
+              data-cursor="VIEW"
+              className="group flex items-center gap-1 font-sans text-[14px] font-normal tracking-[-0.01em] text-[#0c0c0c] hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
+            >
+              <span>View moment</span>
+              <span className="transition-transform duration-200 group-hover:translate-x-1">
+                →
+              </span>
+            </button>
           </div>
 
-          {/* Massive Technical Crop Frame + Artwork */}
-          <div className="h-[76vh] mx-[3vw] mb-[4vh] border border-dashed border-[#0c0c0c]/30 rounded-lg p-3 md:p-5 flex flex-col justify-between bg-white/10 overflow-hidden">
-            {/* Technical Crop Meta Header */}
-            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.08em] text-[#0c0c0c]/60 pb-2 border-b border-[#0c0c0c]/15">
-              <div className="flex items-center gap-5">
-                <span>OVERSCAN</span>
-                <span>[ 16:9 ]</span>
-                <span className="hidden sm:inline">CROP</span>
-              </div>
-              <div className="flex items-center gap-5">
-                <span className="hidden md:inline">ACTION SAFE</span>
-                <span>1632 × 918</span>
-                <span className="hidden sm:inline">1499 × 864</span>
-              </div>
-            </div>
-
-            {/* Giant Artwork Container */}
-            <div
-              onClick={() => setLightboxMoment(featuredMoments[2])}
-              className="relative flex-1 w-full my-2.5 rounded overflow-hidden cursor-pointer group"
-            >
-              <Image
-                src={featuredMoments[2].image}
-                alt={featuredMoments[2].title}
-                fill
-                sizes="100vw"
-                className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
-
-            {/* Technical Bottom Markers */}
-            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.06em] text-[#0c0c0c]/50 pt-2 border-t border-[#0c0c0c]/15">
-              <span>{featuredMoments[2].camera}</span>
-              <span>{featuredMoments[2].location}</span>
-              <span>{featuredMoments[2].date}</span>
-            </div>
+          {/* Clean Grand Artwork Container */}
+          <div
+            onClick={() => setLightboxMoment(featuredMoments[2])}
+            className="flex-1 w-full mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
+          >
+            <Image
+              src={featuredMoments[2].image}
+              alt={featuredMoments[2].title}
+              fill
+              sizes="100vw"
+              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+            />
           </div>
         </motion.div>
       </div>
@@ -448,7 +329,7 @@ export default function CollectiveGallery() {
                           onClick={(e) => e.stopPropagation()}
                           className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white hover:text-black font-mono text-[9px] text-white/80 uppercase transition-colors"
                         >
-                          @{slug}
+                          {slug}
                         </TransitionLink>
                       ))}
                     </div>
@@ -530,7 +411,7 @@ export default function CollectiveGallery() {
                     href={`/${slug}`}
                     className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white hover:text-black transition-colors text-white text-[10px]"
                   >
-                    @{slug}
+                    {slug}
                   </TransitionLink>
                 ))}
               </div>
