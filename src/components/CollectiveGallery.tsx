@@ -5,364 +5,451 @@ import {
   useRef,
   useEffect,
   useCallback,
+  useMemo,
 } from "react";
 import Image from "next/image";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  useMotionValueEvent,
-  AnimatePresence,
-} from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { Moment, moments as staticMoments } from "@/data/moments";
 import TransitionLink from "./TransitionLink";
-import ThreePixelEye from "./ThreePixelEye";
+import { getLenis } from "./SmoothScroll";
 
 export default function CollectiveGallery() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const deckScrollRef = useRef<HTMLDivElement>(null);
-
-  // Active slide index (0 to 7)
-  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [hoveredMomentId, setHoveredMomentId] = useState<number | null>(null);
   const [lightboxMoment, setLightboxMoment] = useState<Moment | null>(null);
 
-  // Scroll Progress Tracking across the multi-screen pinned section
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
+  // Divide moments into two staggered continuous tracks
+  const row1Moments = useMemo(() => staticMoments.slice(0, 4), []);
+  const row2Moments = useMemo(() => staticMoments.slice(4, 8), []);
+
+  // Duplicate for seamless infinite wrapping
+  const row1Items = useMemo(
+    () => [...row1Moments, ...row1Moments, ...row1Moments],
+    [row1Moments]
+  );
+  const row2Items = useMemo(
+    () => [...row2Moments, ...row2Moments, ...row2Moments],
+    [row2Moments]
+  );
+
+  // Track DOM and state references
+  const track1Ref = useRef<HTMLDivElement>(null);
+  const track2Ref = useRef<HTMLDivElement>(null);
+
+  const stateRef = useRef({
+    pos1: 0,
+    pos2: -1200,
+    halfWidth1: 2400,
+    halfWidth2: 2400,
+    isHovered1: false,
+    isHovered2: false,
+    isDragging1: false,
+    isDragging2: false,
+    dragLastX1: 0,
+    dragLastX2: 0,
+    dragVel1: 0,
+    dragVel2: 0,
+    dragDist1: 0,
+    dragDist2: 0,
   });
 
-  // Silky smooth spring interpolation for framerate-independent responsive motion
-  const smoothProgress = useSpring(scrollYProgress, {
-    damping: 24,
-    stiffness: 140,
-    mass: 0.18,
-  });
-
-  // Track scroll state
-  const [progressVal, setProgressVal] = useState(0);
-
-  // 1. Reactive Scale: Small framed card (0.42) -> Fullscreen background (1.0)
-  const portalScale = useTransform(smoothProgress, [0, 0.26], [0.42, 1.0]);
-  const portalRadius = useTransform(smoothProgress, [0, 0.26], [28, 0]);
-  const initialOverlayOpacity = useTransform(smoothProgress, [0, 0.16], [1, 0]);
-
-  // 2. HUD & Slide Deck entry once expanded
-  const hudOpacity = useTransform(smoothProgress, [0.18, 0.28], [0, 1]);
-  const hudY = useTransform(smoothProgress, [0.18, 0.28], [-30, 0]);
-
-  const deckOpacity = useTransform(smoothProgress, [0.20, 0.30], [0, 1]);
-  const deckY = useTransform(smoothProgress, [0.20, 0.30], [60, 0]);
-
-  // 3. Reactive Slide Switching driven by scroll progress between [0.28, 0.98]
-  useMotionValueEvent(smoothProgress, "change", (latest) => {
-    setProgressVal(latest);
-
-    if (latest >= 0.26) {
-      // Map range [0.26, 0.96] to 8 moment indices
-      const norm = Math.min(1, Math.max(0, (latest - 0.26) / 0.70));
-      const idx = Math.min(
-        staticMoments.length - 1,
-        Math.floor(norm * staticMoments.length)
-      );
-      setActiveIndex(idx);
-    }
-  });
-
-  // Keep active slide card centered in the bottom horizontal drawer
+  // Calculate widths on mount and resize
   useEffect(() => {
-    const container = deckScrollRef.current;
-    if (!container) return;
-    const activeChild = container.children[activeIndex] as HTMLElement | undefined;
-    if (activeChild) {
-      const containerWidth = container.clientWidth;
-      const childLeft = activeChild.offsetLeft;
-      const childWidth = activeChild.clientWidth;
-      container.scrollTo({
-        left: childLeft - containerWidth / 2 + childWidth / 2,
-        behavior: "smooth",
-      });
+    function measureWidths() {
+      if (track1Ref.current) {
+        stateRef.current.halfWidth1 = track1Ref.current.scrollWidth / 3;
+      }
+      if (track2Ref.current) {
+        stateRef.current.halfWidth2 = track2Ref.current.scrollWidth / 3;
+      }
     }
-  }, [activeIndex]);
 
-  const currentMoment = staticMoments[activeIndex] || staticMoments[0];
+    measureWidths();
+    window.addEventListener("resize", measureWidths);
+    const timer = setTimeout(measureWidths, 400);
 
-  // Navigation callbacks
-  const handlePrev = useCallback(() => {
-    setActiveIndex((prev) => (prev > 0 ? prev - 1 : staticMoments.length - 1));
-  }, []);
-
-  const handleNext = useCallback(() => {
-    setActiveIndex((prev) => (prev < staticMoments.length - 1 ? prev + 1 : 0));
-  }, []);
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (lightboxMoment) {
-        if (e.key === "Escape") setLightboxMoment(null);
-        if (e.key === "ArrowRight") handleNext();
-        if (e.key === "ArrowLeft") handlePrev();
-        return;
-      }
-
-      // If gallery section is in view
-      if (progressVal > 0.15 && progressVal < 0.98) {
-        if (e.key === "ArrowRight") handleNext();
-        if (e.key === "ArrowLeft") handlePrev();
-      }
+    return () => {
+      window.removeEventListener("resize", measureWidths);
+      clearTimeout(timer);
     };
+  }, []);
 
+  // Continuous RAF loop with smooth autoscroll + scroll velocity coupling
+  useEffect(() => {
+    let animId: number;
+    let lastTime = performance.now();
+    let lastScrollY = typeof window !== "undefined" ? window.scrollY : 0;
+
+    function renderLoop(now: number) {
+      const dtMs = Math.min(50, Math.max(1, now - lastTime));
+      const dtSec = dtMs / 1000;
+      lastTime = now;
+      const frameDelta = dtSec * 60;
+
+      const s = stateRef.current;
+
+      // Query scroll velocity from Lenis or calculate fallback from window.scrollY
+      const lenis = getLenis();
+      const lenisVel = lenis?.velocity ?? 0;
+      const curScrollY = window.scrollY;
+      const nativeVel = ((curScrollY - lastScrollY) / dtMs) * 16.67;
+      lastScrollY = curScrollY;
+
+      const scrollVel = Math.abs(lenisVel) > 0.05 ? lenisVel : nativeVel;
+      const scrollBoost = Math.max(-15, Math.min(15, scrollVel * 0.35));
+
+      // ─── Row 1: Moves Left ───
+      if (!s.isDragging1) {
+        // Decay flick momentum
+        s.dragVel1 *= Math.pow(0.08, dtSec);
+        if (Math.abs(s.dragVel1) < 1e-4) s.dragVel1 = 0;
+
+        if (isPlaying) {
+          const baseSpeed1 = s.isHovered1 ? 0.15 : 0.85;
+          const delta1 = (baseSpeed1 + scrollBoost + s.dragVel1) * frameDelta;
+          s.pos1 -= delta1;
+        } else {
+          s.pos1 -= (scrollBoost + s.dragVel1) * frameDelta;
+        }
+
+        // Infinite wrap
+        const limit1 = s.halfWidth1 || 2400;
+        if (s.pos1 <= -limit1) {
+          s.pos1 += limit1;
+        } else if (s.pos1 >= 0) {
+          s.pos1 -= limit1;
+        }
+      }
+
+      // ─── Row 2: Moves Right ───
+      if (!s.isDragging2) {
+        // Decay flick momentum
+        s.dragVel2 *= Math.pow(0.08, dtSec);
+        if (Math.abs(s.dragVel2) < 1e-4) s.dragVel2 = 0;
+
+        if (isPlaying) {
+          const baseSpeed2 = s.isHovered2 ? 0.15 : 0.72;
+          const delta2 = (baseSpeed2 + scrollBoost * 0.85 - s.dragVel2) * frameDelta;
+          s.pos2 += delta2;
+        } else {
+          s.pos2 += (scrollBoost * 0.85 - s.dragVel2) * frameDelta;
+        }
+
+        // Infinite wrap
+        const limit2 = s.halfWidth2 || 2400;
+        if (s.pos2 >= 0) {
+          s.pos2 -= limit2;
+        } else if (s.pos2 <= -limit2) {
+          s.pos2 += limit2;
+        }
+      }
+
+      // Apply transforms
+      if (track1Ref.current) {
+        track1Ref.current.style.transform = `translate3d(${s.pos1.toFixed(2)}px, 0, 0)`;
+      }
+      if (track2Ref.current) {
+        track2Ref.current.style.transform = `translate3d(${s.pos2.toFixed(2)}px, 0, 0)`;
+      }
+
+      animId = requestAnimationFrame(renderLoop);
+    }
+
+    animId = requestAnimationFrame(renderLoop);
+    return () => cancelAnimationFrame(animId);
+  }, [isPlaying]);
+
+  // Pointer Drag Handlers for Track 1
+  const handlePointerDown1 = (e: React.PointerEvent) => {
+    const s = stateRef.current;
+    s.isDragging1 = true;
+    s.dragLastX1 = e.clientX;
+    s.dragVel1 = 0;
+    s.dragDist1 = 0;
+  };
+
+  // Pointer Drag Handlers for Track 2
+  const handlePointerDown2 = (e: React.PointerEvent) => {
+    const s = stateRef.current;
+    s.isDragging2 = true;
+    s.dragLastX2 = e.clientX;
+    s.dragVel2 = 0;
+    s.dragDist2 = 0;
+  };
+
+  // Global Pointer Listeners for seamless dragging
+  useEffect(() => {
+    function handlePointerMove(e: PointerEvent) {
+      const s = stateRef.current;
+      if (s.isDragging1) {
+        const dx = e.clientX - s.dragLastX1;
+        s.pos1 += dx;
+        s.dragVel1 = dx * -0.5;
+        s.dragDist1 += Math.abs(dx);
+        s.dragLastX1 = e.clientX;
+        if (track1Ref.current) {
+          track1Ref.current.style.transform = `translate3d(${s.pos1.toFixed(2)}px, 0, 0)`;
+        }
+      }
+      if (s.isDragging2) {
+        const dx = e.clientX - s.dragLastX2;
+        s.pos2 += dx;
+        s.dragVel2 = dx * 0.5;
+        s.dragDist2 += Math.abs(dx);
+        s.dragLastX2 = e.clientX;
+        if (track2Ref.current) {
+          track2Ref.current.style.transform = `translate3d(${s.pos2.toFixed(2)}px, 0, 0)`;
+        }
+      }
+    }
+
+    function handlePointerUp() {
+      stateRef.current.isDragging1 = false;
+      stateRef.current.isDragging2 = false;
+    }
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+    };
+  }, []);
+
+  // Keyboard navigation for Lightbox
+  const handleNext = useCallback(() => {
+    if (!lightboxMoment) return;
+    const currentIndex = staticMoments.findIndex((m) => m.id === lightboxMoment.id);
+    const nextIndex = (currentIndex + 1) % staticMoments.length;
+    setLightboxMoment(staticMoments[nextIndex]);
+  }, [lightboxMoment]);
+
+  const handlePrev = useCallback(() => {
+    if (!lightboxMoment) return;
+    const currentIndex = staticMoments.findIndex((m) => m.id === lightboxMoment.id);
+    const prevIndex = (currentIndex - 1 + staticMoments.length) % staticMoments.length;
+    setLightboxMoment(staticMoments[prevIndex]);
+  }, [lightboxMoment]);
+
+  useEffect(() => {
+    if (!lightboxMoment) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxMoment(null);
+      if (e.key === "ArrowRight") handleNext();
+      if (e.key === "ArrowLeft") handlePrev();
+    };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxMoment, handleNext, handlePrev, progressVal]);
+  }, [lightboxMoment, handleNext, handlePrev]);
 
   return (
     <section
-      ref={sectionRef}
       id="gallery"
-      className="relative w-full h-[360vh] bg-[#0c0c0c] text-white selection:bg-white selection:text-black select-none"
+      className="relative w-full bg-[#0a0a0a] text-white py-20 md:py-28 overflow-hidden select-none"
     >
-      {/* Sticky Fullscreen Cinema Stage */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between">
-        {/* Full-bleed Scaling & Morphing Background Canvas */}
-        <motion.div
-          style={{
-            scale: portalScale,
-            borderRadius: portalRadius,
-          }}
-          className="absolute inset-0 w-full h-full overflow-hidden will-change-transform shadow-2xl origin-center"
-        >
-          {/* Animated Crossfading Active Photograph */}
-          <AnimatePresence mode="popLayout">
-            <motion.div
-              key={currentMoment.id}
-              initial={{ opacity: 0, scale: 1.06 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute inset-0 w-full h-full"
-            >
-              <Image
-                src={currentMoment.image}
-                alt={currentMoment.title}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-center"
-              />
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Analog Vignette & Technical Cinema Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-black/80 pointer-events-none" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.85)_100%)] pointer-events-none" />
-
-          {/* Micro Analog Film Grain Overlay */}
-          <div
-            className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")",
-            }}
-          />
-
-          {/* Initial State Helper Overlay (fades out as it expands) */}
-          <motion.div
-            style={{ opacity: initialOverlayOpacity }}
-            className="absolute inset-0 flex flex-col items-center justify-between p-6 md:p-8 pointer-events-none border border-white/20 rounded-2xl md:rounded-3xl"
-          >
-            <div className="flex items-center justify-between w-full text-[10px] font-mono tracking-[0.2em] text-white/70 uppercase">
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#c6f432] animate-pulse" />
-                REC ● 35MM
-              </span>
-              <span>KOBRAT ARCHIVE // 08</span>
-            </div>
-
-            <div className="flex flex-col items-center text-center gap-2">
-              <span className="text-[11px] font-mono tracking-[0.25em] text-[#c6f432] uppercase">
-                SCROLL TO EXPAND ARCHIVE
-              </span>
-              <div className="w-5 h-5 flex items-center justify-center text-white/80 animate-bounce">
-                ↓
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between w-full text-[10px] font-mono tracking-[0.15em] text-white/50 uppercase">
-              <span>01 / 08</span>
-              <span>JAKARTA</span>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Top HUD Header (Fades in once expanded) */}
-        <motion.header
-          style={{ opacity: hudOpacity, y: hudY }}
-          className="relative z-40 w-full px-[3vw] pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 pointer-events-auto"
-        >
-          {/* Left Title & Live Frame Indicator */}
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-3 text-[11px] font-mono tracking-[0.18em] text-white/60 uppercase">
-              <span className="text-[#c6f432] flex items-center gap-1.5 font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#c6f432] animate-ping" />
-                LIVE FRAME
-              </span>
-              <span>//</span>
-              <span>{`[ 0${activeIndex + 1} / 0${staticMoments.length} ]`}</span>
-              <span>//</span>
-              <span>{currentMoment.category}</span>
-            </div>
-
-            <h2 className="text-[clamp(22px,3.2vw,44px)] font-bold tracking-tight text-white leading-none uppercase drop-shadow-md">
-              {currentMoment.title}
-            </h2>
+      {/* Editorial Section Header */}
+      <div className="w-full px-[3vw] mb-10 md:mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-8">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2.5 text-[11px] font-mono tracking-[0.2em] text-white/50 uppercase">
+            <span>ARCHIVE 08</span>
+            <span>//</span>
+            <span>35MM DOCUMENTARY ROLL</span>
+            <span>//</span>
+            <span>JAKARTA</span>
           </div>
 
-          {/* Right Meta Badges & Participant Tags */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Camera Gear & Location Pills */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/15 text-[10px] font-mono tracking-[0.08em] text-white/80 uppercase">
-              <span>{currentMoment.camera}</span>
-              <span className="text-white/30">•</span>
-              <span>{currentMoment.location}</span>
-            </div>
-
-            {/* Clickable Participant Pills */}
-            <div className="flex items-center gap-1.5">
-              {currentMoment.members.map((slug) => (
-                <TransitionLink
-                  key={slug}
-                  href={`/${slug}`}
-                  data-cursor="VIEW PROFILE"
-                  className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white hover:text-black backdrop-blur-md border border-white/20 transition-all duration-200 text-[10px] font-mono tracking-[0.06em] uppercase text-white/90"
-                >
-                  @{slug}
-                </TransitionLink>
-              ))}
-            </div>
-
-            {/* Fullscreen Cinema Inspect Button */}
-            <button
-              type="button"
-              onClick={() => setLightboxMoment(currentMoment)}
-              data-cursor="INSPECT"
-              className="px-3 py-1.5 rounded-full bg-white text-black hover:bg-[#c6f432] transition-colors text-[10px] font-mono tracking-[0.1em] font-semibold uppercase flex items-center gap-1.5 shadow-lg cursor-pointer"
+          <h2 className="text-[clamp(28px,4.5vw,56px)] font-normal tracking-[-0.03em] text-white leading-none">
+            Moments with{" "}
+            <span
+              style={{ fontFamily: "var(--font-wordmark)" }}
+              className="text-[1.18em] lowercase text-white"
             >
-              <span>INSPECT</span>
-              <span className="text-[12px] leading-none">↗</span>
-            </button>
-          </div>
-        </motion.header>
-
-        {/* Center Technical Grid Coordinates */}
-        <div className="relative z-30 pointer-events-none px-[3vw] flex items-center justify-between text-[10px] font-mono text-white/30 tracking-[0.2em] uppercase">
-          <span>{`LAT: -6.2088 // LON: 106.8456`}</span>
-          <span className="hidden sm:inline-block">ISO 400 • 35MM EXP</span>
+              kobrat
+            </span>
+          </h2>
         </div>
 
-        {/* Bottom Drawer: Interactive Slide Files Deck */}
-        <motion.div
-          style={{ opacity: deckOpacity, y: deckY }}
-          className="relative z-40 w-full px-[3vw] pb-6 pt-3 flex flex-col gap-3 pointer-events-auto"
-        >
-          {/* Deck Header & Navigation Arrows */}
-          <div className="flex items-center justify-between text-[11px] font-mono tracking-[0.12em] text-white/60 uppercase">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-white">SLIDE ARCHIVE</span>
-              <span>//</span>
-              <span className="text-white/40">DRAG OR CLICK TO SWITCH FILE</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handlePrev}
-                data-cursor="PREV"
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 flex items-center justify-center transition-all cursor-pointer text-white"
-                aria-label="Previous slide"
-              >
-                ←
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                data-cursor="NEXT"
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 flex items-center justify-center transition-all cursor-pointer text-white"
-                aria-label="Next slide"
-              >
-                →
-              </button>
-            </div>
-          </div>
-
-          {/* Horizontal Tactile Slide Files Strip */}
-          <div
-            ref={deckScrollRef}
-            className="w-full flex items-center gap-3 overflow-x-auto no-scrollbar py-2 px-1 select-none scroll-smooth touch-pan-x"
+        {/* Live Controls */}
+        <div className="flex items-center gap-4 text-[11px] font-mono tracking-[0.1em] uppercase">
+          <button
+            type="button"
+            onClick={() => setIsPlaying((prev) => !prev)}
+            data-cursor={isPlaying ? "PAUSE" : "PLAY"}
+            className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 transition-all duration-200 flex items-center gap-2 cursor-pointer text-white"
           >
-            {staticMoments.map((m, i) => {
-              const isActive = i === activeIndex;
-              return (
-                <div
-                  key={m.id}
-                  onClick={() => setActiveIndex(i)}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  data-cursor="SELECT"
-                  className={`relative flex-shrink-0 flex items-center gap-3 p-2 rounded-xl border transition-all duration-300 cursor-pointer ${
-                    isActive
-                      ? "w-[260px] md:w-[290px] bg-black/90 border-white shadow-[0_0_20px_rgba(255,255,255,0.2)] -translate-y-1.5"
-                      : "w-[190px] md:w-[220px] bg-black/60 hover:bg-black/80 border-white/15 hover:border-white/40 opacity-75 hover:opacity-100"
-                  }`}
-                >
-                  {/* Micro Photo Thumbnail with Analog Sprocket Styling */}
-                  <div className="relative w-[56px] h-[56px] md:w-[64px] md:h-[64px] rounded-lg overflow-hidden flex-shrink-0 bg-white/5 border border-white/20">
-                    <Image
-                      src={m.image}
-                      alt={m.title}
-                      fill
-                      sizes="64px"
-                      className="object-cover"
-                    />
-                    {isActive && (
-                      <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#c6f432]" />
-                    )}
-                  </div>
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                isPlaying ? "bg-[#c6f432] animate-pulse" : "bg-white/40"
+              }`}
+            />
+            <span>{isPlaying ? "AUTO-ROLL: ON" : "PAUSED"}</span>
+          </button>
 
-                  {/* File Metadata Text */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-                    <div className="flex items-center justify-between text-[9px] font-mono text-white/50 tracking-[0.1em] uppercase">
-                      <span className={isActive ? "text-[#c6f432] font-semibold" : ""}>
-                        {`FILE_0${i + 1}`}
-                      </span>
-                      <span>{m.category}</span>
-                    </div>
+          <span className="text-white/40 hidden sm:inline-block">
+            DRAG TO SCRUB • CLICK TO EXPAND
+          </span>
+        </div>
+      </div>
 
-                    <h4 className="text-[12px] md:text-[13px] font-semibold text-white tracking-tight truncate leading-tight uppercase">
-                      {m.title}
-                    </h4>
+      {/* Ribbon Tracks Container */}
+      <div className="w-full flex flex-col gap-6 md:gap-8 overflow-hidden">
+        {/* Track 1: Moving Left */}
+        <div
+          className="relative w-full overflow-hidden cursor-grab active:cursor-grabbing"
+          onMouseEnter={() => {
+            stateRef.current.isHovered1 = true;
+          }}
+          onMouseLeave={() => {
+            stateRef.current.isHovered1 = false;
+          }}
+          onPointerDown={handlePointerDown1}
+        >
+          <div
+            ref={track1Ref}
+            className="flex items-center gap-5 md:gap-7 will-change-transform transform-style-3d select-none"
+          >
+            {row1Items.map((m, idx) => (
+              <div
+                key={`row1-${m.id}-${idx}`}
+                onMouseEnter={() => setHoveredMomentId(m.id)}
+                onMouseLeave={() => setHoveredMomentId(null)}
+                onClick={() => {
+                  if (stateRef.current.dragDist1 < 6) {
+                    setLightboxMoment(m);
+                  }
+                }}
+                data-cursor="INSPECT"
+                className={`group relative flex-shrink-0 h-[280px] sm:h-[340px] md:h-[400px] w-auto aspect-[16/10] rounded-xl md:rounded-2xl overflow-hidden bg-[#161616] border border-white/10 transition-all duration-300 ${
+                  hoveredMomentId === m.id
+                    ? "scale-[1.03] border-white shadow-[0_20px_40px_rgba(0,0,0,0.8)] z-20"
+                    : "hover:border-white/40"
+                }`}
+              >
+                <Image
+                  src={m.image}
+                  alt={m.title}
+                  fill
+                  sizes="(max-width: 768px) 380px, 600px"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  priority={idx < 4}
+                />
 
-                    <span className="text-[9px] font-mono text-white/40 tracking-[0.06em] truncate uppercase">
-                      {m.location}
-                    </span>
+                {/* Subtle Analog Shadow Vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent pointer-events-none" />
+
+                {/* Frame Badge Top Left */}
+                <div className="absolute top-3 left-3 text-[10px] font-mono tracking-[0.14em] text-white/70 uppercase px-2 py-0.5 rounded bg-black/60 backdrop-blur-md border border-white/10">
+                  {`ROLL 01 // 0${(idx % 4) + 1}`}
+                </div>
+
+                {/* Bottom Metadata & Member Tags */}
+                <div className="absolute bottom-0 inset-x-0 p-4 md:p-5 flex flex-col gap-1.5 z-10">
+                  <span className="text-[10px] font-mono tracking-[0.12em] text-[#c6f432] uppercase">
+                    {m.category} • {m.camera}
+                  </span>
+
+                  <h3 className="text-[17px] md:text-[20px] font-bold text-white tracking-tight uppercase leading-snug drop-shadow-md">
+                    {m.title}
+                  </h3>
+
+                  <div className="flex items-center gap-1.5 mt-1 pt-1 border-t border-white/15">
+                    {m.members.map((slug) => (
+                      <TransitionLink
+                        key={slug}
+                        href={`/${slug}`}
+                        data-cursor="VIEW PROFILE"
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-2 py-0.5 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 text-[9px] font-mono tracking-[0.06em] text-white/90 uppercase transition-colors"
+                      >
+                        @{slug}
+                      </TransitionLink>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Live Progress Scrubber Line */}
-          <div className="w-full h-[2px] bg-white/10 rounded-full overflow-hidden mt-1">
-            <motion.div
-              className="h-full bg-white origin-left"
-              style={{
-                width: `${((activeIndex + 1) / staticMoments.length) * 100}%`,
-              }}
-              transition={{ ease: "easeOut", duration: 0.2 }}
-            />
+        {/* Track 2: Moving Right */}
+        <div
+          className="relative w-full overflow-hidden cursor-grab active:cursor-grabbing"
+          onMouseEnter={() => {
+            stateRef.current.isHovered2 = true;
+          }}
+          onMouseLeave={() => {
+            stateRef.current.isHovered2 = false;
+          }}
+          onPointerDown={handlePointerDown2}
+        >
+          <div
+            ref={track2Ref}
+            className="flex items-center gap-5 md:gap-7 will-change-transform transform-style-3d select-none"
+          >
+            {row2Items.map((m, idx) => (
+              <div
+                key={`row2-${m.id}-${idx}`}
+                onMouseEnter={() => setHoveredMomentId(m.id)}
+                onMouseLeave={() => setHoveredMomentId(null)}
+                onClick={() => {
+                  if (stateRef.current.dragDist2 < 6) {
+                    setLightboxMoment(m);
+                  }
+                }}
+                data-cursor="INSPECT"
+                className={`group relative flex-shrink-0 h-[280px] sm:h-[340px] md:h-[400px] w-auto aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden bg-[#161616] border border-white/10 transition-all duration-300 ${
+                  hoveredMomentId === m.id
+                    ? "scale-[1.03] border-white shadow-[0_20px_40px_rgba(0,0,0,0.8)] z-20"
+                    : "hover:border-white/40"
+                }`}
+              >
+                <Image
+                  src={m.image}
+                  alt={m.title}
+                  fill
+                  sizes="(max-width: 768px) 380px, 600px"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+
+                {/* Subtle Analog Shadow Vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent pointer-events-none" />
+
+                {/* Frame Badge Top Left */}
+                <div className="absolute top-3 left-3 text-[10px] font-mono tracking-[0.14em] text-white/70 uppercase px-2 py-0.5 rounded bg-black/60 backdrop-blur-md border border-white/10">
+                  {`ROLL 02 // 0${(idx % 4) + 1}`}
+                </div>
+
+                {/* Bottom Metadata & Member Tags */}
+                <div className="absolute bottom-0 inset-x-0 p-4 md:p-5 flex flex-col gap-1.5 z-10">
+                  <span className="text-[10px] font-mono tracking-[0.12em] text-[#c6f432] uppercase">
+                    {m.category} • {m.camera}
+                  </span>
+
+                  <h3 className="text-[17px] md:text-[20px] font-bold text-white tracking-tight uppercase leading-snug drop-shadow-md">
+                    {m.title}
+                  </h3>
+
+                  <div className="flex items-center gap-1.5 mt-1 pt-1 border-t border-white/15">
+                    {m.members.map((slug) => (
+                      <TransitionLink
+                        key={slug}
+                        href={`/${slug}`}
+                        data-cursor="VIEW PROFILE"
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-2 py-0.5 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 text-[9px] font-mono tracking-[0.06em] text-white/90 uppercase transition-colors"
+                      >
+                        @{slug}
+                      </TransitionLink>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Fullscreen High-Resolution Lightbox Modal */}
@@ -373,12 +460,12 @@ export default function CollectiveGallery() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[999] bg-black/95 backdrop-blur-xl flex flex-col justify-between p-4 md:p-8"
+            className="fixed inset-0 z-[999] bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-8 select-none"
           >
             {/* Modal Top Bar */}
             <div className="flex items-center justify-between w-full z-10 text-[11px] font-mono tracking-[0.14em] uppercase text-white/70">
               <div className="flex items-center gap-3">
-                <span className="text-[#c6f432] font-semibold">● FULLSCREEN INSPECT</span>
+                <span className="text-[#c6f432] font-semibold">● FULLSCREEN CINEMA</span>
                 <span>//</span>
                 <span>{lightboxMoment.title}</span>
               </div>
@@ -386,15 +473,15 @@ export default function CollectiveGallery() {
               <button
                 type="button"
                 onClick={() => setLightboxMoment(null)}
-                className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 transition-colors text-white font-mono text-[11px] cursor-pointer"
+                className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 transition-colors text-white font-mono text-[11px] cursor-pointer"
               >
                 CLOSE [ ESC ] ✕
               </button>
             </div>
 
-            {/* Modal Center Image */}
-            <div className="relative flex-1 w-full max-h-[78vh] flex items-center justify-center my-4">
-              <div className="relative w-full h-full max-w-5xl rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
+            {/* Modal Center Image Frame */}
+            <div className="relative flex-1 w-full max-h-[76vh] flex items-center justify-center my-4">
+              <div className="relative w-full h-full max-w-6xl rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
                 <Image
                   src={lightboxMoment.image}
                   alt={lightboxMoment.title}
@@ -416,17 +503,38 @@ export default function CollectiveGallery() {
                 <span>{lightboxMoment.date}</span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-white/40">TAGS:</span>
-                {lightboxMoment.members.map((slug) => (
-                  <TransitionLink
-                    key={slug}
-                    href={`/${slug}`}
-                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white hover:text-black transition-colors text-white text-[10px]"
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-white/40 mr-1">PEOPLE:</span>
+                  {lightboxMoment.members.map((slug) => (
+                    <TransitionLink
+                      key={slug}
+                      href={`/${slug}`}
+                      className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white hover:text-black transition-colors text-white text-[10px]"
+                    >
+                      @{slug}
+                    </TransitionLink>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-1.5 ml-4">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+                    aria-label="Previous"
                   >
-                    @{slug}
-                  </TransitionLink>
-                ))}
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+                    aria-label="Next"
+                  >
+                    →
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
