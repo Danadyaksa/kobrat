@@ -17,10 +17,11 @@
   },
   {
     "id": 3,
-    "name": "Dimas",
-    "nickname": "dimas",
+    "name": "Jepe",
+    "nickname": "JP",
     "image": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80",
-    "instagram": "@dimas"
+    "instagram": "@jepe",
+    "bio": ""
   },
   {
     "id": 4,

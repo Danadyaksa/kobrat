@@ -187,13 +187,6 @@ async function MemberContent({ params }: PageProps) {
                   </a>
                 </div>
               )}
-              <div className="py-3 flex items-center justify-between">
-                <span className="text-[#767676] uppercase">STATUS</span>
-                <span className="inline-flex items-center gap-1.5 text-[#0c0c0c] font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  ACTIVE
-                </span>
-              </div>
             </div>
 
             {/* Admin Quick Edit Button */}
