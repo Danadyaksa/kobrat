@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import TransitionLink from "@/components/TransitionLink";
 import Image from "next/image";
-import { getMembers, getMemberSlug, findMemberBySlug, Member } from "@/data/members";
+import { getMembers, Member } from "@/data/members";
 import ThreePixelEye from "@/components/ThreePixelEye";
 
 interface PageProps {
@@ -49,6 +49,25 @@ const RESERVED_SLUGS = [
   "sitemap.xml",
 ];
 
+function getSlug(member: { nickname?: string; name: string; id: number }): string {
+  const source = member.nickname?.trim() || member.name.trim();
+  return source
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-");
+}
+
+function findMember(allMembers: Member[], slug: string): Member | undefined {
+  const clean = decodeURIComponent(slug).toLowerCase().trim();
+  return allMembers.find((m) => {
+    const s = getSlug(m);
+    const nick = (m.nickname || "").toLowerCase().trim();
+    const name = m.name.toLowerCase().trim();
+    const id = String(m.id);
+    return s === clean || nick === clean || name === clean || id === clean;
+  });
+}
+
 async function MemberContent({ params }: PageProps) {
   const { slug } = await params;
 
@@ -57,7 +76,7 @@ async function MemberContent({ params }: PageProps) {
   }
 
   const members = await getMembers();
-  const member = findMemberBySlug(members, slug);
+  const member = findMember(members, slug);
 
   if (!member) {
     notFound();
@@ -88,7 +107,7 @@ async function MemberContent({ params }: PageProps) {
             </span>
           </TransitionLink>
 
-          {/* Member Badge (No ordering / numbers) */}
+          {/* Member Badge (No numbers) */}
           <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#767676] select-none flex items-center gap-2">
             <span>{member.name.toUpperCase()} // PROFILE</span>
           </div>
@@ -209,7 +228,7 @@ async function MemberContent({ params }: PageProps) {
       <footer className="fixed bottom-0 inset-x-0 z-[60] bg-white/90 backdrop-blur-md border-t border-[#f0f0f0] px-[3vw] h-[52px] flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.04em]">
         {/* Prev Member */}
         <TransitionLink
-          href={`/${getMemberSlug(prevMember)}`}
+          href={`/${getSlug(prevMember)}`}
           className="nav-item !px-0 text-[#767676] hover:text-[#0c0c0c] flex items-center gap-2"
         >
           <span>←</span>
@@ -223,7 +242,7 @@ async function MemberContent({ params }: PageProps) {
 
         {/* Next Member */}
         <TransitionLink
-          href={`/${getMemberSlug(nextMember)}`}
+          href={`/${getSlug(nextMember)}`}
           className="nav-item !px-0 text-[#767676] hover:text-[#0c0c0c] flex items-center gap-2"
         >
           <RollingText text={`NEXT : ${nextMember.name}`} />
