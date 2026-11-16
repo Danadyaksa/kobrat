@@ -14,16 +14,41 @@ import TransitionLink from "./TransitionLink";
 
 export default function CollectiveGallery() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const [momentsList, setMomentsList] = useState<Moment[]>(staticMoments);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchMoments() {
+      try {
+        const res = await fetch("/api/moments", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data) && data.length > 0) {
+            setMomentsList(data);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching moments:", err);
+      }
+    }
+    fetchMoments();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // 3 Flagship Moments matching the 3 cards in thelinestudio.com
-  const featuredMoments = useMemo(
-    () => [
-      staticMoments[0], // The Midnight Brainstorm
-      staticMoments[1], // Golden Hour Rooftop
-      staticMoments[5], // Kota Tua 35mm Roll
-    ],
-    []
-  );
+  const featuredMoments = useMemo(() => {
+    const slot1 = momentsList.find((m) => m.highlightSlot === 1);
+    const slot2 = momentsList.find((m) => m.highlightSlot === 2);
+    const slot3 = momentsList.find((m) => m.highlightSlot === 3);
+
+    const card1 = slot1 || momentsList[0] || staticMoments[0];
+    const card2 = slot2 || momentsList[1] || staticMoments[1];
+    const card3 = slot3 || momentsList[5] || momentsList[2] || staticMoments[5];
+
+    return [card1, card2, card3];
+  }, [momentsList]);
 
   const [isArchiveOpen, setIsArchiveOpen] = useState<boolean>(false);
   const [lightboxMoment, setLightboxMoment] = useState<Moment | null>(null);
@@ -94,7 +119,7 @@ export default function CollectiveGallery() {
           >
             <span>The Archive</span>
             <span className="font-mono text-[11px] text-[#767676] group-hover:text-[#0c0c0c]">
-              [08]
+              [{String(momentsList.length).padStart(2, "0")}]
             </span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">
               →
@@ -270,7 +295,7 @@ export default function CollectiveGallery() {
               <div className="flex items-center gap-3">
                 <span className="text-[#c6f432] font-semibold">● FULL ARCHIVE</span>
                 <span>//</span>
-                <span>8 DOCUMENTARY 35MM FRAMES</span>
+                <span>{momentsList.length} DOCUMENTARY 35MM FRAMES</span>
               </div>
 
               <button
@@ -282,9 +307,9 @@ export default function CollectiveGallery() {
               </button>
             </div>
 
-            {/* Grid of All 8 Moments */}
+            {/* Grid of All Moments */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 my-8 max-w-7xl mx-auto w-full">
-              {staticMoments.map((moment, idx) => (
+              {momentsList.map((moment, idx) => (
                 <div
                   key={moment.id}
                   onClick={() => {

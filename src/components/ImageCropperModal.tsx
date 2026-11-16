@@ -9,12 +9,16 @@ interface ImageCropperModalProps {
   imageSrc: string;
   onCropComplete: (croppedFile: File, croppedPreviewUrl: string) => void;
   onCancel: () => void;
+  aspectRatio?: number;
+  cropTitle?: string;
 }
 
 export default function ImageCropperModal({
   imageSrc,
   onCropComplete,
   onCancel,
+  aspectRatio = 3 / 4,
+  cropTitle,
 }: ImageCropperModalProps) {
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState<number>(1);
@@ -65,7 +69,7 @@ export default function ImageCropperModal({
         <div className="h-[52px] px-5 border-b border-[#27272a] flex items-center justify-between">
           <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em]">
             <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-            <span>ADJUST & CROP PHOTO // 3:4 PORTRAIT</span>
+            <span>{cropTitle || "ADJUST & CROP PHOTO"}</span>
           </div>
           <button
             type="button"
@@ -82,7 +86,7 @@ export default function ImageCropperModal({
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={3 / 4}
+            aspect={aspectRatio}
             cropShape="rect"
             showGrid={true}
             onCropChange={setCrop}

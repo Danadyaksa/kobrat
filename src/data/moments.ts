@@ -13,6 +13,7 @@ export interface Moment {
   image: string;
   aspect?: string;
   featured?: boolean;
+  highlightSlot?: 1 | 2 | 3 | null;
 }
 
 export const moments: Moment[] = momentsData as Moment[];

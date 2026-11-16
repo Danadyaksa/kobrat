@@ -11,7 +11,8 @@
     "members": ["aksa", "hafiz", "dimas", "reza"],
     "image": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&auto=format&fit=crop&q=85",
     "aspect": "4/3",
-    "featured": true
+    "featured": true,
+    "highlightSlot": 1
   },
   {
     "id": 2,
@@ -25,7 +26,8 @@
     "members": ["aksa", "hafiz", "dimas", "reza", "farhan", "bagas", "arya", "gilang"],
     "image": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1200&auto=format&fit=crop&q=85",
     "aspect": "3/2",
-    "featured": true
+    "featured": true,
+    "highlightSlot": 2
   },
   {
     "id": 3,
@@ -81,7 +83,8 @@
     "members": ["aksa", "hafiz", "dimas", "reza", "farhan", "bagas", "arya", "gilang"],
     "image": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&auto=format&fit=crop&q=85",
     "aspect": "4/5",
-    "featured": true
+    "featured": true,
+    "highlightSlot": 3
   },
   {
     "id": 7,
