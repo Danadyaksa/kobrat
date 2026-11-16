@@ -7,7 +7,6 @@ import {
   useScroll,
   useTransform,
   useSpring,
-  useMotionValueEvent,
   AnimatePresence,
 } from "motion/react";
 import { Moment, moments as staticMoments } from "@/data/moments";
@@ -16,7 +15,7 @@ import TransitionLink from "./TransitionLink";
 export default function CollectiveGallery() {
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  // 3 Flagship featured moments for the main scroll journey
+  // 3 Flagship Moments matching the 3 cards in thelinestudio.com
   const featuredMoments = useMemo(
     () => [
       staticMoments[0], // The Midnight Brainstorm
@@ -26,266 +25,347 @@ export default function CollectiveGallery() {
     []
   );
 
-  const [activeIdx, setActiveIdx] = useState<number>(0);
   const [isArchiveOpen, setIsArchiveOpen] = useState<boolean>(false);
   const [lightboxMoment, setLightboxMoment] = useState<Moment | null>(null);
 
-  // Scroll Progress Tracking across the multi-screen pinned section
+  // Scroll Progress across the 3-card stacking track
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"],
   });
 
-  // Smooth framerate-independent spring physics
   const smoothProgress = useSpring(scrollYProgress, {
     damping: 24,
     stiffness: 140,
     mass: 0.18,
   });
 
-  // 1. Initial Expansion: Framed card (scale: 0.65, rounded) -> Fullscreen background (scale: 1.0, rounded: 0)
-  const portalScale = useTransform(smoothProgress, [0, 0.22], [0.65, 1.0]);
-  const portalRadius = useTransform(smoothProgress, [0, 0.22], [24, 0]);
-  const scrollPromptOpacity = useTransform(smoothProgress, [0, 0.12], [1, 0]);
+  // Card 1 transforms: stays in place, slightly scales down as Card 2 slides over
+  const card1Scale = useTransform(smoothProgress, [0.22, 0.52], [1.0, 0.96]);
+  const card1Opacity = useTransform(smoothProgress, [0.22, 0.52], [1.0, 0.88]);
 
-  // 2. HUD Opacity: Fades in as photo expands
-  const hudOpacity = useTransform(smoothProgress, [0.14, 0.24], [0, 1]);
-  const hudY = useTransform(smoothProgress, [0.14, 0.24], [-20, 0]);
+  // Card 2 transforms: slides up from 100vh to 0vh, then scales down as Card 3 slides over
+  const card2Y = useTransform(smoothProgress, [0.20, 0.52], ["100vh", "0vh"]);
+  const card2Scale = useTransform(smoothProgress, [0.55, 0.85], [1.0, 0.96]);
+  const card2Opacity = useTransform(smoothProgress, [0.55, 0.85], [1.0, 0.88]);
 
-  // 3. Switch between the 3 flagship moments as user scrolls through the section
-  useMotionValueEvent(smoothProgress, "change", (latest) => {
-    if (latest < 0.36) {
-      setActiveIdx(0);
-    } else if (latest < 0.70) {
-      setActiveIdx(1);
-    } else {
-      setActiveIdx(2);
-    }
-  });
+  // Card 3 transforms: slides up from 100vh to 0vh
+  const card3Y = useTransform(smoothProgress, [0.52, 0.85], ["100vh", "0vh"]);
 
-  const currentMoment = featuredMoments[activeIdx] || featuredMoments[0];
-
-  // Manual step handlers
-  const handlePrev = useCallback(() => {
-    setActiveIdx((prev) => (prev > 0 ? prev - 1 : featuredMoments.length - 1));
-  }, [featuredMoments.length]);
-
-  const handleNext = useCallback(() => {
-    setActiveIdx((prev) => (prev < featuredMoments.length - 1 ? prev + 1 : 0));
-  }, [featuredMoments.length]);
-
-  // Keyboard navigation
+  // Keyboard navigation for modals
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (lightboxMoment) {
-        if (e.key === "Escape") setLightboxMoment(null);
-        return;
+      if (e.key === "Escape") {
+        setLightboxMoment(null);
+        setIsArchiveOpen(false);
       }
-      if (isArchiveOpen) {
-        if (e.key === "Escape") setIsArchiveOpen(false);
-        return;
-      }
-      if (e.key === "ArrowRight") handleNext();
-      if (e.key === "ArrowLeft") handlePrev();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxMoment, isArchiveOpen, handleNext, handlePrev]);
+  }, []);
 
   return (
     <section
       ref={sectionRef}
       id="gallery"
-      className="relative w-full h-[280vh] bg-[#0c0c0c] text-white select-none"
+      className="relative w-full h-[320vh] bg-white text-[#0c0c0c] select-none"
     >
       {/* Sticky Fullscreen Stage */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between">
-        {/* Expanding & Crossfading Main Image Portal */}
-        <motion.div
-          style={{
-            scale: portalScale,
-            borderRadius: portalRadius,
-          }}
-          className="absolute inset-0 w-full h-full overflow-hidden will-change-transform shadow-2xl origin-center"
-        >
-          {/* Active Photograph with Smooth Cinematic Morph */}
-          <AnimatePresence mode="popLayout">
-            <motion.div
-              key={currentMoment.id}
-              initial={{ opacity: 0, scale: 1.08 }}
-              animate={{ opacity: 1, scale: 1.0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute inset-0 w-full h-full cursor-pointer"
-              onClick={() => setLightboxMoment(currentMoment)}
-            >
-              <Image
-                src={currentMoment.image}
-                alt={currentMoment.title}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-center"
-              />
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Deep Editorial Cinematic Vignettes */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/75 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60 pointer-events-none" />
-
-          {/* Initial Scroll Prompt (Fades away once scroll begins) */}
-          <motion.div
-            style={{ opacity: scrollPromptOpacity }}
-            className="absolute inset-0 flex flex-col items-center justify-between p-6 md:p-10 pointer-events-none border border-white/20 rounded-2xl md:rounded-3xl"
-          >
-            <div className="w-full flex items-center justify-between text-[11px] font-mono tracking-[0.2em] text-white/60 uppercase">
-              <span>ARCHIVE 08</span>
-              <span>// 35MM DOCUMENTARY</span>
-            </div>
-
-            <div className="flex flex-col items-center gap-2 text-center">
-              <span className="text-[11px] font-mono tracking-[0.25em] text-[#c6f432] uppercase font-semibold">
-                SCROLL TO EXPAND
-              </span>
-              <span className="text-white/70 text-sm animate-bounce">↓</span>
-            </div>
-
-            <div className="w-full flex items-center justify-between text-[10px] font-mono tracking-[0.14em] text-white/40 uppercase">
-              <span>{currentMoment.camera}</span>
-              <span>{currentMoment.location}</span>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Top HUD Header */}
-        <motion.header
-          style={{ opacity: hudOpacity, y: hudY }}
-          className="relative z-40 w-full px-[3vw] pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pointer-events-auto"
-        >
-          {/* Left Kicker & Progress Dots */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-[11px] font-mono tracking-[0.18em] text-white/60 uppercase">
-              <span className="text-[#c6f432] font-semibold">
-                {`0${activeIdx + 1} / 0${featuredMoments.length}`}
-              </span>
-              <span>//</span>
-              <span>FEATURED MOMENTS</span>
-            </div>
-
-            {/* Stepper Dots */}
-            <div className="flex items-center gap-1.5">
-              {featuredMoments.map((m, idx) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setActiveIdx(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                    idx === activeIdx
-                      ? "w-6 bg-[#c6f432]"
-                      : "w-1.5 bg-white/30 hover:bg-white/60"
-                  }`}
-                  aria-label={`Jump to moment ${idx + 1}`}
-                />
-              ))}
-            </div>
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between pt-16 md:pt-20 pb-4 md:pb-6 px-[2.5vw]">
+        {/* Section Header: Matches thelinestudio.com exact editorial structure */}
+        <div className="relative z-50 w-full flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#0c0c0c]/10 pb-4 mb-2 pointer-events-auto">
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] font-mono tracking-[0.14em] text-[#767676] uppercase">
+              / ABOUT KOBRAT
+            </span>
+            <h2 className="text-[clamp(38px,6vw,84px)] font-bold tracking-[-0.04em] text-[#0c0c0c] leading-none">
+              Highlights
+            </h2>
           </div>
 
-          {/* Right Action: Button to Explore All 8 Archive Moments */}
-          <div className="flex items-center gap-3">
+          {/* Action Links */}
+          <div className="flex items-center gap-6 text-[13px] md:text-[15px] font-medium tracking-tight">
             <button
               type="button"
               onClick={() => setIsArchiveOpen(true)}
               data-cursor="ARCHIVE"
-              className="px-4 py-2 rounded-full bg-white text-black hover:bg-[#c6f432] transition-colors text-[11px] font-mono font-semibold tracking-[0.08em] uppercase flex items-center gap-2 cursor-pointer shadow-lg"
+              className="group flex items-center gap-2 hover:opacity-70 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
             >
-              <span>EXPLORE ALL 8 MOMENTS</span>
-              <span className="text-xs">↗</span>
+              <span>The Archive</span>
+              <span className="text-[11px] font-mono text-[#767676] group-hover:text-[#0c0c0c]">
+                [08]
+              </span>
+              <span className="transition-transform duration-200 group-hover:translate-x-1">
+                →
+              </span>
             </button>
-          </div>
-        </motion.header>
 
-        {/* Bottom Hero HUD: Title & Member Tags */}
-        <motion.div
-          style={{ opacity: hudOpacity }}
-          className="relative z-40 w-full px-[3vw] pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 pointer-events-auto"
-        >
-          {/* Active Moment Headline & Metadata */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentMoment.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.35, ease: "easeOut" }}
-              className="flex flex-col gap-2 max-w-2xl"
+            <a
+              href="#home"
+              className="group flex items-center gap-2 hover:opacity-70 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
             >
-              <div className="flex items-center gap-2.5 text-[11px] font-mono tracking-[0.14em] text-white/60 uppercase">
-                <span className="text-[#c6f432]">{currentMoment.category}</span>
-                <span>•</span>
-                <span>{currentMoment.camera}</span>
-                <span>•</span>
-                <span>{currentMoment.location}</span>
+              <span>The Collective</span>
+              <span className="transition-transform duration-200 group-hover:translate-x-1">
+                →
+              </span>
+            </a>
+          </div>
+        </div>
+
+        {/* ─── Stack of 3 Animated Cards (The Line Studio Style) ─── */}
+        <div className="relative flex-1 w-full h-full overflow-hidden rounded-2xl md:rounded-3xl">
+          {/* ─── Card 1: The Midnight Brainstorm (rotate: -1.6deg) ─── */}
+          <motion.div
+            style={{
+              scale: card1Scale,
+              opacity: card1Opacity,
+              rotate: -1.6,
+            }}
+            className="absolute inset-0 w-full h-full rounded-2xl md:rounded-3xl bg-[#e4e6eb] border border-[#0c0c0c]/10 shadow-2xl p-5 md:p-8 flex flex-col justify-between overflow-hidden z-10 origin-bottom"
+          >
+            {/* Card Header */}
+            <div className="flex items-center justify-between w-full mb-3">
+              <h3 className="text-[clamp(24px,3.5vw,48px)] font-bold tracking-tight text-[#0c0c0c] leading-none">
+                {featuredMoments[0].title}
+              </h3>
+
+              <div className="flex items-center gap-4">
+                <div className="hidden sm:flex items-center gap-1.5">
+                  {featuredMoments[0].members.map((slug) => (
+                    <TransitionLink
+                      key={slug}
+                      href={`/${slug}`}
+                      data-cursor="VIEW PROFILE"
+                      className="px-2.5 py-0.5 rounded-full bg-black/5 hover:bg-[#0c0c0c] hover:text-white transition-colors text-[10px] font-mono text-[#0c0c0c] uppercase"
+                    >
+                      @{slug}
+                    </TransitionLink>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setLightboxMoment(featuredMoments[0])}
+                  data-cursor="VIEW"
+                  className="group flex items-center gap-1.5 text-[12px] md:text-[14px] font-semibold text-[#0c0c0c] hover:opacity-70 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
+                >
+                  <span>View moment</span>
+                  <span className="transition-transform duration-200 group-hover:translate-x-1">
+                    →
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Technical Crop Frame Container */}
+            <div className="relative flex-1 w-full border border-dashed border-[#0c0c0c]/30 rounded-lg p-2.5 md:p-4 flex flex-col justify-between bg-[#dddf0]/0 overflow-hidden">
+              {/* Technical Crop Meta Header */}
+              <div className="flex items-center justify-between text-[9px] md:text-[10px] font-mono text-[#0c0c0c]/60 uppercase tracking-widest pb-1.5 border-b border-[#0c0c0c]/15">
+                <div className="flex items-center gap-4">
+                  <span>OVERSCAN</span>
+                  <span>[ 16:9 ]</span>
+                  <span className="hidden sm:inline">CROP</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="hidden md:inline">ACTION SAFE</span>
+                  <span>1632 × 918</span>
+                  <span className="hidden sm:inline">1499 × 864</span>
+                </div>
               </div>
 
-              <h2 className="text-[clamp(28px,4.5vw,56px)] font-bold text-white tracking-tight uppercase leading-none drop-shadow-md">
-                {currentMoment.title}
-              </h2>
-
-              {/* Clickable Participant Member Pills */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                <span className="text-[10px] font-mono tracking-wider text-white/40 uppercase mr-1">
-                  WITH:
-                </span>
-                {currentMoment.members.map((slug) => (
-                  <TransitionLink
-                    key={slug}
-                    href={`/${slug}`}
-                    data-cursor="VIEW PROFILE"
-                    className="px-3 py-1 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 text-[10px] font-mono tracking-wider text-white uppercase transition-all backdrop-blur-md"
-                  >
-                    @{slug}
-                  </TransitionLink>
-                ))}
+              {/* Artwork Container */}
+              <div
+                onClick={() => setLightboxMoment(featuredMoments[0])}
+                className="relative flex-1 w-full my-2 rounded overflow-hidden cursor-pointer group"
+              >
+                <Image
+                  src={featuredMoments[0].image}
+                  alt={featuredMoments[0].title}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 90vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
               </div>
-            </motion.div>
-          </AnimatePresence>
 
-          {/* Stepper Navigation Arrows & Fullscreen Lightbox Trigger */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handlePrev}
-              data-cursor="PREV"
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 flex items-center justify-center text-white transition-all cursor-pointer"
-              aria-label="Previous moment"
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              data-cursor="NEXT"
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 flex items-center justify-center text-white transition-all cursor-pointer"
-              aria-label="Next moment"
-            >
-              →
-            </button>
-            <button
-              type="button"
-              onClick={() => setLightboxMoment(currentMoment)}
-              data-cursor="INSPECT"
-              className="ml-2 px-3.5 py-2.5 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 text-[10px] font-mono tracking-[0.08em] uppercase transition-all cursor-pointer text-white flex items-center gap-1.5"
-            >
-              <span>INSPECT</span>
-              <span className="text-xs">⤢</span>
-            </button>
-          </div>
-        </motion.div>
+              {/* Technical Bottom Tick Markers */}
+              <div className="flex items-center justify-between text-[9px] font-mono text-[#0c0c0c]/50 uppercase tracking-wider pt-1 border-t border-[#0c0c0c]/15">
+                <span>{featuredMoments[0].camera}</span>
+                <span>{featuredMoments[0].location}</span>
+                <span>{featuredMoments[0].date}</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ─── Card 2: Golden Hour Rooftop (rotate: 1.4deg, slides up) ─── */}
+          <motion.div
+            style={{
+              y: card2Y,
+              scale: card2Scale,
+              opacity: card2Opacity,
+              rotate: 1.4,
+            }}
+            className="absolute inset-0 w-full h-full rounded-2xl md:rounded-3xl bg-[#e6e8ed] border border-[#0c0c0c]/10 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] p-5 md:p-8 flex flex-col justify-between overflow-hidden z-20 origin-bottom"
+          >
+            {/* Card Header */}
+            <div className="flex items-center justify-between w-full mb-3">
+              <h3 className="text-[clamp(24px,3.5vw,48px)] font-bold tracking-tight text-[#0c0c0c] leading-none">
+                {featuredMoments[1].title}
+              </h3>
+
+              <div className="flex items-center gap-4">
+                <div className="hidden sm:flex items-center gap-1.5">
+                  {featuredMoments[1].members.slice(0, 4).map((slug) => (
+                    <TransitionLink
+                      key={slug}
+                      href={`/${slug}`}
+                      data-cursor="VIEW PROFILE"
+                      className="px-2.5 py-0.5 rounded-full bg-black/5 hover:bg-[#0c0c0c] hover:text-white transition-colors text-[10px] font-mono text-[#0c0c0c] uppercase"
+                    >
+                      @{slug}
+                    </TransitionLink>
+                  ))}
+                  <span className="text-[10px] font-mono text-[#767676]">+4</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setLightboxMoment(featuredMoments[1])}
+                  data-cursor="VIEW"
+                  className="group flex items-center gap-1.5 text-[12px] md:text-[14px] font-semibold text-[#0c0c0c] hover:opacity-70 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
+                >
+                  <span>View moment</span>
+                  <span className="transition-transform duration-200 group-hover:translate-x-1">
+                    →
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Technical Crop Frame Container */}
+            <div className="relative flex-1 w-full border border-dashed border-[#0c0c0c]/30 rounded-lg p-2.5 md:p-4 flex flex-col justify-between bg-black/0 overflow-hidden">
+              {/* Technical Crop Meta Header */}
+              <div className="flex items-center justify-between text-[9px] md:text-[10px] font-mono text-[#0c0c0c]/60 uppercase tracking-widest pb-1.5 border-b border-[#0c0c0c]/15">
+                <div className="flex items-center gap-4">
+                  <span>OVERSCAN</span>
+                  <span>[ 16:9 ]</span>
+                  <span className="hidden sm:inline">CROP</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="hidden md:inline">ACTION SAFE</span>
+                  <span>1632 × 918</span>
+                  <span className="hidden sm:inline">1499 × 864</span>
+                </div>
+              </div>
+
+              {/* Artwork Container */}
+              <div
+                onClick={() => setLightboxMoment(featuredMoments[1])}
+                className="relative flex-1 w-full my-2 rounded overflow-hidden cursor-pointer group"
+              >
+                <Image
+                  src={featuredMoments[1].image}
+                  alt={featuredMoments[1].title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 90vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+
+              {/* Technical Bottom Tick Markers */}
+              <div className="flex items-center justify-between text-[9px] font-mono text-[#0c0c0c]/50 uppercase tracking-wider pt-1 border-t border-[#0c0c0c]/15">
+                <span>{featuredMoments[1].camera}</span>
+                <span>{featuredMoments[1].location}</span>
+                <span>{featuredMoments[1].date}</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ─── Card 3: Kota Tua 35mm Roll (rotate: -0.8deg, slides up) ─── */}
+          <motion.div
+            style={{
+              y: card3Y,
+              rotate: -0.8,
+            }}
+            className="absolute inset-0 w-full h-full rounded-2xl md:rounded-3xl bg-[#e3e5ea] border border-[#0c0c0c]/10 shadow-[0_-25px_60px_rgba(0,0,0,0.2)] p-5 md:p-8 flex flex-col justify-between overflow-hidden z-30 origin-bottom"
+          >
+            {/* Card Header */}
+            <div className="flex items-center justify-between w-full mb-3">
+              <h3 className="text-[clamp(24px,3.5vw,48px)] font-bold tracking-tight text-[#0c0c0c] leading-none">
+                {featuredMoments[2].title}
+              </h3>
+
+              <div className="flex items-center gap-4">
+                <div className="hidden sm:flex items-center gap-1.5">
+                  {featuredMoments[2].members.slice(0, 4).map((slug) => (
+                    <TransitionLink
+                      key={slug}
+                      href={`/${slug}`}
+                      data-cursor="VIEW PROFILE"
+                      className="px-2.5 py-0.5 rounded-full bg-black/5 hover:bg-[#0c0c0c] hover:text-white transition-colors text-[10px] font-mono text-[#0c0c0c] uppercase"
+                    >
+                      @{slug}
+                    </TransitionLink>
+                  ))}
+                  <span className="text-[10px] font-mono text-[#767676]">+4</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setLightboxMoment(featuredMoments[2])}
+                  data-cursor="VIEW"
+                  className="group flex items-center gap-1.5 text-[12px] md:text-[14px] font-semibold text-[#0c0c0c] hover:opacity-70 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
+                >
+                  <span>View moment</span>
+                  <span className="transition-transform duration-200 group-hover:translate-x-1">
+                    →
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Technical Crop Frame Container */}
+            <div className="relative flex-1 w-full border border-dashed border-[#0c0c0c]/30 rounded-lg p-2.5 md:p-4 flex flex-col justify-between bg-black/0 overflow-hidden">
+              {/* Technical Crop Meta Header */}
+              <div className="flex items-center justify-between text-[9px] md:text-[10px] font-mono text-[#0c0c0c]/60 uppercase tracking-widest pb-1.5 border-b border-[#0c0c0c]/15">
+                <div className="flex items-center gap-4">
+                  <span>OVERSCAN</span>
+                  <span>[ 16:9 ]</span>
+                  <span className="hidden sm:inline">CROP</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="hidden md:inline">ACTION SAFE</span>
+                  <span>1632 × 918</span>
+                  <span className="hidden sm:inline">1499 × 864</span>
+                </div>
+              </div>
+
+              {/* Artwork Container */}
+              <div
+                onClick={() => setLightboxMoment(featuredMoments[2])}
+                className="relative flex-1 w-full my-2 rounded overflow-hidden cursor-pointer group"
+              >
+                <Image
+                  src={featuredMoments[2].image}
+                  alt={featuredMoments[2].title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 90vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+
+              {/* Technical Bottom Tick Markers */}
+              <div className="flex items-center justify-between text-[9px] font-mono text-[#0c0c0c]/50 uppercase tracking-wider pt-1 border-t border-[#0c0c0c]/15">
+                <span>{featuredMoments[2].camera}</span>
+                <span>{featuredMoments[2].location}</span>
+                <span>{featuredMoments[2].date}</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
-      {/* Complete 8-Moment Archive Sheet Modal */}
+      {/* Complete 8-Moment Archive Modal */}
       <AnimatePresence>
         {isArchiveOpen && (
           <motion.div
@@ -293,7 +373,7 @@ export default function CollectiveGallery() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[990] bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-8 overflow-y-auto"
+            className="fixed inset-0 z-[990] bg-[#0c0c0c]/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-8 overflow-y-auto text-white select-none"
           >
             {/* Modal Header */}
             <div className="w-full flex items-center justify-between pb-6 border-b border-white/15 text-[11px] font-mono tracking-[0.16em] uppercase text-white/70">
@@ -367,7 +447,7 @@ export default function CollectiveGallery() {
 
             {/* Modal Bottom Status */}
             <div className="w-full flex items-center justify-between pt-4 border-t border-white/10 text-[10px] font-mono tracking-wider text-white/40 uppercase">
-              <span>KOBRAT COLLECTIVE // 2024—2025</span>
+              <span>KOBRAT ARCHIVE // 2024—2025</span>
               <span>CLICK ANY FRAME TO INSPECT FULL RESOLUTION</span>
             </div>
           </motion.div>
@@ -382,7 +462,7 @@ export default function CollectiveGallery() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[999] bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-8 select-none"
+            className="fixed inset-0 z-[999] bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-8 select-none text-white"
           >
             {/* Modal Top Bar */}
             <div className="flex items-center justify-between w-full z-10 text-[11px] font-mono tracking-[0.14em] uppercase text-white/70">
