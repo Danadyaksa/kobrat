@@ -289,9 +289,11 @@ function AdminContent() {
   const handleMomentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setMomentUploadedFile(file);
       const objectUrl = URL.createObjectURL(file);
-      setRawMomentImageToCrop(objectUrl);
-      setIsMomentCropperOpen(true);
+      setMomentPreviewUrl(objectUrl);
+      setMomentFormData((prev) => ({ ...prev, imageUrl: "" }));
+      showToast("Foto berhasil dimuat. Klik 'SESUAIKAN CROP' jika ingin memotong.");
     }
     e.target.value = "";
   };
@@ -1189,8 +1191,20 @@ function AdminContent() {
                     {/* Big Artwork Preview Box */}
                     <div
                       onClick={() => momentFileInputRef.current?.click()}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const file = e.dataTransfer.files?.[0];
+                        if (file && file.type.startsWith("image/")) {
+                          setMomentUploadedFile(file);
+                          const objectUrl = URL.createObjectURL(file);
+                          setMomentPreviewUrl(objectUrl);
+                          setMomentFormData((prev) => ({ ...prev, imageUrl: "" }));
+                          showToast("Foto berhasil dimuat dalam rasio asli.");
+                        }
+                      }}
                       className="group relative w-full aspect-[16/9] max-h-[260px] rounded-lg overflow-hidden bg-[#111] border border-[#e5e7eb] shadow-sm cursor-pointer"
-                      title="Klik untuk memilih foto baru"
+                      title="Klik atau drag & drop foto baru ke sini"
                     >
                       {momentPreviewUrl ? (
                         <Image
@@ -1244,7 +1258,7 @@ function AdminContent() {
                           }}
                           className="h-[38px] px-4 rounded-lg border border-[#d4d4d8] hover:border-[#0c0c0c] bg-white text-[#0c0c0c] font-mono text-[10px] uppercase tracking-[0.06em] flex items-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          <span>✂ SESUAIKAN CROP 16:9</span>
+                          <span>✂ SESUAIKAN CROP (16:9 / BEBAS)</span>
                         </button>
                       )}
                     </div>

@@ -174,7 +174,7 @@ export default function CollectiveGallery() {
           {/* Clean Grand Artwork Container */}
           <div
             onClick={() => setLightboxMoment(featuredMoments[0])}
-            className="flex-1 w-full mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
+            className="flex-1 w-[calc(100%-6vw)] mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
           >
             <Image
               src={featuredMoments[0].image}
@@ -222,7 +222,7 @@ export default function CollectiveGallery() {
           {/* Clean Grand Artwork Container */}
           <div
             onClick={() => setLightboxMoment(featuredMoments[1])}
-            className="flex-1 w-full mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
+            className="flex-1 w-[calc(100%-6vw)] mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
           >
             <Image
               src={featuredMoments[1].image}
@@ -267,7 +267,7 @@ export default function CollectiveGallery() {
           {/* Clean Grand Artwork Container */}
           <div
             onClick={() => setLightboxMoment(featuredMoments[2])}
-            className="flex-1 w-full mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
+            className="flex-1 w-[calc(100%-6vw)] mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
           >
             <Image
               src={featuredMoments[2].image}

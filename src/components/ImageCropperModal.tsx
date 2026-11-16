@@ -20,6 +20,7 @@ export default function ImageCropperModal({
   aspectRatio = 3 / 4,
   cropTitle,
 }: ImageCropperModalProps) {
+  const [selectedAspect, setSelectedAspect] = useState<number | undefined>(aspectRatio);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState<number>(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -80,13 +81,44 @@ export default function ImageCropperModal({
           </button>
         </div>
 
+        {/* Aspect Ratio Toolbar */}
+        <div className="px-5 py-2 bg-[#18181b] border-b border-[#27272a] flex items-center justify-between gap-2 overflow-x-auto text-[10px] font-mono uppercase">
+          <span className="text-[#71717a] shrink-0">RASIO:</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {[
+              { label: "16:9", val: 16 / 9 },
+              { label: "3:2", val: 3 / 2 },
+              { label: "4:3", val: 4 / 3 },
+              { label: "3:4", val: 3 / 4 },
+              { label: "1:1", val: 1 },
+              { label: "BEBAS", val: undefined },
+            ].map((r) => {
+              const isActive = selectedAspect === r.val;
+              return (
+                <button
+                  key={r.label}
+                  type="button"
+                  onClick={() => setSelectedAspect(r.val)}
+                  className={`px-2.5 py-1 rounded-[4px] border transition-colors cursor-pointer ${
+                    isActive
+                      ? "bg-white text-black border-white font-semibold"
+                      : "bg-[#27272a]/60 text-[#a1a1aa] border-[#3f3f46] hover:text-white"
+                  }`}
+                >
+                  {r.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Cropper Workspace */}
         <div className="relative w-full h-[360px] sm:h-[420px] bg-black">
           <Cropper
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={aspectRatio}
+            aspect={selectedAspect}
             cropShape="rect"
             showGrid={true}
             onCropChange={setCrop}

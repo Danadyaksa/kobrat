@@ -22,9 +22,14 @@ export async function getCroppedImg(
     throw new Error("No 2d canvas context");
   }
 
-  // Target high quality output resolution (e.g. up to 1200px height for 3:4)
-  const targetHeight = Math.min(1200, Math.max(800, pixelCrop.height));
-  const targetWidth = Math.round((targetHeight * 3) / 4);
+  // Preserve the exact aspect ratio of the user's cropped selection!
+  // Cap max dimension at 2400px for crisp high-res output without distortion
+  const maxDim = 2400;
+  const currentMax = Math.max(pixelCrop.width, pixelCrop.height);
+  const scale = currentMax > maxDim ? maxDim / currentMax : 1;
+
+  const targetWidth = Math.max(1, Math.round(pixelCrop.width * scale));
+  const targetHeight = Math.max(1, Math.round(pixelCrop.height * scale));
 
   canvas.width = targetWidth;
   canvas.height = targetHeight;
@@ -52,14 +57,14 @@ export async function getCroppedImg(
           reject(new Error("Canvas blob generation failed"));
           return;
         }
-        const file = new File([blob], `cropped_member_${Date.now()}.jpg`, {
+        const file = new File([blob], `cropped_${Date.now()}.jpg`, {
           type: outputType,
         });
         const url = URL.createObjectURL(blob);
         resolve({ blob, url, file });
       },
       outputType,
-      0.92
+      0.95
     );
   });
 }
