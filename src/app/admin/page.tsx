@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import TransitionLink from "@/components/TransitionLink";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
-import { Member } from "@/data/members";
+import { Member, getMemberSlug } from "@/data/members";
 import ThreePixelEye from "@/components/ThreePixelEye";
 import ImageCropperModal from "@/components/ImageCropperModal";
 
@@ -359,9 +359,6 @@ function AdminContent() {
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-[4px] bg-black/60 backdrop-blur-sm text-white font-mono text-[9px] uppercase tracking-[0.06em]">
-                      0{member.id}
-                    </div>
                   </div>
 
                   {/* Member Meta */}
@@ -397,7 +394,7 @@ function AdminContent() {
                   </button>
 
                   <TransitionLink
-                    href={`/members/${member.id}`}
+                    href={`/${getMemberSlug(member)}`}
                     className="h-[32px] px-3 rounded-[5px] border border-[#e4e4e7] hover:border-[#0c0c0c] text-[#0c0c0c] text-[10px] font-mono uppercase tracking-[0.06em] transition-colors flex items-center justify-center"
                     title="View Profile"
                   >
@@ -436,8 +433,6 @@ function AdminContent() {
                 <div>
                   <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.08em] text-[#767676] mb-1">
                     <span>EDIT MEMBER PROFILE</span>
-                    <span>//</span>
-                    <span>0{editingMember.id}</span>
                   </div>
                   <h2
                     style={{ fontFamily: "var(--font-wordmark)" }}

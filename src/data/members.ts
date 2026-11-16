@@ -13,6 +13,30 @@ export interface Member {
 
 export const members: Member[] = membersData as Member[];
 
+export function getMemberSlug(member: { nickname?: string; name: string; id: number }): string {
+  const source = member.nickname?.trim() || member.name.trim();
+  return source
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-");
+}
+
+export function findMemberBySlug(allMembers: Member[], slug: string): Member | undefined {
+  const clean = decodeURIComponent(slug).toLowerCase().trim();
+  return allMembers.find((m) => {
+    const memberSlug = getMemberSlug(m);
+    const nick = (m.nickname || "").toLowerCase().trim();
+    const name = m.name.toLowerCase().trim();
+    const id = String(m.id);
+    return (
+      memberSlug === clean ||
+      nick === clean ||
+      name === clean ||
+      id === clean
+    );
+  });
+}
+
 export async function getMembers(): Promise<Member[]> {
   if (typeof window === "undefined") {
     try {

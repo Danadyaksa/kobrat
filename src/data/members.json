@@ -2,8 +2,7 @@
   {
     "id": 1,
     "name": "Aksa",
-    "nickname": "Aca",
-    "role": "Vision & Creative Direction",
+    "nickname": "aksa",
     "image": "/uploads/cropped_member_1794682253349_1794682254673.jpg",
     "instagram": "@ade3s",
     "bio": "never better"
@@ -11,8 +10,7 @@
   {
     "id": 2,
     "name": "Hafiz",
-    "nickname": "The Chief Navigator",
-    "role": "Ops & Logistics",
+    "nickname": "hafiz",
     "image": "/uploads/cropped_member_1794682940665_1794682941754.jpg",
     "instagram": "@apis",
     "bio": "anu"
@@ -20,48 +18,42 @@
   {
     "id": 3,
     "name": "Dimas",
-    "nickname": "The Catalyst",
-    "role": "Energy & Hype",
+    "nickname": "dimas",
     "image": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80",
     "instagram": "@dimas"
   },
   {
     "id": 4,
     "name": "Reza",
-    "nickname": "The Sound",
-    "role": "Vibe & Playlist Curator",
+    "nickname": "reza",
     "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&auto=format&fit=crop&q=80",
     "instagram": "@reza"
   },
   {
     "id": 5,
     "name": "Farhan",
-    "nickname": "The Driver",
-    "role": "Midnight Escapades",
+    "nickname": "farhan",
     "image": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600&auto=format&fit=crop&q=80",
     "instagram": "@farhan"
   },
   {
     "id": 6,
     "name": "Bagas",
-    "nickname": "The Chronicler",
-    "role": "Camera & Memories",
+    "nickname": "bagas",
     "image": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&auto=format&fit=crop&q=80",
     "instagram": "@bagas"
   },
   {
     "id": 7,
     "name": "Arya",
-    "nickname": "The Strategist",
-    "role": "Plans & Reservations",
+    "nickname": "arya",
     "image": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80",
     "instagram": "@arya"
   },
   {
     "id": 8,
     "name": "Gilang",
-    "nickname": "The Anchor",
-    "role": "Voice of Reason",
+    "nickname": "gilang",
     "image": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=600&auto=format&fit=crop&q=80",
     "instagram": "@gilang"
   }

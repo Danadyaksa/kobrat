@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import TransitionLink from "./TransitionLink";
 import gsap from "gsap";
-import { Member, members } from "@/data/members";
+import { Member, members, getMemberSlug } from "@/data/members";
 import MemberCard from "./MemberCard";
 
 interface IrisCarouselProps {
@@ -246,7 +246,7 @@ const IrisCarousel = memo(function IrisCarousel({
         {memberList.map((member, i) => (
           <TransitionLink
             key={member.id}
-            href={`/members/${member.id}`}
+            href={`/${getMemberSlug(member)}`}
             aria-label={member.name}
             ref={(node) => {
               cardRefs.current[i] = node as unknown as HTMLAnchorElement;

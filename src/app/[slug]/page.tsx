@@ -2,11 +2,11 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import TransitionLink from "@/components/TransitionLink";
 import Image from "next/image";
-import { getMembers, Member } from "@/data/members";
+import { getMembers, getMemberSlug, findMemberBySlug, Member } from "@/data/members";
 import ThreePixelEye from "@/components/ThreePixelEye";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 function RollingText({ text }: { text: string }) {
@@ -39,21 +39,33 @@ function RollingWordmark({ text }: { text: string }) {
   );
 }
 
-async function MemberContent({ params }: PageProps) {
-  const { id } = await params;
-  const members = await getMembers();
-  const memberIndex = members.findIndex((m) => m.id === Number(id));
+const RESERVED_SLUGS = [
+  "admin",
+  "api",
+  "uploads",
+  "members",
+  "favicon.ico",
+  "robots.txt",
+  "sitemap.xml",
+];
 
-  if (memberIndex === -1) {
+async function MemberContent({ params }: PageProps) {
+  const { slug } = await params;
+
+  if (RESERVED_SLUGS.includes(slug.toLowerCase())) {
     notFound();
   }
 
-  const member: Member = members[memberIndex];
+  const members = await getMembers();
+  const member = findMemberBySlug(members, slug);
+
+  if (!member) {
+    notFound();
+  }
+
+  const memberIndex = members.findIndex((m) => m.id === member.id);
   const prevMember = members[(memberIndex - 1 + members.length) % members.length];
   const nextMember = members[(memberIndex + 1) % members.length];
-
-  const formattedIndex = String(member.id).padStart(2, "0");
-  const totalCount = String(members.length).padStart(2, "0");
 
   const igHandle = member.instagram?.replace(/^@/, "");
 
@@ -76,9 +88,9 @@ async function MemberContent({ params }: PageProps) {
             </span>
           </TransitionLink>
 
-          {/* Member Counter */}
+          {/* Member Badge (No ordering / numbers) */}
           <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#767676] select-none flex items-center gap-2">
-            <span>[ {formattedIndex} / {totalCount} ]</span>
+            <span>{member.name.toUpperCase()} // PROFILE</span>
           </div>
 
           {/* Admin & Index Links */}
@@ -105,7 +117,7 @@ async function MemberContent({ params }: PageProps) {
               {/* Header Badge */}
               <div className="inline-flex items-center gap-2.5 px-2.5 py-1 rounded-full bg-[#f4f4f5] text-[#0c0c0c] text-[10px] font-mono uppercase tracking-[0.06em] mb-6">
                 <ThreePixelEye size={14} />
-                <span>MEMBER // {formattedIndex}</span>
+                <span>MEMBER PROFILE</span>
               </div>
 
               {/* Gossip Wordmark Name */}
@@ -116,31 +128,28 @@ async function MemberContent({ params }: PageProps) {
                 {member.name}
               </h1>
 
-              {/* Nickname & Sub-role */}
+              {/* Nickname */}
               <div className="flex items-center gap-3 mb-8">
-                <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-[#0c0c0c] font-medium bg-[#0c0c0c] text-white px-2 py-0.5 rounded-[4px]">
+                <span className="font-mono text-[12px] uppercase tracking-[0.06em] bg-[#0c0c0c] text-white px-2.5 py-0.5 rounded-[4px] font-medium">
                   {member.nickname}
-                </span>
-                <span className="text-[#a1a1aa] font-mono text-[12px]">/</span>
-                <span className="font-mono text-[12px] uppercase tracking-[0.04em] text-[#767676]">
-                  {member.role}
                 </span>
               </div>
 
               {/* Bio / Persona Quote */}
               <p className="text-[17px] md:text-[20px] leading-[1.45] text-[#333333] font-light max-w-[560px] mb-12">
-                {member.bio || `Creative mind shaping digital presence and high-fidelity interaction design within the Kobrat collective.`}
+                {member.bio ||
+                  `Creative mind shaping digital presence and high-fidelity interaction design within the Kobrat collective.`}
               </p>
             </div>
 
             {/* Spec Sheet / Metadata Table */}
             <div className="border-t border-[#e5e7eb] pt-6 flex flex-col divide-y divide-[#f4f4f5] font-mono text-[11px] tracking-[0.04em]">
               <div className="py-3 flex items-center justify-between">
-                <span className="text-[#767676] uppercase">ROLE</span>
-                <span className="text-[#0c0c0c] uppercase font-medium">{member.role}</span>
+                <span className="text-[#767676] uppercase">NAME</span>
+                <span className="text-[#0c0c0c] uppercase font-medium">{member.name}</span>
               </div>
               <div className="py-3 flex items-center justify-between">
-                <span className="text-[#767676] uppercase">IDENTITY</span>
+                <span className="text-[#767676] uppercase">IDENTITY / NICKNAME</span>
                 <span className="text-[#0c0c0c] uppercase font-medium">{member.nickname}</span>
               </div>
               {member.instagram && (
@@ -153,14 +162,16 @@ async function MemberContent({ params }: PageProps) {
                     className="text-[#0c0c0c] hover:underline underline-offset-4 font-medium flex items-center gap-1 group"
                   >
                     <span>{member.instagram}</span>
-                    <span className="text-[10px] text-[#767676] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+                    <span className="text-[10px] text-[#767676] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
+                      ↗
+                    </span>
                   </a>
                 </div>
               )}
               <div className="py-3 flex items-center justify-between">
                 <span className="text-[#767676] uppercase">STATUS</span>
                 <span className="inline-flex items-center gap-1.5 text-[#0c0c0c] font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   ACTIVE
                 </span>
               </div>
@@ -178,25 +189,19 @@ async function MemberContent({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Right Column: Hero High-Res Portrait Card */}
-          <div className="lg:col-span-5 flex flex-col items-center">
-            <div className="relative w-full max-w-[420px] aspect-[3/4] rounded-[8px] overflow-hidden bg-[#f4f4f5] shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-[#ececed] transition-transform duration-500 hover:scale-[1.01]">
+          {/* Right Column: Hero Portrait Image */}
+          <div className="lg:col-span-5 flex justify-center lg:justify-end">
+            <div className="relative w-full max-w-[420px] aspect-[3/4] rounded-[8px] overflow-hidden bg-[#f0f0f0] shadow-[0_16px_40px_rgba(0,0,0,0.08)] border border-[#ebebeb]">
               <Image
                 src={member.image}
                 alt={member.name}
                 fill
                 priority
-                sizes="(max-width: 768px) 100vw, 420px"
+                sizes="(max-width: 1024px) 90vw, 420px"
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
-              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white font-mono text-[10px] tracking-[0.06em] uppercase">
-                <span>0{member.id} // {member.name}</span>
-                <span className="opacity-75">KOBRAT ARCHIVE</span>
-              </div>
             </div>
           </div>
-
         </div>
       </main>
 
@@ -204,7 +209,7 @@ async function MemberContent({ params }: PageProps) {
       <footer className="fixed bottom-0 inset-x-0 z-[60] bg-white/90 backdrop-blur-md border-t border-[#f0f0f0] px-[3vw] h-[52px] flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.04em]">
         {/* Prev Member */}
         <TransitionLink
-          href={`/members/${prevMember.id}`}
+          href={`/${getMemberSlug(prevMember)}`}
           className="nav-item !px-0 text-[#767676] hover:text-[#0c0c0c] flex items-center gap-2"
         >
           <span>←</span>
@@ -218,7 +223,7 @@ async function MemberContent({ params }: PageProps) {
 
         {/* Next Member */}
         <TransitionLink
-          href={`/members/${nextMember.id}`}
+          href={`/${getMemberSlug(nextMember)}`}
           className="nav-item !px-0 text-[#767676] hover:text-[#0c0c0c] flex items-center gap-2"
         >
           <RollingText text={`NEXT : ${nextMember.name}`} />
@@ -229,7 +234,7 @@ async function MemberContent({ params }: PageProps) {
   );
 }
 
-export default function MemberDetailPage({ params }: PageProps) {
+export default function MemberProfilePage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
