@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import TransitionLink from "./TransitionLink";
 import gsap from "gsap";
 import { Member, members } from "@/data/members";
 import MemberCard from "./MemberCard";
@@ -244,12 +244,12 @@ const IrisCarousel = memo(function IrisCarousel({
         className="relative w-full h-full flex items-center justify-center transform-style-3d will-change-transform"
       >
         {memberList.map((member, i) => (
-          <Link
+          <TransitionLink
             key={member.id}
             href={`/members/${member.id}`}
             aria-label={`${member.name} - ${member.role}`}
             ref={(node) => {
-              cardRefs.current[i] = node;
+              cardRefs.current[i] = node as unknown as HTMLAnchorElement;
             }}
             data-cursor="VIEW PROFILE"
             className="absolute left-1/2 top-1/2 w-[120px] h-[160px] md:w-[130px] md:h-[172px] pointer-events-auto will-change-transform select-none cursor-pointer block focus:outline-none"
@@ -265,7 +265,7 @@ const IrisCarousel = memo(function IrisCarousel({
               onHover={handleHover}
               priority={i === featuredIndex}
             />
-          </Link>
+          </TransitionLink>
         ))}
       </div>
     </div>

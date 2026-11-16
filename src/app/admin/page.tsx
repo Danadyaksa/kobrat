@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import TransitionLink from "@/components/TransitionLink";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { Member } from "@/data/members";
@@ -256,7 +256,7 @@ function AdminContent() {
         <div className="h-[56px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-4">
           {/* Brand Back */}
           <div className="flex items-center gap-3 justify-self-start">
-            <Link
+            <TransitionLink
               href="/"
               className="nav-item !px-0 text-[#0c0c0c] hover:opacity-75 transition-opacity flex items-center"
             >
@@ -267,7 +267,7 @@ function AdminContent() {
               >
                 <RollingWordmark text="kobrat" />
               </span>
-            </Link>
+            </TransitionLink>
             <span className="text-[#d4d4d8] font-mono text-[11px]">/</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#767676]">
               ADMIN
@@ -282,11 +282,11 @@ function AdminContent() {
 
           {/* Right Action */}
           <div className="justify-self-end flex items-center gap-4">
-            <Link href="/" className="nav-item text-[#0c0c0c]">
+            <TransitionLink href="/" className="nav-item text-[#0c0c0c]">
               <span className="sr-only">Live Site</span>
               <RollingText text="VIEW LIVE SITE" />
               <span className="text-[10px] ml-1">↗</span>
-            </Link>
+            </TransitionLink>
           </div>
         </div>
       </header>
@@ -405,13 +405,13 @@ function AdminContent() {
                     <span>EDIT</span>
                   </button>
 
-                  <Link
+                  <TransitionLink
                     href={`/members/${member.id}`}
                     className="h-[32px] px-3 rounded-[5px] border border-[#e4e4e7] hover:border-[#0c0c0c] text-[#0c0c0c] text-[10px] font-mono uppercase tracking-[0.06em] transition-colors flex items-center justify-center"
                     title="View Profile"
                   >
                     <span>VIEW ↗</span>
-                  </Link>
+                  </TransitionLink>
                 </div>
               </motion.div>
             ))}

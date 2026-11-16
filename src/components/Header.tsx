@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import TransitionLink from "./TransitionLink";
 
 interface HeaderProps {
   introComplete?: boolean;
@@ -69,29 +69,29 @@ export default function Header({ introComplete = true }: HeaderProps) {
         </div>
 
         {/* Center: Wordmark in exact Gossip font with rolling scroll animation */}
-        <Link
+        <TransitionLink
           href="/"
           style={{ fontFamily: "var(--font-wordmark)" }}
           className="header-wordmark text-[24px] text-[#0c0c0c] lowercase leading-none select-none inline-flex items-center cursor-pointer"
         >
           <span className="sr-only">kobrat</span>
           <RollingWordmark text="kobrat" />
-        </Link>
+        </TransitionLink>
 
         {/* Right: Nav items with vertical rolling chars on hover */}
         <nav className="justify-self-end flex items-center gap-2 select-none">
-          <Link href="/" className="nav-item">
+          <TransitionLink href="/" className="nav-item">
             <span className="sr-only">Home</span>
             <RollingText text="HOME" />
-          </Link>
+          </TransitionLink>
           <a href="#members" className="nav-item">
             <span className="sr-only">Members</span>
             <RollingText text="MEMBERS" />
           </a>
-          <Link href="/admin" className="nav-item">
+          <TransitionLink href="/admin" className="nav-item">
             <span className="sr-only">Admin</span>
             <RollingText text="ADMIN" />
-          </Link>
+          </TransitionLink>
           <div className="flex items-center text-[#767676] font-mono text-[12px] uppercase ml-1">
             <button
               type="button"

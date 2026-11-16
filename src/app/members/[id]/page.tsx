@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import TransitionLink from "@/components/TransitionLink";
 import Image from "next/image";
 import { getMembers, Member } from "@/data/members";
 import ThreePixelEye from "@/components/ThreePixelEye";
@@ -63,7 +63,7 @@ async function MemberContent({ params }: PageProps) {
       <header className="fixed top-0 inset-x-0 z-[70] bg-white/85 backdrop-blur-md border-b border-[#f0f0f0]">
         <div className="h-[52px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-4">
           {/* Back to Home */}
-          <Link
+          <TransitionLink
             href="/"
             className="nav-item justify-self-start !px-0 text-[#0c0c0c] hover:opacity-70 transition-opacity flex items-center"
           >
@@ -74,7 +74,7 @@ async function MemberContent({ params }: PageProps) {
             >
               <RollingWordmark text="kobrat" />
             </span>
-          </Link>
+          </TransitionLink>
 
           {/* Member Counter */}
           <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#767676] select-none flex items-center gap-2">
@@ -83,14 +83,14 @@ async function MemberContent({ params }: PageProps) {
 
           {/* Admin & Index Links */}
           <nav className="justify-self-end flex items-center gap-3">
-            <Link href="/admin" className="nav-item">
+            <TransitionLink href="/admin" className="nav-item">
               <span className="sr-only">Admin</span>
               <RollingText text="ADMIN" />
-            </Link>
-            <Link href="/" className="nav-item">
+            </TransitionLink>
+            <TransitionLink href="/" className="nav-item">
               <span className="sr-only">Home</span>
               <RollingText text="INDEX" />
-            </Link>
+            </TransitionLink>
           </nav>
         </div>
       </header>
@@ -168,13 +168,13 @@ async function MemberContent({ params }: PageProps) {
 
             {/* Admin Quick Edit Button */}
             <div className="mt-8 pt-4">
-              <Link
+              <TransitionLink
                 href={`/admin?edit=${member.id}`}
                 className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.06em] text-[#767676] hover:text-[#0c0c0c] transition-colors group"
               >
                 <span>EDIT THIS PROFILE IN ADMIN</span>
                 <span className="group-hover:translate-x-1 transition-transform">→</span>
-              </Link>
+              </TransitionLink>
             </div>
           </div>
 
@@ -203,13 +203,13 @@ async function MemberContent({ params }: PageProps) {
       {/* Bottom Pinned Pagination Bar */}
       <footer className="fixed bottom-0 inset-x-0 z-[60] bg-white/90 backdrop-blur-md border-t border-[#f0f0f0] px-[3vw] h-[52px] flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.04em]">
         {/* Prev Member */}
-        <Link
+        <TransitionLink
           href={`/members/${prevMember.id}`}
           className="nav-item !px-0 text-[#767676] hover:text-[#0c0c0c] flex items-center gap-2"
         >
           <span>←</span>
           <RollingText text={`PREV : ${prevMember.name}`} />
-        </Link>
+        </TransitionLink>
 
         {/* Center Indicator */}
         <div className="hidden sm:flex items-center gap-2 text-[10px] text-[#a1a1aa]">
@@ -217,13 +217,13 @@ async function MemberContent({ params }: PageProps) {
         </div>
 
         {/* Next Member */}
-        <Link
+        <TransitionLink
           href={`/members/${nextMember.id}`}
           className="nav-item !px-0 text-[#767676] hover:text-[#0c0c0c] flex items-center gap-2"
         >
           <RollingText text={`NEXT : ${nextMember.name}`} />
           <span>→</span>
-        </Link>
+        </TransitionLink>
       </footer>
     </div>
   );

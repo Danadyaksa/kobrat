@@ -53,6 +53,13 @@ export default function PageTransitionProvider({
   const isNavigatingRef = useRef(false);
   const targetHrefRef = useRef<string | null>(null);
 
+  // Initialize curtain safely off-screen using GSAP (never React JSX inline style)
+  useEffect(() => {
+    if (curtainRef.current) {
+      gsap.set(curtainRef.current, { yPercent: 100 });
+    }
+  }, []);
+
   // Reveal new page once pathname changes
   const handlePathnameChange = useCallback((newPath: string) => {
     currentPathnameRef.current = newPath;
@@ -65,12 +72,12 @@ export default function PageTransitionProvider({
       return;
     }
 
-    // Small delay to allow the new page DOM to mount cleanly behind the veil
+    // New page is now mounted behind the curtain.
+    // Wait a brief 140ms beat so fonts/images settle, then wipe UP to reveal!
     const timer = setTimeout(() => {
-      // 2. Wipe UP off the top of the screen to reveal the new page
       gsap.to(curtain, {
         yPercent: -100,
-        duration: 0.58,
+        duration: 0.52,
         ease: "power3.inOut",
         onComplete: () => {
           gsap.set(curtain, { yPercent: 100 });
@@ -79,7 +86,7 @@ export default function PageTransitionProvider({
           targetHrefRef.current = null;
         },
       });
-    }, 120);
+    }, 140);
 
     return () => clearTimeout(timer);
   }, []);
@@ -100,17 +107,18 @@ export default function PageTransitionProvider({
         return;
       }
 
-      // 1. Wipe UP from bottom to cover the viewport
+      // 1. Wipe UP from bottom to cover the CURRENT page completely
       gsap.killTweensOf(curtain);
       gsap.fromTo(
         curtain,
         { yPercent: 100 },
         {
           yPercent: 0,
-          duration: 0.52,
+          duration: 0.48,
           ease: "power3.inOut",
           onComplete: () => {
-            // Screen is completely covered by black curtain: push route
+            // Screen is now 100% covered by solid black curtain.
+            // ONLY NOW do we push the route so the user NEVER sees premature page swapping!
             router.push(href);
           },
         }
@@ -119,10 +127,9 @@ export default function PageTransitionProvider({
     [router]
   );
 
-  // Intercept internal link clicks globally
+  // Global click interception backup for standard anchors
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
-      // Ignore right/middle clicks or modifier keys (new tab)
       if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) {
         return;
       }
@@ -133,7 +140,6 @@ export default function PageTransitionProvider({
       const href = anchor.getAttribute("href");
       if (!href) return;
 
-      // Only handle local relative paths
       if (
         href.startsWith("/") &&
         !href.startsWith("/#") &&
@@ -141,12 +147,13 @@ export default function PageTransitionProvider({
         !href.startsWith("/api") &&
         !href.startsWith("/uploads")
       ) {
-        // Strip hash if any for path comparison
         const pathOnly = href.split("#")[0];
         const currentPath = window.location.pathname;
 
         if (pathOnly && pathOnly !== currentPath) {
           e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
           navigateTo(href);
         }
       }
@@ -177,7 +184,6 @@ export default function PageTransitionProvider({
         className={`fixed inset-0 z-[99990] bg-[#0c0c0c] text-white will-change-transform select-none ${
           isTransitioning ? "pointer-events-auto" : "pointer-events-none"
         }`}
-        style={{ transform: "translate3d(0, 100%, 0)" }}
       >
         {/* Subtle Top-Center Spinner Ring (Exact to frame_020) */}
         <div className="absolute top-[12%] left-1/2 -translate-x-1/2 pointer-events-none">
