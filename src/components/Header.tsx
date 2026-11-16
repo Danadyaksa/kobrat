@@ -84,9 +84,9 @@ export default function Header({ introComplete = true }: HeaderProps) {
             <span className="sr-only">Home</span>
             <RollingText text="HOME" />
           </TransitionLink>
-          <a href="#members" className="nav-item">
-            <span className="sr-only">Members</span>
-            <RollingText text="MEMBERS" />
+          <a href="#gallery" className="nav-item">
+            <span className="sr-only">Gallery</span>
+            <RollingText text="GALLERY" />
           </a>
           <TransitionLink href="/admin" className="nav-item">
             <span className="sr-only">Admin</span>

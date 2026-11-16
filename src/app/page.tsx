@@ -5,6 +5,7 @@ import TransitionLink from "@/components/TransitionLink";
 import Preloader from "@/components/Preloader";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import CollectiveGallery from "@/components/CollectiveGallery";
 import { usePageTransition } from "@/components/PageTransition";
 
 export default function Home() {
@@ -46,24 +47,36 @@ export default function Home() {
       {/* Navigation Header */}
       <Header introComplete={introComplete} />
 
-      {/* Main Hero Section at z-[50] */}
-      <main className="flex-1 flex flex-col relative w-full overflow-hidden z-[50]">
+      {/* Main Content Sections at z-[50] */}
+      <main className="flex-1 flex flex-col relative w-full z-[50]">
         <Hero
           introComplete={introComplete}
           showSingleCard={showSingleCard}
           isBursting={isBursting}
         />
+
+        {/* Interactive Collective 8-Friend Gallery */}
+        <CollectiveGallery />
       </main>
 
       {/* Clean Bottom Meta */}
-      <footer className="fixed bottom-0 inset-x-0 z-30 px-[3vw] py-4 flex items-center justify-between text-[10px] font-mono tracking-[0.04em] text-[#767676] uppercase pointer-events-none">
-        <span>© 2024 KOBRAT</span>
-        <div className="hidden sm:flex items-center gap-3 pointer-events-auto">
-          <TransitionLink href="/admin" className="hover:text-[#0c0c0c] transition-colors">
-            ADMIN
-          </TransitionLink>
+      <footer className="w-full bg-[#fcfcfc] border-t border-[#f0f0f0] px-[3vw] py-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono tracking-[0.04em] text-[#767676] uppercase gap-4 z-[50]">
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-[#0c0c0c]">© 2025 KOBRAT</span>
+          <span>//</span>
+          <span>JAKARTA & REMOTE</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <a href="#home" className="hover:text-[#0c0c0c] transition-colors cursor-pointer">
+            ↑ BACK TO TOP
+          </a>
           <span>{"//"}</span>
-          <span>EST. 2024</span>
+          <TransitionLink
+            href="/admin"
+            className="hover:text-[#0c0c0c] transition-colors"
+          >
+            ADMIN DASHBOARD
+          </TransitionLink>
         </div>
       </footer>
     </div>

@@ -90,9 +90,9 @@ export default function Hero({
         {/* Scroll indicator pixel arrow */}
         <div className="mt-2 pointer-events-auto">
           <a
-            href="#members"
-            aria-label="Scroll down"
-            className="w-8 h-8 flex items-center justify-center text-[#0c0c0c] hover:opacity-60 transition-opacity animate-bounce"
+            href="#gallery"
+            aria-label="Scroll down to gallery"
+            className="w-8 h-8 flex items-center justify-center text-[#0c0c0c] hover:opacity-60 transition-opacity animate-bounce cursor-pointer"
           >
             <svg
               viewBox="0 0 9 9"
