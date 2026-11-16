@@ -25,6 +25,21 @@ function RollingText({ text }: { text: string }) {
   );
 }
 
+function RollingWordmark({ text }: { text: string }) {
+  return (
+    <span className="wordmark-chars" aria-hidden="true">
+      {text.split("").map((char, index) => (
+        <span
+          key={index}
+          style={{ "--i": index } as React.CSSProperties}
+        >
+          {char === " " ? "\u00A0" : char}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 async function MemberContent({ params }: PageProps) {
   const { id } = await params;
   const members = await getMembers();
@@ -54,14 +69,14 @@ async function MemberContent({ params }: PageProps) {
           {/* Back to Home */}
           <Link
             href="/"
-            className="nav-item justify-self-start !px-0 text-[#0c0c0c] hover:opacity-70 transition-opacity"
+            className="nav-item justify-self-start !px-0 text-[#0c0c0c] hover:opacity-70 transition-opacity flex items-center"
           >
             <span className="font-mono text-[11px] tracking-[0.04em]">←</span>
             <span
               style={{ fontFamily: "var(--font-wordmark)" }}
               className="text-[19px] lowercase leading-none inline-block ml-1"
             >
-              kobrat
+              <RollingWordmark text="kobrat" />
             </span>
           </Link>
 

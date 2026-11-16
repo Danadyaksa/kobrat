@@ -2,20 +2,20 @@
   {
     "id": 1,
     "name": "Aksa",
-    "nickname": "The Architect",
+    "nickname": "Aca",
     "role": "Vision & Creative Direction",
-    "image": "/uploads/cropped_member_1794681771023_1794681793521.jpg",
-    "instagram": "@aksa",
-    "bio": ""
+    "image": "/uploads/cropped_member_1794682253349_1794682254673.jpg",
+    "instagram": "@ade3s",
+    "bio": "never better"
   },
   {
     "id": 2,
-    "name": "Rafif",
+    "name": "Hafiz",
     "nickname": "The Chief Navigator",
     "role": "Ops & Logistics",
-    "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
-    "instagram": "@rafif",
-    "bio": "Mastermind of late-night convoy operations and high-precision event logistics."
+    "image": "/uploads/cropped_member_1794682940665_1794682941754.jpg",
+    "instagram": "@apis",
+    "bio": "anu"
   },
   {
     "id": 3,
