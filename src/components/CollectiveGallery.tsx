@@ -5,516 +5,431 @@ import {
   useRef,
   useEffect,
   useCallback,
-  useMemo,
 } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
-import gsap from "gsap";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useMotionValueEvent,
+  AnimatePresence,
+} from "motion/react";
 import { Moment, moments as staticMoments } from "@/data/moments";
 import TransitionLink from "./TransitionLink";
 import ThreePixelEye from "./ThreePixelEye";
 
-const CATEGORIES = [
-  "ALL",
-  "STUDIO",
-  "ROOFTOP",
-  "ON THE ROAD",
-  "AFTER HOURS",
-  "ANALOG",
-] as const;
-
-type Category = (typeof CATEGORIES)[number];
-
 export default function CollectiveGallery() {
-  const [selectedCategory, setSelectedCategory] = useState<Category>("ALL");
-  const [activeMoment, setActiveMoment] = useState<Moment | null>(null);
-  const [viewMode, setViewMode] = useState<"reel" | "grid">("reel");
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const deckScrollRef = useRef<HTMLDivElement>(null);
 
-  // Track and reel references for kinetic drag & scroll
-  const reelRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const isDraggingRef = useRef(false);
-  const startXRef = useRef(0);
-  const scrollLeftRef = useRef(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  // Active slide index (0 to 7)
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [lightboxMoment, setLightboxMoment] = useState<Moment | null>(null);
 
-  // Filter moments
-  const filteredMoments = useMemo(() => {
-    if (selectedCategory === "ALL") return staticMoments;
-    return staticMoments.filter((m) => m.category === selectedCategory);
-  }, [selectedCategory]);
+  // Scroll Progress Tracking across the multi-screen pinned section
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
 
-  // Update progress on horizontal scroll
-  const handleScroll = useCallback(() => {
-    const el = reelRef.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    if (max <= 0) {
-      setScrollProgress(0);
-      return;
+  // Silky smooth spring interpolation for framerate-independent responsive motion
+  const smoothProgress = useSpring(scrollYProgress, {
+    damping: 24,
+    stiffness: 140,
+    mass: 0.18,
+  });
+
+  // Track scroll state
+  const [progressVal, setProgressVal] = useState(0);
+
+  // 1. Reactive Scale: Small framed card (0.42) -> Fullscreen background (1.0)
+  const portalScale = useTransform(smoothProgress, [0, 0.26], [0.42, 1.0]);
+  const portalRadius = useTransform(smoothProgress, [0, 0.26], [28, 0]);
+  const initialOverlayOpacity = useTransform(smoothProgress, [0, 0.16], [1, 0]);
+
+  // 2. HUD & Slide Deck entry once expanded
+  const hudOpacity = useTransform(smoothProgress, [0.18, 0.28], [0, 1]);
+  const hudY = useTransform(smoothProgress, [0.18, 0.28], [-30, 0]);
+
+  const deckOpacity = useTransform(smoothProgress, [0.20, 0.30], [0, 1]);
+  const deckY = useTransform(smoothProgress, [0.20, 0.30], [60, 0]);
+
+  // 3. Reactive Slide Switching driven by scroll progress between [0.28, 0.98]
+  useMotionValueEvent(smoothProgress, "change", (latest) => {
+    setProgressVal(latest);
+
+    if (latest >= 0.26) {
+      // Map range [0.26, 0.96] to 8 moment indices
+      const norm = Math.min(1, Math.max(0, (latest - 0.26) / 0.70));
+      const idx = Math.min(
+        staticMoments.length - 1,
+        Math.floor(norm * staticMoments.length)
+      );
+      setActiveIndex(idx);
     }
-    const current = el.scrollLeft;
-    setScrollProgress(Math.min(1, Math.max(0, current / max)));
+  });
+
+  // Keep active slide card centered in the bottom horizontal drawer
+  useEffect(() => {
+    const container = deckScrollRef.current;
+    if (!container) return;
+    const activeChild = container.children[activeIndex] as HTMLElement | undefined;
+    if (activeChild) {
+      const containerWidth = container.clientWidth;
+      const childLeft = activeChild.offsetLeft;
+      const childWidth = activeChild.clientWidth;
+      container.scrollTo({
+        left: childLeft - containerWidth / 2 + childWidth / 2,
+        behavior: "smooth",
+      });
+    }
+  }, [activeIndex]);
+
+  const currentMoment = staticMoments[activeIndex] || staticMoments[0];
+
+  // Navigation callbacks
+  const handlePrev = useCallback(() => {
+    setActiveIndex((prev) => (prev > 0 ? prev - 1 : staticMoments.length - 1));
   }, []);
 
-  // Kinetic Mouse Drag on Reel
-  const handleMouseDown = (e: React.MouseEvent) => {
-    const el = reelRef.current;
-    if (!el) return;
-    isDraggingRef.current = true;
-    startXRef.current = e.pageX - el.offsetLeft;
-    scrollLeftRef.current = el.scrollLeft;
-  };
+  const handleNext = useCallback(() => {
+    setActiveIndex((prev) => (prev < staticMoments.length - 1 ? prev + 1 : 0));
+  }, []);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingRef.current) return;
-    const el = reelRef.current;
-    if (!el) return;
-    e.preventDefault();
-    const x = e.pageX - el.offsetLeft;
-    const walk = (x - startXRef.current) * 1.6;
-    el.scrollLeft = scrollLeftRef.current - walk;
-  };
-
-  const handleMouseUp = () => {
-    isDraggingRef.current = false;
-  };
-
-  // Keyboard navigation for Lightbox
+  // Keyboard navigation
   useEffect(() => {
-    if (!activeMoment) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setActiveMoment(null);
+      if (lightboxMoment) {
+        if (e.key === "Escape") setLightboxMoment(null);
+        if (e.key === "ArrowRight") handleNext();
+        if (e.key === "ArrowLeft") handlePrev();
         return;
       }
 
-      const currentIndex = filteredMoments.findIndex((m) => m.id === activeMoment.id);
-      if (currentIndex === -1) return;
-
-      if (e.key === "ArrowRight") {
-        const nextIndex = (currentIndex + 1) % filteredMoments.length;
-        setActiveMoment(filteredMoments[nextIndex]);
-      } else if (e.key === "ArrowLeft") {
-        const prevIndex =
-          (currentIndex - 1 + filteredMoments.length) % filteredMoments.length;
-        setActiveMoment(filteredMoments[prevIndex]);
+      // If gallery section is in view
+      if (progressVal > 0.15 && progressVal < 0.98) {
+        if (e.key === "ArrowRight") handleNext();
+        if (e.key === "ArrowLeft") handlePrev();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeMoment, filteredMoments]);
-
-  // Reel button controls
-  const scrollReel = (direction: "left" | "right") => {
-    const el = reelRef.current;
-    if (!el) return;
-    const shift = el.clientWidth * 0.65;
-    el.scrollBy({
-      left: direction === "left" ? -shift : shift,
-      behavior: "smooth",
-    });
-  };
+  }, [lightboxMoment, handleNext, handlePrev, progressVal]);
 
   return (
     <section
+      ref={sectionRef}
       id="gallery"
-      className="relative w-full bg-[#fcfcfc] text-[#0c0c0c] border-t border-[#f0f0f0] pt-24 pb-28 px-[3vw] overflow-hidden select-none"
+      className="relative w-full h-[360vh] bg-[#0c0c0c] text-white selection:bg-white selection:text-black select-none"
     >
-      {/* Editorial Header */}
-      <div className="max-w-[1300px] mx-auto mb-14">
-        {/* Monospace Eyebrow Badge */}
-        <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#f4f4f5] border border-[#e5e7eb] text-[#0c0c0c] text-[10px] font-mono uppercase tracking-[0.08em] mb-6">
-          <ThreePixelEye size={13} />
-          <span>[ 02 // COLLECTIVE ARCHIVE ]</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-        </div>
+      {/* Sticky Fullscreen Cinema Stage */}
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between">
+        {/* Full-bleed Scaling & Morphing Background Canvas */}
+        <motion.div
+          style={{
+            scale: portalScale,
+            borderRadius: portalRadius,
+          }}
+          className="absolute inset-0 w-full h-full overflow-hidden will-change-transform shadow-2xl origin-center"
+        >
+          {/* Animated Crossfading Active Photograph */}
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={currentMoment.id}
+              initial={{ opacity: 0, scale: 1.06 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute inset-0 w-full h-full"
+            >
+              <Image
+                src={currentMoment.image}
+                alt={currentMoment.title}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center"
+              />
+            </motion.div>
+          </AnimatePresence>
 
-        {/* Big Editorial Headline */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
-          <div className="lg:col-span-8">
-            <h2 className="text-[clamp(34px,5.8vw,72px)] leading-[1.04] tracking-[-0.035em] font-normal text-[#0c0c0c]">
-              Stories between the{" "}
-              <span
-                style={{ fontFamily: "var(--font-wordmark)" }}
-                className="lowercase text-[1.22em] inline-block leading-none"
-              >
-                frames
+          {/* Analog Vignette & Technical Cinema Gradients */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-black/80 pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.85)_100%)] pointer-events-none" />
+
+          {/* Micro Analog Film Grain Overlay */}
+          <div
+            className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")",
+            }}
+          />
+
+          {/* Initial State Helper Overlay (fades out as it expands) */}
+          <motion.div
+            style={{ opacity: initialOverlayOpacity }}
+            className="absolute inset-0 flex flex-col items-center justify-between p-6 md:p-8 pointer-events-none border border-white/20 rounded-2xl md:rounded-3xl"
+          >
+            <div className="flex items-center justify-between w-full text-[10px] font-mono tracking-[0.2em] text-white/70 uppercase">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#c6f432] animate-pulse" />
+                REC ● 35MM
               </span>
-              , eight friends on one wavelength.
+              <span>KOBRAT ARCHIVE // 08</span>
+            </div>
+
+            <div className="flex flex-col items-center text-center gap-2">
+              <span className="text-[11px] font-mono tracking-[0.25em] text-[#c6f432] uppercase">
+                SCROLL TO EXPAND ARCHIVE
+              </span>
+              <div className="w-5 h-5 flex items-center justify-center text-white/80 animate-bounce">
+                ↓
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between w-full text-[10px] font-mono tracking-[0.15em] text-white/50 uppercase">
+              <span>01 / 08</span>
+              <span>JAKARTA</span>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Top HUD Header (Fades in once expanded) */}
+        <motion.header
+          style={{ opacity: hudOpacity, y: hudY }}
+          className="relative z-40 w-full px-[3vw] pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 pointer-events-auto"
+        >
+          {/* Left Title & Live Frame Indicator */}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3 text-[11px] font-mono tracking-[0.18em] text-white/60 uppercase">
+              <span className="text-[#c6f432] flex items-center gap-1.5 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#c6f432] animate-ping" />
+                LIVE FRAME
+              </span>
+              <span>//</span>
+              <span>{`[ 0${activeIndex + 1} / 0${staticMoments.length} ]`}</span>
+              <span>//</span>
+              <span>{currentMoment.category}</span>
+            </div>
+
+            <h2 className="text-[clamp(22px,3.2vw,44px)] font-bold tracking-tight text-white leading-none uppercase drop-shadow-md">
+              {currentMoment.title}
             </h2>
           </div>
 
-          <div className="lg:col-span-4 flex flex-col justify-end">
-            <p className="text-[14px] md:text-[15px] font-mono leading-relaxed text-[#767676] max-w-[380px]">
-              An unposed film log of late-night sprints, spontaneous road trips, and the raw creative camaraderie that built this collective.
-            </p>
-          </div>
-        </div>
-
-        {/* Interactive Filter Toolbar & View Mode Switch */}
-        <div className="mt-12 pt-6 border-t border-[#e5e7eb] flex flex-wrap items-center justify-between gap-4">
-          {/* Category Filter Pills */}
-          <div className="flex flex-wrap items-center gap-2">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={`relative px-3.5 py-1.5 rounded-full text-[10px] font-mono uppercase tracking-[0.06em] transition-all cursor-pointer ${
-                  selectedCategory === cat
-                    ? "bg-[#0c0c0c] text-white shadow-sm"
-                    : "bg-white text-[#767676] hover:text-[#0c0c0c] border border-[#e5e7eb] hover:border-[#d4d4d8]"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* View Mode & Reel Arrows */}
-          <div className="flex items-center gap-3">
-            {/* View Mode Toggle */}
-            <div className="flex items-center rounded-full bg-[#f4f4f5] p-1 border border-[#e5e7eb]">
-              <button
-                type="button"
-                onClick={() => setViewMode("reel")}
-                className={`px-3 py-1 rounded-full text-[9px] font-mono uppercase tracking-[0.06em] transition-all cursor-pointer ${
-                  viewMode === "reel"
-                    ? "bg-white text-[#0c0c0c] shadow-xs font-semibold"
-                    : "text-[#767676] hover:text-[#0c0c0c]"
-                }`}
-              >
-                FILM REEL
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                className={`px-3 py-1 rounded-full text-[9px] font-mono uppercase tracking-[0.06em] transition-all cursor-pointer ${
-                  viewMode === "grid"
-                    ? "bg-white text-[#0c0c0c] shadow-xs font-semibold"
-                    : "text-[#767676] hover:text-[#0c0c0c]"
-                }`}
-              >
-                CONTACT SHEET
-              </button>
+          {/* Right Meta Badges & Participant Tags */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Camera Gear & Location Pills */}
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/15 text-[10px] font-mono tracking-[0.08em] text-white/80 uppercase">
+              <span>{currentMoment.camera}</span>
+              <span className="text-white/30">•</span>
+              <span>{currentMoment.location}</span>
             </div>
 
-            {/* Reel Nav Buttons (only in reel mode) */}
-            {viewMode === "reel" && (
-              <div className="hidden sm:flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => scrollReel("left")}
-                  className="w-8 h-8 rounded-full border border-[#e5e7eb] hover:border-[#0c0c0c] bg-white flex items-center justify-center font-mono text-[11px] text-[#0c0c0c] transition-colors cursor-pointer"
-                  aria-label="Previous frames"
+            {/* Clickable Participant Pills */}
+            <div className="flex items-center gap-1.5">
+              {currentMoment.members.map((slug) => (
+                <TransitionLink
+                  key={slug}
+                  href={`/${slug}`}
+                  data-cursor="VIEW PROFILE"
+                  className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white hover:text-black backdrop-blur-md border border-white/20 transition-all duration-200 text-[10px] font-mono tracking-[0.06em] uppercase text-white/90"
                 >
-                  ←
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollReel("right")}
-                  className="w-8 h-8 rounded-full border border-[#e5e7eb] hover:border-[#0c0c0c] bg-white flex items-center justify-center font-mono text-[11px] text-[#0c0c0c] transition-colors cursor-pointer"
-                  aria-label="Next frames"
-                >
-                  →
-                </button>
-              </div>
-            )}
+                  @{slug}
+                </TransitionLink>
+              ))}
+            </div>
+
+            {/* Fullscreen Cinema Inspect Button */}
+            <button
+              type="button"
+              onClick={() => setLightboxMoment(currentMoment)}
+              data-cursor="INSPECT"
+              className="px-3 py-1.5 rounded-full bg-white text-black hover:bg-[#c6f432] transition-colors text-[10px] font-mono tracking-[0.1em] font-semibold uppercase flex items-center gap-1.5 shadow-lg cursor-pointer"
+            >
+              <span>INSPECT</span>
+              <span className="text-[12px] leading-none">↗</span>
+            </button>
           </div>
+        </motion.header>
+
+        {/* Center Technical Grid Coordinates */}
+        <div className="relative z-30 pointer-events-none px-[3vw] flex items-center justify-between text-[10px] font-mono text-white/30 tracking-[0.2em] uppercase">
+          <span>{`LAT: -6.2088 // LON: 106.8456`}</span>
+          <span className="hidden sm:inline-block">ISO 400 • 35MM EXP</span>
         </div>
+
+        {/* Bottom Drawer: Interactive Slide Files Deck */}
+        <motion.div
+          style={{ opacity: deckOpacity, y: deckY }}
+          className="relative z-40 w-full px-[3vw] pb-6 pt-3 flex flex-col gap-3 pointer-events-auto"
+        >
+          {/* Deck Header & Navigation Arrows */}
+          <div className="flex items-center justify-between text-[11px] font-mono tracking-[0.12em] text-white/60 uppercase">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-white">SLIDE ARCHIVE</span>
+              <span>//</span>
+              <span className="text-white/40">DRAG OR CLICK TO SWITCH FILE</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handlePrev}
+                data-cursor="PREV"
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 flex items-center justify-center transition-all cursor-pointer text-white"
+                aria-label="Previous slide"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                data-cursor="NEXT"
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 flex items-center justify-center transition-all cursor-pointer text-white"
+                aria-label="Next slide"
+              >
+                →
+              </button>
+            </div>
+          </div>
+
+          {/* Horizontal Tactile Slide Files Strip */}
+          <div
+            ref={deckScrollRef}
+            className="w-full flex items-center gap-3 overflow-x-auto no-scrollbar py-2 px-1 select-none scroll-smooth touch-pan-x"
+          >
+            {staticMoments.map((m, i) => {
+              const isActive = i === activeIndex;
+              return (
+                <div
+                  key={m.id}
+                  onClick={() => setActiveIndex(i)}
+                  onMouseEnter={() => setActiveIndex(i)}
+                  data-cursor="SELECT"
+                  className={`relative flex-shrink-0 flex items-center gap-3 p-2 rounded-xl border transition-all duration-300 cursor-pointer ${
+                    isActive
+                      ? "w-[260px] md:w-[290px] bg-black/90 border-white shadow-[0_0_20px_rgba(255,255,255,0.2)] -translate-y-1.5"
+                      : "w-[190px] md:w-[220px] bg-black/60 hover:bg-black/80 border-white/15 hover:border-white/40 opacity-75 hover:opacity-100"
+                  }`}
+                >
+                  {/* Micro Photo Thumbnail with Analog Sprocket Styling */}
+                  <div className="relative w-[56px] h-[56px] md:w-[64px] md:h-[64px] rounded-lg overflow-hidden flex-shrink-0 bg-white/5 border border-white/20">
+                    <Image
+                      src={m.image}
+                      alt={m.title}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                    {isActive && (
+                      <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#c6f432]" />
+                    )}
+                  </div>
+
+                  {/* File Metadata Text */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+                    <div className="flex items-center justify-between text-[9px] font-mono text-white/50 tracking-[0.1em] uppercase">
+                      <span className={isActive ? "text-[#c6f432] font-semibold" : ""}>
+                        {`FILE_0${i + 1}`}
+                      </span>
+                      <span>{m.category}</span>
+                    </div>
+
+                    <h4 className="text-[12px] md:text-[13px] font-semibold text-white tracking-tight truncate leading-tight uppercase">
+                      {m.title}
+                    </h4>
+
+                    <span className="text-[9px] font-mono text-white/40 tracking-[0.06em] truncate uppercase">
+                      {m.location}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Live Progress Scrubber Line */}
+          <div className="w-full h-[2px] bg-white/10 rounded-full overflow-hidden mt-1">
+            <motion.div
+              className="h-full bg-white origin-left"
+              style={{
+                width: `${((activeIndex + 1) / staticMoments.length) * 100}%`,
+              }}
+              transition={{ ease: "easeOut", duration: 0.2 }}
+            />
+          </div>
+        </motion.div>
       </div>
 
-      {/* View Mode 1: Kinetic Horizontal Film Reel */}
-      {viewMode === "reel" ? (
-        <div className="relative w-full">
-          {/* Scrollable Container with Drag & Momentum */}
-          <div
-            ref={reelRef}
-            onScroll={handleScroll}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            className="flex items-center gap-6 md:gap-8 overflow-x-auto no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing pb-8 pt-2 pl-[3vw] pr-[6vw]"
-          >
-            {filteredMoments.map((moment, idx) => (
-              <motion.article
-                key={moment.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: idx * 0.06 }}
-                onClick={() => setActiveMoment(moment)}
-                data-cursor="INSPECT"
-                className="group relative shrink-0 w-[290px] sm:w-[360px] md:w-[420px] bg-white rounded-[8px] p-3 border border-[#e5e7eb] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.08)] hover:border-[#0c0c0c] transition-all duration-300"
-              >
-                {/* Photo Frame Container */}
-                <div className="relative w-full aspect-[4/3] rounded-[5px] overflow-hidden bg-[#e8e8e8] mb-3">
-                  <Image
-                    src={moment.image}
-                    alt={moment.title}
-                    fill
-                    sizes="(max-width: 640px) 300px, 420px"
-                    className="object-cover group-hover:scale-105 transition-transform duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
-                  />
-
-                  {/* Top Film Badge */}
-                  <div className="absolute top-2.5 left-2.5 flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-[3px] bg-black/65 backdrop-blur-xs text-white font-mono text-[9px] uppercase tracking-[0.06em]">
-                      FRAME 0{moment.id}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-[3px] bg-white/85 backdrop-blur-xs text-[#0c0c0c] font-mono text-[9px] uppercase tracking-[0.06em]">
-                      {moment.category}
-                    </span>
-                  </div>
-
-                  {/* Hover Inspect Icon */}
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                    <div className="px-3.5 py-1.5 rounded-full bg-white text-[#0c0c0c] font-mono text-[10px] uppercase tracking-[0.08em] shadow-lg flex items-center gap-2">
-                      <ThreePixelEye size={12} />
-                      <span>INSPECT MOMENT</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card Editorial Meta */}
-                <div className="px-1 py-1">
-                  <div className="flex items-baseline justify-between gap-2 mb-1">
-                    <h3 className="text-[17px] font-medium tracking-tight text-[#0c0c0c] group-hover:text-black transition-colors line-clamp-1">
-                      {moment.title}
-                    </h3>
-                    <span className="font-mono text-[10px] text-[#767676] shrink-0">
-                      {moment.year}
-                    </span>
-                  </div>
-
-                  <p className="text-[12px] font-mono text-[#767676] line-clamp-2 leading-relaxed mb-3">
-                    {moment.description}
-                  </p>
-
-                  <div className="pt-2.5 border-t border-[#f4f4f5] flex items-center justify-between text-[10px] font-mono text-[#a1a1aa] uppercase tracking-[0.04em]">
-                    <span>{moment.location.split("//")[0]}</span>
-                    <span>{moment.camera.split("//")[0]}</span>
-                  </div>
-                </div>
-              </motion.article>
-            ))}
-          </div>
-
-          {/* Scrubber Progress Bar */}
-          <div className="max-w-[1300px] mx-auto mt-6 flex items-center justify-between gap-6 font-mono text-[10px] text-[#767676] uppercase">
-            <span>[ 01 // ARCHIVE ]</span>
-            <div className="flex-1 h-[2px] bg-[#e5e7eb] rounded-full overflow-hidden relative">
-              <div
-                className="h-full bg-[#0c0c0c] transition-all duration-150 ease-out"
-                style={{ width: `${Math.max(8, scrollProgress * 100)}%` }}
-              />
-            </div>
-            <span>[ 0{filteredMoments.length} // TOTAL ]</span>
-          </div>
-        </div>
-      ) : (
-        /* View Mode 2: Editorial Contact Sheet Grid */
-        <div className="max-w-[1300px] mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {filteredMoments.map((moment, idx) => (
-              <motion.article
-                key={moment.id}
-                layout
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: idx * 0.05 }}
-                onClick={() => setActiveMoment(moment)}
-                data-cursor="INSPECT"
-                className="group bg-white rounded-[8px] p-3 border border-[#e5e7eb] hover:border-[#0c0c0c] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] transition-all cursor-pointer flex flex-col justify-between"
-              >
-                <div>
-                  <div className="relative w-full aspect-[4/3] rounded-[5px] overflow-hidden bg-[#e8e8e8] mb-3">
-                    <Image
-                      src={moment.image}
-                      alt={moment.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 400px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
-                    />
-                    <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-[3px] bg-black/65 backdrop-blur-xs text-white font-mono text-[9px] uppercase tracking-[0.06em]">
-                      FRAME 0{moment.id}
-                    </div>
-                  </div>
-
-                  <h3 className="text-[18px] font-medium tracking-tight text-[#0c0c0c] mb-1">
-                    {moment.title}
-                  </h3>
-                  <p className="text-[12px] font-mono text-[#767676] leading-relaxed line-clamp-2 mb-3">
-                    {moment.description}
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-[#f4f4f5] flex items-center justify-between text-[10px] font-mono text-[#a1a1aa] uppercase">
-                  <span>{moment.location.split("//")[0]}</span>
-                  <span>{moment.date.split(",")[0]}</span>
-                </div>
-              </motion.article>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Cinema Lightbox Modal */}
+      {/* Fullscreen High-Resolution Lightbox Modal */}
       <AnimatePresence>
-        {activeMoment && (
-          <div className="fixed inset-0 z-[99995] flex items-center justify-center p-4 sm:p-6 md:p-10 select-none">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => setActiveMoment(null)}
-              className="absolute inset-0 bg-[#0c0c0c]/85 backdrop-blur-md"
-            />
+        {lightboxMoment && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[999] bg-black/95 backdrop-blur-xl flex flex-col justify-between p-4 md:p-8"
+          >
+            {/* Modal Top Bar */}
+            <div className="flex items-center justify-between w-full z-10 text-[11px] font-mono tracking-[0.14em] uppercase text-white/70">
+              <div className="flex items-center gap-3">
+                <span className="text-[#c6f432] font-semibold">● FULLSCREEN INSPECT</span>
+                <span>//</span>
+                <span>{lightboxMoment.title}</span>
+              </div>
 
-            {/* Modal Dialog Box */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 16 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-[1040px] max-h-[92vh] bg-white rounded-[10px] shadow-[0_30px_70px_rgba(0,0,0,0.35)] border border-[#e5e7eb] overflow-hidden flex flex-col md:grid md:grid-cols-12 z-10"
-            >
-              {/* Close Button */}
               <button
                 type="button"
-                onClick={() => setActiveMoment(null)}
-                className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-[#0c0c0c] border border-[#e5e7eb] flex items-center justify-center font-mono text-[12px] transition-colors cursor-pointer shadow-sm"
-                aria-label="Close modal"
+                onClick={() => setLightboxMoment(null)}
+                className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 transition-colors text-white font-mono text-[11px] cursor-pointer"
               >
-                ✕
+                CLOSE [ ESC ] ✕
               </button>
+            </div>
 
-              {/* Left Column: Photo Stage */}
-              <div className="md:col-span-7 bg-[#0c0c0c] relative flex items-center justify-center min-h-[280px] sm:min-h-[360px] md:min-h-[520px] p-4 sm:p-6 overflow-hidden">
-                <div className="relative w-full h-full max-h-[480px] aspect-[4/3] rounded-[6px] overflow-hidden shadow-2xl">
-                  <Image
-                    src={activeMoment.image}
-                    alt={activeMoment.title}
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 100vw, 600px"
-                    className="object-cover"
-                  />
-                </div>
+            {/* Modal Center Image */}
+            <div className="relative flex-1 w-full max-h-[78vh] flex items-center justify-center my-4">
+              <div className="relative w-full h-full max-w-5xl rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
+                <Image
+                  src={lightboxMoment.image}
+                  alt={lightboxMoment.title}
+                  fill
+                  sizes="100vw"
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
 
-                {/* Film Overlay Stamp */}
-                <div className="absolute bottom-3 left-4 text-white/50 font-mono text-[9px] uppercase tracking-[0.1em]">
-                  {activeMoment.camera} // KOBRAT ARCHIVE
-                </div>
+            {/* Modal Bottom Metadata & Members */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full z-10 text-[11px] font-mono tracking-[0.08em] text-white/60 uppercase">
+              <div className="flex items-center gap-3">
+                <span>{lightboxMoment.camera}</span>
+                <span>•</span>
+                <span>{lightboxMoment.location}</span>
+                <span>•</span>
+                <span>{lightboxMoment.date}</span>
               </div>
 
-              {/* Right Column: Moment Narrative & Participant Links */}
-              <div className="md:col-span-5 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto max-h-[460px] md:max-h-[520px]">
-                <div>
-                  {/* Category & Date Badge */}
-                  <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.08em] text-[#767676] mb-3">
-                    <span className="px-2 py-0.5 rounded-[3px] bg-[#f4f4f5] text-[#0c0c0c] font-semibold">
-                      {activeMoment.category}
-                    </span>
-                    <span>//</span>
-                    <span>{activeMoment.date}</span>
-                  </div>
-
-                  {/* Title */}
-                  <h3
-                    style={{ fontFamily: "var(--font-wordmark)" }}
-                    className="text-[32px] sm:text-[38px] leading-[1.05] text-[#0c0c0c] lowercase mb-4"
+              <div className="flex items-center gap-2">
+                <span className="text-white/40">TAGS:</span>
+                {lightboxMoment.members.map((slug) => (
+                  <TransitionLink
+                    key={slug}
+                    href={`/${slug}`}
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white hover:text-black transition-colors text-white text-[10px]"
                   >
-                    {activeMoment.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-[13px] md:text-[14px] leading-relaxed text-[#555] font-light mb-6">
-                    {activeMoment.description}
-                  </p>
-
-                  {/* Metadata Specs */}
-                  <div className="border-t border-[#e5e7eb] pt-4 space-y-2.5 font-mono text-[11px] text-[#767676]">
-                    <div className="flex items-center justify-between">
-                      <span className="uppercase text-[#a1a1aa]">LOCATION</span>
-                      <span className="text-[#0c0c0c] font-medium uppercase">
-                        {activeMoment.location}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="uppercase text-[#a1a1aa]">EQUIPMENT</span>
-                      <span className="text-[#0c0c0c] font-medium uppercase">
-                        {activeMoment.camera}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Friends in Frame (Interactive Profile Links!) */}
-                  <div className="mt-6 pt-5 border-t border-[#e5e7eb]">
-                    <span className="block text-[10px] font-mono uppercase tracking-[0.08em] text-[#a1a1aa] mb-2.5">
-                      IN THIS FRAME ({activeMoment.members.length})
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {activeMoment.members.map((memberSlug) => (
-                        <TransitionLink
-                          key={memberSlug}
-                          href={`/${memberSlug}`}
-                          onClick={() => setActiveMoment(null)}
-                          className="px-2.5 py-1 rounded-[4px] bg-[#f4f4f5] hover:bg-[#0c0c0c] hover:text-white text-[#0c0c0c] font-mono text-[11px] uppercase tracking-[0.04em] transition-all flex items-center gap-1.5 group"
-                        >
-                          <span>@{memberSlug}</span>
-                          <span className="text-[9px] text-[#767676] group-hover:text-white transition-colors">
-                            ↗
-                          </span>
-                        </TransitionLink>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Modal Navigation Footer */}
-                <div className="mt-8 pt-4 border-t border-[#f4f4f5] flex items-center justify-between font-mono text-[10px] uppercase text-[#767676]">
-                  <span className="hidden sm:inline">USE ← → KEYS TO NAVIGATE</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const idx = filteredMoments.findIndex(
-                          (m) => m.id === activeMoment.id
-                        );
-                        const prev =
-                          (idx - 1 + filteredMoments.length) %
-                          filteredMoments.length;
-                        setActiveMoment(filteredMoments[prev]);
-                      }}
-                      className="px-3 py-1 rounded-[4px] border border-[#e5e7eb] hover:border-[#0c0c0c] text-[#0c0c0c] transition-colors cursor-pointer"
-                    >
-                      PREV
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const idx = filteredMoments.findIndex(
-                          (m) => m.id === activeMoment.id
-                        );
-                        const next = (idx + 1) % filteredMoments.length;
-                        setActiveMoment(filteredMoments[next]);
-                      }}
-                      className="px-3 py-1 rounded-[4px] border border-[#e5e7eb] hover:border-[#0c0c0c] text-[#0c0c0c] transition-colors cursor-pointer"
-                    >
-                      NEXT
-                    </button>
-                  </div>
-                </div>
+                    @{slug}
+                  </TransitionLink>
+                ))}
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </section>
