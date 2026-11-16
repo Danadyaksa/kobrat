@@ -76,8 +76,11 @@ export default function CollectiveGallery() {
           <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#767676]">
             / ABOUT KOBRAT
           </span>
-          <h2 className="font-sans text-[clamp(44px,7vw,96px)] font-normal tracking-[-0.03em] text-[#0c0c0c] leading-[1.05]">
-            Highlights
+          <h2
+            style={{ fontFamily: "var(--font-wordmark)" }}
+            className="text-[clamp(54px,8.5vw,112px)] lowercase text-[#0c0c0c] leading-[0.95]"
+          >
+            highlights
           </h2>
         </div>
 
@@ -123,7 +126,10 @@ export default function CollectiveGallery() {
         >
           {/* Card Top Title Row */}
           <div className="h-[18vh] min-h-[100px] px-[4vw] pt-[5vh] pb-[2vh] flex items-end justify-between w-full">
-            <h3 className="font-sans text-[clamp(28px,4.5vw,56px)] font-normal tracking-[-0.03em] text-[#0c0c0c] leading-none">
+            <h3
+              style={{ fontFamily: "var(--font-wordmark)" }}
+              className="text-[clamp(32px,5vw,64px)] lowercase text-[#0c0c0c] leading-[0.95]"
+            >
               {featuredMoments[0].title}
             </h3>
 
@@ -207,7 +213,10 @@ export default function CollectiveGallery() {
         >
           {/* Card Top Title Row */}
           <div className="h-[18vh] min-h-[100px] px-[4vw] pt-[5vh] pb-[2vh] flex items-end justify-between w-full">
-            <h3 className="font-sans text-[clamp(28px,4.5vw,56px)] font-normal tracking-[-0.03em] text-[#0c0c0c] leading-none">
+            <h3
+              style={{ fontFamily: "var(--font-wordmark)" }}
+              className="text-[clamp(32px,5vw,64px)] lowercase text-[#0c0c0c] leading-[0.95]"
+            >
               {featuredMoments[1].title}
             </h3>
 
@@ -289,7 +298,10 @@ export default function CollectiveGallery() {
         >
           {/* Card Top Title Row */}
           <div className="h-[18vh] min-h-[100px] px-[4vw] pt-[5vh] pb-[2vh] flex items-end justify-between w-full">
-            <h3 className="font-sans text-[clamp(28px,4.5vw,56px)] font-normal tracking-[-0.03em] text-[#0c0c0c] leading-none">
+            <h3
+              style={{ fontFamily: "var(--font-wordmark)" }}
+              className="text-[clamp(32px,5vw,64px)] lowercase text-[#0c0c0c] leading-[0.95]"
+            >
               {featuredMoments[2].title}
             </h3>
 
@@ -420,7 +432,10 @@ export default function CollectiveGallery() {
                       <span>{moment.camera.split("//")[0]}</span>
                     </div>
 
-                    <h4 className="font-sans text-[14px] font-normal text-white tracking-[-0.02em] uppercase leading-snug">
+                    <h4
+                      style={{ fontFamily: "var(--font-wordmark)" }}
+                      className="text-[18px] lowercase text-white leading-tight"
+                    >
                       {moment.title}
                     </h4>
 
@@ -466,7 +481,12 @@ export default function CollectiveGallery() {
               <div className="flex items-center gap-3">
                 <span className="text-[#c6f432] font-semibold">● FULL RESOLUTION</span>
                 <span>//</span>
-                <span>{lightboxMoment.title}</span>
+                <span
+                  style={{ fontFamily: "var(--font-wordmark)" }}
+                  className="text-[17px] lowercase text-white"
+                >
+                  {lightboxMoment.title}
+                </span>
               </div>
 
               <button
