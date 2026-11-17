@@ -97,10 +97,10 @@ export default function CollectiveGallery() {
 
     const ctx = gsap.context(() => {
       // Initial states:
-      // Card 1 starts peeking at the bottom edge with a slight tilt (just like frame_01 of thelinestudio)
+      // Card 1 starts peeking at the bottom edge with a slight tilt
       gsap.set(c1, {
-        yPercent: 38,
-        rotation: 2.4,
+        yPercent: 42,
+        rotation: 2.2,
         scale: 0.98,
         transformOrigin: "50% 50%",
       });
@@ -108,21 +108,21 @@ export default function CollectiveGallery() {
 
       // Card 2 waits below viewport at a counter-tilt
       gsap.set(c2, {
-        yPercent: 108,
-        rotation: -4.8,
+        yPercent: 110,
+        rotation: -4.2,
         scale: 1,
         transformOrigin: "50% 50%",
       });
-      gsap.set(c2Img, { scale: 1.15 });
+      gsap.set(c2Img, { scale: 1.14 });
 
       // Card 3 waits below viewport at a positive tilt
       gsap.set(c3, {
-        yPercent: 108,
-        rotation: 4.5,
+        yPercent: 110,
+        rotation: 4.0,
         scale: 1,
         transformOrigin: "50% 50%",
       });
-      gsap.set(c3Img, { scale: 1.15 });
+      gsap.set(c3Img, { scale: 1.14 });
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -143,14 +143,14 @@ export default function CollectiveGallery() {
         },
       });
 
-      // ── ACT 1 (0.00 -> 0.28): Intro tilts back, Card 1 rises to full stage ──
+      // ── ACT 1 (0.00 -> 0.28): Intro tilts back, Card 1 rises to stage ──
       tl.to(
         intro,
         {
           yPercent: -14,
-          rotation: -1.6,
+          rotation: -1.5,
           scale: 0.95,
-          opacity: 0.45,
+          opacity: 0.35,
           ease: "power2.inOut",
           duration: 0.28,
         },
@@ -177,12 +177,12 @@ export default function CollectiveGallery() {
           0
         );
 
-      // ── ACT 2 (0.28 -> 0.62): Card 1 glides up so its PHOTO fills top horizon; Card 2 slices in diagonally ──
+      // ── ACT 2 (0.28 -> 0.62): Card 1 glides up so its landscape photo peeks at top; Card 2 slices in ──
       tl.to(
         c1,
         {
-          yPercent: -16,
-          rotation: -1.8,
+          yPercent: -13,
+          rotation: -1.6,
           scale: 0.96,
           ease: "power2.inOut",
           duration: 0.32,
@@ -192,8 +192,8 @@ export default function CollectiveGallery() {
         .to(
           c2,
           {
-            yPercent: 4,
-            rotation: 1.2,
+            yPercent: 3,
+            rotation: 1.1,
             scale: 1,
             ease: "power2.out",
             duration: 0.32,
@@ -210,12 +210,12 @@ export default function CollectiveGallery() {
           0.3
         );
 
-      // ── ACT 3 (0.62 -> 0.94): Card 2 glides up so its PHOTO fills top horizon; Card 3 slices in ──
+      // ── ACT 3 (0.62 -> 0.94): Card 2 glides up; Card 3 slices in ──
       tl.to(
         c1,
         {
-          yPercent: -21,
-          rotation: -2.4,
+          yPercent: -18,
+          rotation: -2.2,
           scale: 0.93,
           ease: "power2.inOut",
           duration: 0.3,
@@ -225,8 +225,8 @@ export default function CollectiveGallery() {
         .to(
           c2,
           {
-            yPercent: -14,
-            rotation: 2.1,
+            yPercent: -11,
+            rotation: 1.8,
             scale: 0.97,
             ease: "power2.inOut",
             duration: 0.3,
@@ -236,8 +236,8 @@ export default function CollectiveGallery() {
         .to(
           c3,
           {
-            yPercent: 5,
-            rotation: -1.1,
+            yPercent: 4,
+            rotation: -0.9,
             scale: 1,
             ease: "power2.out",
             duration: 0.32,
@@ -255,7 +255,7 @@ export default function CollectiveGallery() {
         );
 
       // Final subtle hold (0.94 -> 1.00)
-      tl.to(c3, { yPercent: 2, rotation: -0.5, duration: 0.06 }, 0.94);
+      tl.to(c3, { yPercent: 2, rotation: -0.4, duration: 0.06 }, 0.94);
     }, section);
 
     return () => ctx.revert();
@@ -290,13 +290,13 @@ export default function CollectiveGallery() {
           {/* ─── LAYER 0: Editorial Masthead Sheet (Tilts & recedes on scroll) ─── */}
           <div
             ref={introSheetRef}
-            className="absolute inset-x-0 top-0 h-[56vh] bg-white px-[4vw] pt-[72px] pb-8 flex flex-col justify-between z-[5] origin-top"
+            className="absolute inset-x-0 top-0 h-[56vh] bg-white px-[4vw] pt-[96px] pb-8 flex flex-col justify-between z-[5] origin-top"
           >
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <h2
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(58px,9.5vw,136px)] lowercase text-[#0c0c0c] leading-[1.06] tracking-[-0.02em]"
+                  className="text-[clamp(52px,8vw,116px)] lowercase text-[#0c0c0c] leading-[1.12] tracking-[-0.02em]"
                 >
                   highlights
                 </h2>
@@ -332,14 +332,14 @@ export default function CollectiveGallery() {
           {/* ─── LAYER 1: Flagship Card 1 ─── */}
           <div
             ref={card1Ref}
-            className="absolute inset-0 w-[106vw] -left-[3vw] h-[112vh] bg-[#e6e8ee] flex flex-col z-[10] will-change-transform"
+            className="absolute inset-x-0 top-[10vh] w-[104vw] -left-[2vw] h-[86vh] bg-[#e6e8ee] flex flex-col justify-between pb-[4vh] z-[10] will-change-transform"
           >
             {/* Card Sheet Top Header */}
-            <div className="h-[15vh] min-h-[86px] px-[5.5vw] pt-[2.5vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
+            <div className="h-[11vh] min-h-[72px] px-[5vw] pt-[2vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
               <div className="flex items-baseline gap-4 min-w-0">
                 <h3
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(26px,4.2vw,60px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                  className="text-[clamp(26px,4vw,56px)] lowercase text-[#0c0c0c] leading-[1.08]"
                 >
                   {featuredMoments[0].title}
                 </h3>
@@ -363,11 +363,11 @@ export default function CollectiveGallery() {
               </div>
             </div>
 
-            {/* Massive Edge-to-Edge Artwork Frame */}
+            {/* Sleek Widescreen Landscape Artwork Frame (2.1:1 / 16:9 Cinema Proportions) */}
             <div
               onClick={() => setLightboxMoment(featuredMoments[0])}
               data-cursor="VIEW"
-              className="relative flex-1 w-[94vw] mx-auto mb-[5vh] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
+              className="relative w-[92vw] max-w-[1440px] h-[54vh] md:h-[62vh] max-h-[560px] mx-auto overflow-hidden bg-[#0c0c0c] cursor-pointer group"
             >
               <div ref={card1ImgRef} className="relative w-full h-full will-change-transform">
                 <Image
@@ -375,8 +375,8 @@ export default function CollectiveGallery() {
                   alt={featuredMoments[0].title}
                   fill
                   priority
-                  sizes="100vw"
-                  className="object-cover object-[center_58%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                  sizes="92vw"
+                  className="object-cover object-[center_62%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 />
               </div>
             </div>
@@ -385,14 +385,14 @@ export default function CollectiveGallery() {
           {/* ─── LAYER 2: Flagship Card 2 (Slices diagonally across Card 1's photo) ─── */}
           <div
             ref={card2Ref}
-            className="absolute inset-0 w-[106vw] -left-[3vw] h-[112vh] bg-[#eceae4] flex flex-col z-[20] will-change-transform"
+            className="absolute inset-x-0 top-[10vh] w-[104vw] -left-[2vw] h-[86vh] bg-[#eceae4] flex flex-col justify-between pb-[4vh] z-[20] will-change-transform"
           >
             {/* Card Sheet Top Header */}
-            <div className="h-[15vh] min-h-[86px] px-[5.5vw] pt-[2.5vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
+            <div className="h-[11vh] min-h-[72px] px-[5vw] pt-[2vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
               <div className="flex items-baseline gap-4 min-w-0">
                 <h3
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(26px,4.2vw,60px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                  className="text-[clamp(26px,4vw,56px)] lowercase text-[#0c0c0c] leading-[1.08]"
                 >
                   {featuredMoments[1].title}
                 </h3>
@@ -416,18 +416,18 @@ export default function CollectiveGallery() {
               </div>
             </div>
 
-            {/* Massive Edge-to-Edge Artwork Frame */}
+            {/* Sleek Widescreen Landscape Artwork Frame */}
             <div
               onClick={() => setLightboxMoment(featuredMoments[1])}
               data-cursor="VIEW"
-              className="relative flex-1 w-[94vw] mx-auto mb-[5vh] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
+              className="relative w-[92vw] max-w-[1440px] h-[54vh] md:h-[62vh] max-h-[560px] mx-auto overflow-hidden bg-[#0c0c0c] cursor-pointer group"
             >
               <div ref={card2ImgRef} className="relative w-full h-full will-change-transform">
                 <Image
                   src={featuredMoments[1].image}
                   alt={featuredMoments[1].title}
                   fill
-                  sizes="100vw"
+                  sizes="92vw"
                   className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 />
               </div>
@@ -437,14 +437,14 @@ export default function CollectiveGallery() {
           {/* ─── LAYER 3: Flagship Card 3 (Slices across Card 2's photo) ─── */}
           <div
             ref={card3Ref}
-            className="absolute inset-0 w-[106vw] -left-[3vw] h-[112vh] bg-[#dfe3ec] flex flex-col z-[30] will-change-transform"
+            className="absolute inset-x-0 top-[10vh] w-[104vw] -left-[2vw] h-[86vh] bg-[#dfe3ec] flex flex-col justify-between pb-[4vh] z-[30] will-change-transform"
           >
             {/* Card Sheet Top Header */}
-            <div className="h-[15vh] min-h-[86px] px-[5.5vw] pt-[2.5vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
+            <div className="h-[11vh] min-h-[72px] px-[5vw] pt-[2vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
               <div className="flex items-baseline gap-4 min-w-0">
                 <h3
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(26px,4.2vw,60px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                  className="text-[clamp(26px,4vw,56px)] lowercase text-[#0c0c0c] leading-[1.08]"
                 >
                   {featuredMoments[2].title}
                 </h3>
@@ -468,18 +468,18 @@ export default function CollectiveGallery() {
               </div>
             </div>
 
-            {/* Massive Edge-to-Edge Artwork Frame */}
+            {/* Sleek Widescreen Landscape Artwork Frame */}
             <div
               onClick={() => setLightboxMoment(featuredMoments[2])}
               data-cursor="VIEW"
-              className="relative flex-1 w-[94vw] mx-auto mb-[5vh] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
+              className="relative w-[92vw] max-w-[1440px] h-[54vh] md:h-[62vh] max-h-[560px] mx-auto overflow-hidden bg-[#0c0c0c] cursor-pointer group"
             >
               <div ref={card3ImgRef} className="relative w-full h-full will-change-transform">
                 <Image
                   src={featuredMoments[2].image}
                   alt={featuredMoments[2].title}
                   fill
-                  sizes="100vw"
+                  sizes="92vw"
                   className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 />
               </div>

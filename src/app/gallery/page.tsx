@@ -16,24 +16,12 @@ const CATEGORIES = [
   "ANALOG",
 ] as const;
 
-function RollingText({ text }: { text: string }) {
-  return (
-    <span className="chars-inner" aria-hidden="true">
-      {text.split("").map((char, index) => (
-        <span key={index} style={{ "--i": index } as React.CSSProperties}>
-          {char === " " ? "\u00A0" : char}
-        </span>
-      ))}
-    </span>
-  );
-}
-
 export default function GalleryPage() {
   const [momentsList, setMomentsList] = useState<Moment[]>(staticMoments);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
-  const [viewMode, setViewMode] = useState<"editorial" | "index">("editorial");
+  const [viewMode, setViewMode] = useState<"3col" | "2col" | "index">("3col");
   const [hoveredMoment, setHoveredMoment] = useState<Moment | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -57,7 +45,9 @@ export default function GalleryPage() {
       } catch (err) {
         console.error("Error fetching moments:", err);
         if (isMounted && momentsList.length === 0) {
-          setLoadError("Could not load archive from server. Showing local rolls.");
+          setLoadError(
+            "Could not load archive from server. Showing local rolls."
+          );
         }
       } finally {
         if (isMounted) {
@@ -121,30 +111,30 @@ export default function GalleryPage() {
       {/* Top Navigation */}
       <Header introComplete={true} />
 
-      <main className="flex-1 w-full pt-[96px] pb-28 px-[3vw]">
+      <main className="flex-1 w-full pt-[124px] pb-24 px-[3vw]">
         <div className="max-w-[1440px] mx-auto">
           {/* ─── Editorial Masthead ─── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end pb-14">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end pb-12">
             <div className="lg:col-span-7">
               <h1
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[clamp(48px,7.5vw,116px)] lowercase text-[#0c0c0c] leading-[1.08] tracking-[-0.02em]"
+                className="text-[clamp(42px,5.6vw,84px)] lowercase text-[#0c0c0c] leading-[1.12] tracking-[-0.02em]"
               >
                 collective archive
               </h1>
             </div>
 
-            <div className="lg:col-span-5 flex flex-col justify-between gap-6">
-              <p className="text-[16px] md:text-[18px] text-[#0c0c0c] leading-[1.55] max-w-[48ch]">
+            <div className="lg:col-span-5 flex flex-col justify-between gap-4">
+              <p className="text-[16px] md:text-[17px] text-[#0c0c0c] leading-[1.55] max-w-[46ch]">
                 Eight friends documented across late-night studio sessions,
-                Jakarta rooftops, and 35mm road rolls. Every photograph can be
-                updated directly from the admin studio.
+                Jakarta rooftops, and 35mm road rolls. Click any frame to
+                inspect in full resolution.
               </p>
             </div>
           </div>
 
-          {/* ─── Filter & View Switcher Bar ─── */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-6 mb-14 bg-[#f4f5f7] px-5">
+          {/* ─── Filter & Column Switcher Bar ─── */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-4 mb-10 bg-[#f4f5f7] px-5">
             {/* Category Filter Buttons */}
             <div
               role="tablist"
@@ -178,7 +168,9 @@ export default function GalleryPage() {
                     </span>{" "}
                     <span
                       className={
-                        isActive ? "text-white/60 text-[11px]" : "text-[#767676] text-[11px]"
+                        isActive
+                          ? "text-white/60 text-[11px]"
+                          : "text-[#767676] text-[11px]"
                       }
                     >
                       ({count})
@@ -188,23 +180,34 @@ export default function GalleryPage() {
               })}
             </div>
 
-            {/* View Switcher: Editorial Spread vs Interactive Index */}
+            {/* Grid Column & Index Switcher */}
             <div className="flex items-center gap-2 self-start md:self-auto">
               <button
                 type="button"
-                onClick={() => setViewMode("editorial")}
-                className={`px-4 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
-                  viewMode === "editorial"
+                onClick={() => setViewMode("3col")}
+                className={`px-3.5 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
+                  viewMode === "3col"
                     ? "bg-[#0c0c0c] text-white font-medium"
                     : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
                 }`}
               >
-                Editorial spread
+                3 Columns
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("2col")}
+                className={`px-3.5 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
+                  viewMode === "2col"
+                    ? "bg-[#0c0c0c] text-white font-medium"
+                    : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
+                }`}
+              >
+                2 Columns
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("index")}
-                className={`px-4 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
+                className={`px-3.5 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
                   viewMode === "index"
                     ? "bg-[#0c0c0c] text-white font-medium"
                     : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
@@ -256,254 +259,87 @@ export default function GalleryPage() {
                 Show all frames
               </button>
             </div>
-          ) : viewMode === "editorial" ? (
+          ) : viewMode !== "index" ? (
             /* ═══════════════════════════════════════════════════════════════════ */
-            /* MODE 1: AWWWARDS ASYMMETRIC EDITORIAL SPREADS                       */
+            /* MODE 1: COMPACT 2 / 3 COLUMN LANDSCAPE GALLERY GRID                 */
             /* ═══════════════════════════════════════════════════════════════════ */
-            <div className="space-y-28 md:space-y-40">
-              {filteredMoments.map((moment, idx) => {
-                const pattern = idx % 4;
-
-                // Pattern 0: Monumental 12-Column Cinema Feature
-                if (pattern === 0) {
-                  return (
-                    <motion.article
-                      key={moment.id}
-                      initial={{ opacity: 0, y: 28 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-80px" }}
-                      transition={{
-                        duration: 0.65,
-                        ease: [0.23, 1, 0.32, 1],
-                      }}
-                      className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
-                    >
-                      <div
-                        onClick={() => setLightboxIndex(idx)}
-                        data-cursor="VIEW"
-                        className="lg:col-span-12 relative w-full h-[56vh] md:h-[78vh] bg-[#111] overflow-hidden cursor-pointer group"
-                      >
-                        <Image
-                          src={moment.image}
-                          alt={moment.title}
-                          fill
-                          priority={idx === 0}
-                          sizes="100vw"
-                          className="object-cover object-[center_58%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                        />
-                      </div>
-
-                      <div className="lg:col-span-7 pt-2">
-                        <h2
-                          style={{ fontFamily: "var(--font-wordmark)" }}
-                          className="text-[clamp(36px,5.5vw,76px)] lowercase text-[#0c0c0c] leading-[0.92]"
-                        >
-                          {moment.title}
-                        </h2>
-                        <p className="mt-2 text-[14px] text-[#767676]">
-                          {formatLocation(moment.location, moment.year)} ·{" "}
-                          {moment.date}
-                        </p>
-                      </div>
-
-                      <div className="lg:col-span-5 pt-2 flex flex-col justify-between gap-4">
-                        <p className="text-[16px] text-[#0c0c0c] leading-[1.55]">
-                          {moment.description}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2 pt-1">
-                          {moment.members.map((slug) => (
-                            <TransitionLink
-                              key={slug}
-                              href={`/${slug}`}
-                              className="px-3 py-1 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[12px] text-[#0c0c0c] capitalize transition-colors"
-                            >
-                              {slug}
-                            </TransitionLink>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.article>
-                  );
-                }
-
-                // Pattern 1: Left-Heavy 8-Column Spread + Right Editorial Note
-                if (pattern === 1) {
-                  return (
-                    <motion.article
-                      key={moment.id}
-                      initial={{ opacity: 0, y: 28 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-80px" }}
-                      transition={{
-                        duration: 0.65,
-                        ease: [0.23, 1, 0.32, 1],
-                      }}
-                      className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end"
-                    >
-                      <div
-                        onClick={() => setLightboxIndex(idx)}
-                        data-cursor="VIEW"
-                        className="lg:col-span-8 relative w-full aspect-[16/10] bg-[#111] overflow-hidden cursor-pointer group"
-                      >
-                        <Image
-                          src={moment.image}
-                          alt={moment.title}
-                          fill
-                          sizes="(max-width: 1024px) 100vw, 66vw"
-                          className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                        />
-                      </div>
-
-                      <div className="lg:col-span-4 flex flex-col justify-between gap-5">
-                        <div>
-                          <h2
-                            style={{ fontFamily: "var(--font-wordmark)" }}
-                            className="text-[clamp(32px,4.2vw,58px)] lowercase text-[#0c0c0c] leading-[0.94]"
-                          >
-                            {moment.title}
-                          </h2>
-                          <p className="mt-2 text-[14px] text-[#767676]">
-                            {formatLocation(moment.location, moment.year)}
-                          </p>
-                        </div>
-
-                        <p className="text-[16px] text-[#0c0c0c] leading-[1.55]">
-                          {moment.description}
-                        </p>
-
-                        <div className="flex flex-wrap items-center gap-2">
-                          {moment.members.map((slug) => (
-                            <TransitionLink
-                              key={slug}
-                              href={`/${slug}`}
-                              className="px-3 py-1 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[12px] text-[#0c0c0c] capitalize transition-colors"
-                            >
-                              {slug}
-                            </TransitionLink>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.article>
-                  );
-                }
-
-                // Pattern 2: Right-Anchored 7-Column Frame + Left Story Column
-                if (pattern === 2) {
-                  return (
-                    <motion.article
-                      key={moment.id}
-                      initial={{ opacity: 0, y: 28 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-80px" }}
-                      transition={{
-                        duration: 0.65,
-                        ease: [0.23, 1, 0.32, 1],
-                      }}
-                      className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-                    >
-                      <div className="lg:col-span-5 order-2 lg:order-1 flex flex-col justify-between gap-5 lg:pt-12">
-                        <div>
-                          <h2
-                            style={{ fontFamily: "var(--font-wordmark)" }}
-                            className="text-[clamp(32px,4.2vw,58px)] lowercase text-[#0c0c0c] leading-[0.94]"
-                          >
-                            {moment.title}
-                          </h2>
-                          <p className="mt-2 text-[14px] text-[#767676]">
-                            {formatLocation(moment.location, moment.year)} ·{" "}
-                            {moment.date}
-                          </p>
-                        </div>
-
-                        <p className="text-[16px] text-[#0c0c0c] leading-[1.55] max-w-[44ch]">
-                          {moment.description}
-                        </p>
-
-                        <div className="flex flex-wrap items-center gap-2">
-                          {moment.members.map((slug) => (
-                            <TransitionLink
-                              key={slug}
-                              href={`/${slug}`}
-                              className="px-3 py-1 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[12px] text-[#0c0c0c] capitalize transition-colors"
-                            >
-                              {slug}
-                            </TransitionLink>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div
-                        onClick={() => setLightboxIndex(idx)}
-                        data-cursor="VIEW"
-                        className="lg:col-span-7 order-1 lg:order-2 relative w-full aspect-[4/3] bg-[#111] overflow-hidden cursor-pointer group"
-                      >
-                        <Image
-                          src={moment.image}
-                          alt={moment.title}
-                          fill
-                          sizes="(max-width: 1024px) 100vw, 58vw"
-                          className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                        />
-                      </div>
-                    </motion.article>
-                  );
-                }
-
-                // Pattern 3: Centered Architectural Sheet (10-Column Offset)
-                return (
-                  <motion.article
-                    key={moment.id}
-                    initial={{ opacity: 0, y: 28 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-80px" }}
-                    transition={{
-                      duration: 0.65,
-                      ease: [0.23, 1, 0.32, 1],
-                    }}
-                    className="bg-[#f4f5f7] p-6 md:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
-                  >
+            <div
+              className={`grid gap-x-7 gap-y-12 ${
+                viewMode === "3col"
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                  : "grid-cols-1 md:grid-cols-2"
+              }`}
+            >
+              {filteredMoments.map((moment, idx) => (
+                <motion.article
+                  key={moment.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{
+                    duration: 0.45,
+                    delay: (idx % 3) * 0.06,
+                    ease: [0.23, 1, 0.32, 1],
+                  }}
+                  className="flex flex-col justify-between bg-[#f4f5f7] p-4 group"
+                >
+                  <div>
+                    {/* Landscape 16:10 Frame */}
                     <div
                       onClick={() => setLightboxIndex(idx)}
                       data-cursor="VIEW"
-                      className="lg:col-span-7 relative w-full aspect-[3/2] bg-[#111] overflow-hidden cursor-pointer group"
+                      className="relative w-full aspect-[16/10] bg-[#111] overflow-hidden cursor-pointer mb-4"
                     >
                       <Image
                         src={moment.image}
                         alt={moment.title}
                         fill
-                        sizes="(max-width: 1024px) 100vw, 58vw"
-                        className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                        priority={idx < 3}
+                        sizes={
+                          viewMode === "3col"
+                            ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            : "(max-width: 768px) 100vw, 50vw"
+                        }
+                        className="object-cover object-[center_58%] transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                       />
                     </div>
 
-                    <div className="lg:col-span-5 space-y-5">
-                      <h2
-                        style={{ fontFamily: "var(--font-wordmark)" }}
-                        className="text-[clamp(32px,4.5vw,60px)] lowercase text-[#0c0c0c] leading-[0.94]"
-                      >
-                        {moment.title}
-                      </h2>
-                      <p className="text-[14px] text-[#767676]">
-                        {formatLocation(moment.location, moment.year)}
-                      </p>
-                      <p className="text-[16px] text-[#0c0c0c] leading-[1.55]">
-                        {moment.description}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 pt-2">
-                        {moment.members.map((slug) => (
-                          <TransitionLink
-                            key={slug}
-                            href={`/${slug}`}
-                            className="px-3 py-1 bg-white hover:bg-[#0c0c0c] hover:text-white text-[12px] text-[#0c0c0c] capitalize transition-colors"
-                          >
-                            {slug}
-                          </TransitionLink>
-                        ))}
-                      </div>
+                    {/* Meta & Gothic Title */}
+                    <div className="flex items-center justify-between gap-2 text-[12px] text-[#767676] mb-1">
+                      <span className="capitalize text-[#0c0c0c] font-medium">
+                        {moment.category.toLowerCase()}
+                      </span>
+                      <span>{formatLocation(moment.location, moment.year)}</span>
                     </div>
-                  </motion.article>
-                );
-              })}
+
+                    <h2
+                      onClick={() => setLightboxIndex(idx)}
+                      style={{ fontFamily: "var(--font-wordmark)" }}
+                      className="text-[clamp(24px,2.5vw,34px)] lowercase text-[#0c0c0c] leading-[1.08] cursor-pointer hover:opacity-70 transition-opacity"
+                    >
+                      {moment.title}
+                    </h2>
+
+                    <p className="mt-2 text-[14px] text-[#52525b] leading-[1.5] line-clamp-2">
+                      {moment.description}
+                    </p>
+                  </div>
+
+                  {/* Member Links */}
+                  <div className="flex flex-wrap items-center gap-1.5 mt-4 pt-3">
+                    {moment.members.map((slug) => (
+                      <TransitionLink
+                        key={slug}
+                        href={`/${slug}`}
+                        className="px-2.5 py-1 bg-white hover:bg-[#0c0c0c] hover:text-white text-[11px] text-[#0c0c0c] capitalize transition-colors"
+                      >
+                        {slug}
+                      </TransitionLink>
+                    ))}
+                  </div>
+                </motion.article>
+              ))}
             </div>
           ) : (
             /* ═══════════════════════════════════════════════════════════════════ */
@@ -520,12 +356,12 @@ export default function GalleryPage() {
                     onMouseEnter={() => setHoveredMoment(moment)}
                     onClick={() => setLightboxIndex(idx)}
                     data-cursor="INSPECT"
-                    className="group py-7 px-5 even:bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white transition-colors duration-200 flex flex-col md:flex-row md:items-baseline justify-between gap-4 cursor-pointer"
+                    className="group py-6 px-5 even:bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white transition-colors duration-200 flex flex-col md:flex-row md:items-baseline justify-between gap-4 cursor-pointer"
                   >
                     <div className="flex items-baseline gap-6">
                       <h2
                         style={{ fontFamily: "var(--font-wordmark)" }}
-                        className="text-[clamp(30px,4.5vw,60px)] lowercase leading-none"
+                        className="text-[clamp(28px,4vw,52px)] lowercase leading-[1.08]"
                       >
                         {moment.title}
                       </h2>
@@ -578,7 +414,7 @@ export default function GalleryPage() {
             <TransitionLink
               href="/"
               style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(48px,8vw,112px)] lowercase text-[#0c0c0c] leading-[0.88] inline-block hover:opacity-70 transition-opacity"
+              className="text-[clamp(48px,8vw,112px)] lowercase text-[#0c0c0c] leading-[1.04] inline-block hover:opacity-70 transition-opacity"
             >
               kobrat
             </TransitionLink>
@@ -641,7 +477,9 @@ export default function GalleryPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setLightboxIndex((lightboxIndex + 1) % filteredMoments.length)
+                    setLightboxIndex(
+                      (lightboxIndex + 1) % filteredMoments.length
+                    )
                   }
                   className="px-3.5 py-2 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-[12px] cursor-pointer active:scale-[0.97]"
                 >
@@ -680,7 +518,9 @@ export default function GalleryPage() {
             {/* Bottom Story & Members */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full z-10 text-[13px] text-white/75">
               <div className="space-y-1 max-w-2xl">
-                <p className="text-white/90">{activeLightboxMoment.description}</p>
+                <p className="text-white/90">
+                  {activeLightboxMoment.description}
+                </p>
                 <p className="text-white/50 text-[12px]">
                   {formatLocation(
                     activeLightboxMoment.location,
