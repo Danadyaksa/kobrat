@@ -111,14 +111,14 @@ export default function GalleryPage() {
       {/* Top Navigation */}
       <Header introComplete={true} />
 
-      <main className="flex-1 w-full pt-[124px] pb-24 px-[3vw]">
+      <main className="flex-1 w-full pt-[148px] pb-24 px-[3vw]">
         <div className="max-w-[1440px] mx-auto">
           {/* ─── Editorial Masthead ─── */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end pb-12">
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7 pt-4">
               <h1
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[clamp(42px,5.6vw,84px)] lowercase text-[#0c0c0c] leading-[1.12] tracking-[-0.02em]"
+                className="text-[clamp(42px,5.4vw,80px)] lowercase text-[#0c0c0c] leading-[1.15] tracking-[-0.02em]"
               >
                 collective archive
               </h1>

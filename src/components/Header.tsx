@@ -72,7 +72,7 @@ export default function Header({ introComplete = true }: HeaderProps) {
     <header
       className={`fixed top-0 inset-x-0 z-[70] transition-[opacity,background-color] duration-300 pointer-events-none ${
         introComplete ? "opacity-100 pointer-events-auto" : "opacity-0"
-      } ${isScrolled || pathname === "/gallery" ? "bg-white/95" : "bg-transparent"}`}
+      } ${isScrolled ? "bg-white/95" : "bg-transparent"}`}
     >
       <div className="h-[52px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-6 pointer-events-auto">
         {/* Left: Local Time */}
@@ -99,6 +99,14 @@ export default function Header({ introComplete = true }: HeaderProps) {
           >
             <span className="sr-only">Home</span>
             <RollingText text="HOME" />
+          </TransitionLink>
+          <TransitionLink
+            href="/members"
+            aria-current={pathname === "/members" ? "page" : undefined}
+            className="nav-item"
+          >
+            <span className="sr-only">Members</span>
+            <RollingText text="MEMBERS" />
           </TransitionLink>
           <TransitionLink
             href="/gallery"
