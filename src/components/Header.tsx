@@ -116,14 +116,6 @@ export default function Header({ introComplete = true }: HeaderProps) {
             <span className="sr-only">Gallery</span>
             <RollingText text="GALLERY" />
           </TransitionLink>
-          <TransitionLink
-            href="/admin"
-            aria-current={pathname === "/admin" ? "page" : undefined}
-            className="nav-item"
-          >
-            <span className="sr-only">Admin</span>
-            <RollingText text="ADMIN" />
-          </TransitionLink>
           <div className="flex items-center text-[#767676] font-mono text-[12px] uppercase ml-1">
             <button
               type="button"

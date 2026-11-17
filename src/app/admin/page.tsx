@@ -568,20 +568,18 @@ function AdminContent() {
 
                       {/* Member Meta */}
                       <div className="space-y-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <h3
-                            style={{ fontFamily: "var(--font-wordmark)" }}
-                            className="text-[22px] leading-tight text-[#0c0c0c] lowercase"
-                          >
-                            {member.name}
-                          </h3>
-                          <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-[#767676] bg-[#f4f4f5] px-1.5 py-0.5 rounded-[3px]">
-                            {member.nickname}
-                          </span>
-                        </div>
+                        <h3
+                          style={{ fontFamily: "var(--font-wordmark)" }}
+                          className="text-[24px] leading-[1.08] text-[#0c0c0c] lowercase"
+                        >
+                          {member.nickname || member.name}
+                        </h3>
+                        <p className="text-[12px] text-[#3f3f46] font-medium truncate">
+                          {member.name}
+                        </p>
 
                         {member.instagram && (
-                          <p className="font-mono text-[10px] text-[#a1a1aa] pt-0.5">
+                          <p className="font-mono text-[10px] text-[#767676] pt-0.5">
                             {member.instagram}
                           </p>
                         )}
@@ -925,14 +923,14 @@ function AdminContent() {
             >
               <div className="shrink-0 px-6 sm:px-8 py-4 sm:py-5 border-b border-[#e5e7eb] flex items-start justify-between gap-4 bg-white">
                 <div>
-                  <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.08em] text-[#767676] mb-1">
+                  <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.08em] text-[#767676] mb-2.5">
                     <span>EDIT MEMBER PROFILE</span>
                   </div>
                   <h2
                     style={{ fontFamily: "var(--font-wordmark)" }}
-                    className="text-[28px] sm:text-[34px] leading-tight text-[#0c0c0c] lowercase"
+                    className="text-[28px] sm:text-[34px] leading-[1.08] text-[#0c0c0c] lowercase"
                   >
-                    {memberFormData.name || "edit profile"}
+                    {memberFormData.nickname || memberFormData.name || "edit profile"}
                   </h2>
                 </div>
 
@@ -1032,14 +1030,15 @@ function AdminContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                      NAMA LENGKAP / PANGGILAN *
+                      NAMA PANGGILAN (TAMPIL BESAR DI KARTU) *
                     </label>
                     <input
                       type="text"
                       required
-                      value={memberFormData.name}
+                      placeholder="Contoh: Aksa"
+                      value={memberFormData.nickname}
                       onChange={(e) =>
-                        setMemberFormData({ ...memberFormData, name: e.target.value })
+                        setMemberFormData({ ...memberFormData, nickname: e.target.value })
                       }
                       className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
                     />
@@ -1047,14 +1046,15 @@ function AdminContent() {
 
                   <div>
                     <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                      NICKNAME / IDENTITY *
+                      NAMA PANJANG (TAMPIL KECIL DI BAWAH) *
                     </label>
                     <input
                       type="text"
                       required
-                      value={memberFormData.nickname}
+                      placeholder="Contoh: Muhammad Aksa Pratama"
+                      value={memberFormData.name}
                       onChange={(e) =>
-                        setMemberFormData({ ...memberFormData, nickname: e.target.value })
+                        setMemberFormData({ ...memberFormData, name: e.target.value })
                       }
                       className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
                     />

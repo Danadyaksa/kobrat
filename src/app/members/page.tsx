@@ -16,7 +16,6 @@ import {
   members as staticMembers,
   getMemberSlug,
 } from "@/data/members";
-import { Moment, moments as staticMoments } from "@/data/moments";
 
 // Deterministic crisp SVG barcode unique to each member's name & ID
 function MemberBarcode({ seed }: { seed: string }) {
@@ -60,7 +59,7 @@ function MemberBarcode({ seed }: { seed: string }) {
   );
 }
 
-// Crisp pixel seal matching Kobrat's voxel identity without WebGL context overhead
+// Crisp pixel seal matching Kobrat's voxel identity
 function PixelSeal({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg
@@ -77,16 +76,10 @@ function PixelSeal({ className = "w-4 h-4" }: { className?: string }) {
 
 interface InteractiveIdCardProps {
   member: Member;
-  memberMoments: Moment[];
   index: number;
 }
 
-function InteractiveIdCard({
-  member,
-  memberMoments,
-  index,
-}: InteractiveIdCardProps) {
-  const [isFlipped, setIsFlipped] = useState<boolean>(false);
+function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const pointerState = useRef({
@@ -96,10 +89,9 @@ function InteractiveIdCard({
     startY: 0,
     lastX: 0,
     lastY: 0,
-    totalDist: 0,
   });
 
-  // Physical elastic lanyard displacement (underdamped spring so releasing bounces like a real lanyard!)
+  // Physical elastic lanyard displacement (underdamped spring so releasing bounces like a real lanyard)
   const rawDragX = useMotionValue(0);
   const rawDragY = useMotionValue(0);
   const dragX = useSpring(rawDragX, { stiffness: 270, damping: 15, mass: 0.78 });
@@ -114,10 +106,6 @@ function InteractiveIdCard({
   const tiltY = useSpring(targetTiltY, { stiffness: 230, damping: 19, mass: 0.55 });
   const swingZ = useSpring(targetSwingZ, { stiffness: 190, damping: 13, mass: 0.85 });
 
-  // 180-degree 3D card flip spring (smooth, interruptible, physical overshoot)
-  const flipTarget = useMotionValue(0);
-  const flipAngle = useSpring(flipTarget, { stiffness: 150, damping: 18, mass: 0.9 });
-
   // Dynamic acrylic studio light sheen position
   const sheenX = useSpring(50, { stiffness: 200, damping: 24 });
   const sheenOpacity = useSpring(0, { stiffness: 200, damping: 24 });
@@ -126,12 +114,7 @@ function InteractiveIdCard({
     (val) => `translate3d(${(val - 50) * 2.4}%, 0, 0) skewX(-22deg)`
   );
 
-  // Sync flip state with spring target
-  useEffect(() => {
-    flipTarget.set(isFlipped ? 180 : 0);
-  }, [isFlipped, flipTarget]);
-
-  // Scroll-velocity reactive 3D sway (connects to Lenis just like the Hero 3D ring!)
+  // Scroll-velocity reactive 3D sway
   useEffect(() => {
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -151,7 +134,10 @@ function InteractiveIdCard({
 
         if (Math.abs(vel) > 0.15) {
           const clampedPitch = Math.max(-11, Math.min(11, vel * 0.22));
-          const clampedSway = Math.max(-4.5, Math.min(4.5, vel * 0.07 * colDirection));
+          const clampedSway = Math.max(
+            -4.5,
+            Math.min(4.5, vel * 0.07 * colDirection)
+          );
           targetTiltX.set(clampedPitch);
           targetSwingZ.set(clampedSway);
         }
@@ -163,7 +149,7 @@ function InteractiveIdCard({
     return () => cancelAnimationFrame(rafId);
   }, [index, targetSwingZ, targetTiltX]);
 
-  // Dynamic SVG path for the elastic woven lanyard strap from ceiling rail (140, 0) to card clip (140 + dx, 68 + dy)
+  // Dynamic SVG path for the elastic woven lanyard strap from ceiling rail (140, 4) to card clip (140 + dx, 68 + dy)
   const lanyardPath = useTransform([dragX, dragY], ([x, y]) => {
     const dx = Number(x) || 0;
     const dy = Number(y) || 0;
@@ -184,7 +170,7 @@ function InteractiveIdCard({
       }deg)`
   );
 
-  // Pointer Down: initiate elastic lanyard drag (unless clicking an interactive button/link)
+  // Pointer Down: initiate elastic lanyard drag (unless clicking an interactive link)
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
@@ -198,7 +184,6 @@ function InteractiveIdCard({
       startY: e.clientY,
       lastX: e.clientX,
       lastY: e.clientY,
-      totalDist: 0,
     };
     setIsDragging(true);
     sheenOpacity.set(0.55);
@@ -211,13 +196,13 @@ function InteractiveIdCard({
       const rawDx = e.clientX - ps.startX;
       const rawDy = e.clientY - ps.startY;
       const stepDx = e.clientX - ps.lastX;
-      ps.totalDist += Math.hypot(e.clientX - ps.lastX, e.clientY - ps.lastY);
       ps.lastX = e.clientX;
       ps.lastY = e.clientY;
 
       // Rubber-band boundary damping so pulling further feels taut like a real strap
       const dampedX =
-        Math.sign(rawDx) * Math.min(135, Math.pow(Math.abs(rawDx), 0.84) * 1.55);
+        Math.sign(rawDx) *
+        Math.min(135, Math.pow(Math.abs(rawDx), 0.84) * 1.55);
       const dampedY =
         rawDy >= 0
           ? Math.min(125, Math.pow(rawDy, 0.84) * 1.5)
@@ -258,22 +243,16 @@ function InteractiveIdCard({
       e.currentTarget.releasePointerCapture(ps.pointerId);
     }
 
-    const wasClick = ps.totalDist < 7;
     ps.active = false;
     setIsDragging(false);
 
-    // Snap back on the elastic lanyard spring!
+    // Snap back on the elastic lanyard spring
     rawDragX.set(0);
     rawDragY.set(0);
     targetSwingZ.set(0);
     targetTiltX.set(0);
     targetTiltY.set(0);
     sheenOpacity.set(0);
-
-    // Clean click without drag flips the 3D ID card 180 degrees
-    if (wasClick) {
-      setIsFlipped((prev) => !prev);
-    }
   };
 
   const handlePointerLeave = () => {
@@ -285,8 +264,10 @@ function InteractiveIdCard({
   };
 
   const slug = getMemberSlug(member);
+  const nicknameDisplay = member.nickname?.trim() || member.name.trim();
+  const fullNameDisplay = member.name.trim();
   const igHandle = member.instagram?.replace(/^@/, "");
-  const credentialCode = `KBRT · ${member.nickname.toUpperCase()}`;
+  const credentialCode = `KBRT · ${nicknameDisplay.toUpperCase()}`;
 
   // Subtle alternating archival PVC / cotton stock tones
   const cardStocks = ["bg-[#eff0f4]", "bg-[#eeece6]", "bg-[#e7ebf2]"];
@@ -347,13 +328,9 @@ function InteractiveIdCard({
         </motion.div>
       </div>
 
-      {/* ─── 3D Draggable & Gyro-Tilting Physical ID Card / Kartu Nama ─── */}
+      {/* ─── 3D Draggable & Gyro-Tilting Physical ID Card ─── */}
       <div className="w-full max-w-[560px] perspective-1200">
         <motion.div
-          data-ui="id-card"
-          data-cursor={
-            isDragging ? "RELEASE TO SNAP" : isFlipped ? "DRAG OR FLIP" : "DRAG OR FLIP"
-          }
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
@@ -367,246 +344,130 @@ function InteractiveIdCard({
             rotateZ: swingZ,
             transformOrigin: "50% 0%",
           }}
-          className={`relative w-full transform-style-3d will-change-transform touch-pan-y ${
+          className={`relative w-full min-h-[300px] sm:min-h-[324px] transform-style-3d will-change-transform touch-pan-y cursor-grab active:cursor-grabbing ${
             isDragging ? "z-[60]" : "z-[20]"
           }`}
         >
-          {/* Inner 180° Flip Rotor */}
-          <motion.div
-            style={{
-              rotateY: flipAngle,
-            }}
-            className="relative w-full min-h-[305px] sm:min-h-[332px] transform-style-3d will-change-transform cursor-grab active:cursor-grabbing"
+          {/* Physical PVC Card Core Thickness Edge Layer */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 rounded-[16px] bg-[#d4d6dc] pointer-events-none"
+          />
+
+          {/* ─── Studio ID Card Surface ─── */}
+          <div
+            style={{ transform: "translateZ(3px)" }}
+            className={`relative w-full min-h-[300px] sm:min-h-[324px] rounded-[16px] ${stockBg} pt-6 flex flex-col justify-between overflow-hidden`}
           >
-            {/* Physical PVC Card Core Thickness Edge Layer */}
+            {/* Die-Cut Lanyard Punch Hole at Top Center */}
             <div
-              data-ui="id-card-edge"
               aria-hidden="true"
-              className="absolute inset-0 rounded-[16px] bg-[#d4d6dc] pointer-events-none"
+              className="absolute top-2.5 left-1/2 -translate-x-1/2 w-14 h-3 rounded-full bg-white"
             />
 
-            {/* ═════════════════════════════════════════════════════════════ */}
-            {/* FRONT FACE: STUDIO ID CREDENTIAL / KARTU NAMA                 */}
-            {/* ═════════════════════════════════════════════════════════════ */}
+            {/* Dynamic Studio Acrylic Light Sheen Overlay */}
+            <motion.div
+              aria-hidden="true"
+              style={{
+                opacity: sheenOpacity,
+                transform: sheenTransform,
+              }}
+              className="pointer-events-none absolute -inset-y-12 left-1/3 w-28 bg-white/55 z-[25] will-change-transform"
+            />
+
+            {/* Card Top Header Row */}
             <div
-              style={{ transform: "translateZ(2px)" }}
-              className={`absolute inset-0 w-full h-full rounded-[16px] ${stockBg} pt-6 flex flex-col justify-between backface-hidden overflow-hidden`}
+              style={{ transform: "translateZ(16px)" }}
+              className="px-5 sm:px-7 flex items-center justify-between gap-3 pt-2"
             >
-              {/* Die-Cut Lanyard Punch Hole at Top Center */}
-              <div
-                aria-hidden="true"
-                className="absolute top-2.5 left-1/2 -translate-x-1/2 w-14 h-3 rounded-full bg-white"
-              />
-
-              {/* Dynamic Studio Acrylic Light Sheen Overlay */}
-              <motion.div
-                aria-hidden="true"
-                style={{
-                  opacity: sheenOpacity,
-                  transform: sheenTransform,
-                }}
-                className="pointer-events-none absolute -inset-y-12 left-1/3 w-28 bg-white/55 z-[25] will-change-transform"
-              />
-
-              {/* Card Top Header Row */}
-              <div
-                style={{ transform: "translateZ(16px)" }}
-                className="px-5 sm:px-7 flex items-center justify-between gap-3 pt-2"
-              >
-                <div className="flex items-center gap-2 text-[#0c0c0c]">
-                  <PixelSeal className="w-3.5 h-3.5" />
-                  <span
-                    style={{ fontFamily: "var(--font-wordmark)" }}
-                    className="text-[22px] lowercase leading-none"
-                  >
-                    kobrat
-                  </span>
-                </div>
-
-                <span className="text-[12px] text-[#52525b] tabular-nums font-medium">
-                  {credentialCode}
+              <div className="flex items-center gap-2 text-[#0c0c0c]">
+                <PixelSeal className="w-3.5 h-3.5" />
+                <span
+                  style={{ fontFamily: "var(--font-wordmark)" }}
+                  className="text-[22px] lowercase leading-none"
+                >
+                  kobrat
                 </span>
               </div>
 
-              {/* Card Center Body: Left 3:4 ID Portrait + Right Raised Identity */}
-              <div
-                style={{ transform: "translateZ(24px)" }}
-                className="px-5 sm:px-7 my-auto py-3 flex flex-row items-center gap-5 sm:gap-6"
-              >
-                {/* Authentic 3:4 ID Portrait Window */}
-                <div className="relative w-[112px] sm:w-[138px] aspect-[3/4] shrink-0 rounded-[10px] bg-[#111] p-1 overflow-hidden">
-                  <div className="relative w-full h-full rounded-[7px] overflow-hidden">
-                    <Image
-                      src={member.image}
-                      alt={member.name}
-                      fill
-                      sizes="150px"
-                      draggable={false}
-                      className="object-cover object-center pointer-events-none select-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Right Identity Details */}
-                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  <span className="text-[12px] text-[#71717a] mb-0.5">
-                    Collective member
-                  </span>
-
-                  <h2
-                    style={{ fontFamily: "var(--font-wordmark)" }}
-                    className="text-[clamp(34px,3.8vw,52px)] lowercase text-[#0c0c0c] leading-[1.06] truncate"
-                  >
-                    {member.name}
-                  </h2>
-
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-[4px] bg-[#0c0c0c] text-white text-[11px] font-medium">
-                      {member.nickname}
-                    </span>
-
-                    {member.instagram && (
-                      <a
-                        href={`https://instagram.com/${igHandle}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[13px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4"
-                      >
-                        {member.instagram}
-                      </a>
-                    )}
-                  </div>
-
-                  <p className="mt-3 text-[13px] sm:text-[14px] text-[#3f3f46] line-clamp-2 leading-[1.45]">
-                    {member.bio
-                      ? `“${member.bio}”`
-                      : "Digital craft & visual direction."}
-                  </p>
-                </div>
-              </div>
-
-              {/* Card Bottom Barcode & Tactile Triggers (Printed Tone Strip) */}
-              <div
-                style={{ transform: "translateZ(18px)" }}
-                className="w-full bg-black/[0.045] px-5 sm:px-7 py-3.5 flex items-center justify-between gap-3"
-              >
-                <div className="flex items-center gap-3">
-                  <MemberBarcode seed={`${member.id}-${member.name}-${slug}`} />
-                  <span className="hidden sm:inline text-[11px] text-[#71717a]">
-                    JKT / ID
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsFlipped(true)}
-                    className="px-3 py-1.5 rounded-[6px] bg-white text-[#0c0c0c] text-[12px] font-medium hover:bg-[#e4e6eb] active:scale-[0.97] transition-[background-color,transform] duration-150 cursor-pointer"
-                  >
-                    Flip 180°
-                  </button>
-
-                  <TransitionLink
-                    href={`/${slug}`}
-                    data-cursor="VIEW PROFILE"
-                    className="px-3.5 py-1.5 rounded-[6px] bg-[#0c0c0c] text-white text-[12px] font-medium hover:bg-[#27272a] active:scale-[0.97] transition-[background-color,transform] duration-150"
-                  >
-                    Profile
-                  </TransitionLink>
-                </div>
-              </div>
+              <span className="text-[12px] text-[#52525b] tabular-nums font-medium">
+                {credentialCode}
+              </span>
             </div>
 
-            {/* ═════════════════════════════════════════════════════════════ */}
-            {/* BACK FACE: MATTE OBSIDIAN KARTU NAMA BACKPLATE (180° SPIN)    */}
-            {/* ═════════════════════════════════════════════════════════════ */}
+            {/* Card Center Body: Left 3:4 ID Portrait + Right Stacked Nickname / Full Name / IG */}
             <div
-              style={{ transform: "rotateY(180deg) translateZ(2px)" }}
-              className="absolute inset-0 w-full h-full rounded-[16px] bg-[#0c0c0c] text-white flex flex-col justify-between backface-hidden overflow-hidden"
+              style={{ transform: "translateZ(24px)" }}
+              className="px-5 sm:px-7 my-auto py-3.5 flex flex-row items-center gap-5 sm:gap-6"
             >
-              {/* Die-Cut Lanyard Punch Hole (Mirrored on Back!) */}
-              <div
-                aria-hidden="true"
-                className="absolute top-2.5 left-1/2 -translate-x-1/2 w-14 h-3 rounded-full bg-white z-[30]"
-              />
-
-              {/* Top Magnetic Credential Strip */}
-              <div className="w-full bg-[#1b1b1f] pt-8 pb-3 px-5 sm:px-7 flex items-center justify-between gap-4">
-                <div className="flex items-baseline gap-2.5">
-                  <span
-                    style={{ fontFamily: "var(--font-wordmark)" }}
-                    className="text-[24px] lowercase text-white leading-none"
-                  >
-                    {member.name}
-                  </span>
-                  <span className="text-[12px] text-white/50">
-                    {credentialCode}
-                  </span>
+              {/* Authentic 3:4 ID Portrait Window */}
+              <div className="relative w-[112px] sm:w-[138px] aspect-[3/4] shrink-0 rounded-[10px] bg-[#111] p-1 overflow-hidden">
+                <div className="relative w-full h-full rounded-[7px] overflow-hidden">
+                  <Image
+                    src={member.image}
+                    alt={fullNameDisplay}
+                    fill
+                    sizes="150px"
+                    draggable={false}
+                    className="object-cover object-center pointer-events-none select-none"
+                  />
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsFlipped(false)}
-                  className="px-3 py-1 rounded-[5px] bg-white/10 hover:bg-white hover:text-[#0c0c0c] text-[12px] text-white transition-colors duration-150 cursor-pointer"
-                >
-                  Front side
-                </button>
               </div>
 
-              {/* Middle Dossier & Collective Moments Strip */}
-              <div className="px-5 sm:px-7 my-auto py-3 space-y-3.5">
-                <p className="text-[14px] text-white/85 leading-[1.5]">
-                  {member.bio ||
-                    "Shaping interactive experiences, visual identity, and late-night experiments within the Kobrat collective."}
+              {/* Right Identity Details: Big Nickname -> Small Full Name -> IG Underneath */}
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                {/* 1. Nama Panggilan (Big Gothic) */}
+                <h2
+                  style={{ fontFamily: "var(--font-wordmark)" }}
+                  className="text-[clamp(36px,4vw,54px)] lowercase text-[#0c0c0c] leading-[1.04] truncate"
+                >
+                  {nicknameDisplay}
+                </h2>
+
+                {/* 2. Nama Panjang (Small Crisp Text Underneath) */}
+                <p className="mt-1.5 text-[14px] sm:text-[15px] font-medium text-[#18181b] leading-[1.35] break-words">
+                  {fullNameDisplay}
                 </p>
 
-                {memberMoments.length > 0 && (
-                  <div>
-                    <span className="block text-[11px] text-white/50 mb-2">
-                      Appears in {memberMoments.length} archive rolls:
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {memberMoments.slice(0, 4).map((m) => (
-                        <TransitionLink
-                          key={m.id}
-                          href="/gallery"
-                          title={m.title}
-                          className="relative w-[72px] aspect-[16/10] rounded-[4px] bg-white/10 shrink-0 overflow-hidden group/thumb"
-                        >
-                          <Image
-                            src={m.image}
-                            alt={m.title}
-                            fill
-                            sizes="80px"
-                            draggable={false}
-                            className="object-cover group-hover/thumb:scale-110 transition-transform duration-300"
-                          />
-                        </TransitionLink>
-                      ))}
-                    </div>
+                {/* 3. Instagram Handle (Stacked Directly Below Full Name) */}
+                {member.instagram && (
+                  <div className="mt-1">
+                    <a
+                      href={`https://instagram.com/${igHandle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-[13px] text-[#52525b] hover:text-[#0c0c0c] underline underline-offset-4"
+                    >
+                      {member.instagram}
+                    </a>
                   </div>
                 )}
-              </div>
 
-              {/* Bottom Backplate Links */}
-              <div className="w-full bg-white/[0.06] px-5 sm:px-7 py-3.5 flex items-center justify-between gap-4 text-[12px]">
-                <TransitionLink
-                  href={`/admin?edit=${member.id}`}
-                  className="text-white/60 hover:text-white underline underline-offset-4"
-                >
-                  Edit card in admin
-                </TransitionLink>
-
-                <TransitionLink
-                  href={`/${slug}`}
-                  data-cursor="VIEW PROFILE"
-                  className="px-4 py-1.5 rounded-[6px] bg-white text-[#0c0c0c] font-medium hover:bg-[#e4e6eb] transition-colors duration-150"
-                >
-                  Open full dossier
-                </TransitionLink>
+                {/* Optional Bio Quote */}
+                {member.bio && (
+                  <p className="mt-2.5 text-[13px] text-[#52525b] line-clamp-2 leading-[1.45]">
+                    “{member.bio}”
+                  </p>
+                )}
               </div>
             </div>
-          </motion.div>
+
+            {/* Card Bottom Barcode & Profile Button */}
+            <div
+              style={{ transform: "translateZ(18px)" }}
+              className="w-full bg-black/[0.045] px-5 sm:px-7 py-3.5 flex items-center justify-between gap-3"
+            >
+              <MemberBarcode seed={`${member.id}-${fullNameDisplay}-${slug}`} />
+
+              <TransitionLink
+                href={`/${slug}`}
+                data-cursor="VIEW PROFILE"
+                className="px-4 py-1.5 rounded-[6px] bg-[#0c0c0c] text-white text-[12px] font-medium hover:bg-[#27272a] active:scale-[0.97] transition-[background-color,transform] duration-150"
+              >
+                Profile
+              </TransitionLink>
+            </div>
+          </div>
         </motion.div>
       </div>
     </motion.article>
@@ -615,30 +476,19 @@ function InteractiveIdCard({
 
 export default function MembersPage() {
   const [membersList, setMembersList] = useState<Member[]>(staticMembers);
-  const [momentsList, setMomentsList] = useState<Moment[]>(staticMoments);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    async function fetchData() {
+    async function fetchMembers() {
       try {
         setLoadError(null);
-        const [memRes, momRes] = await Promise.all([
-          fetch("/api/members", { cache: "no-store" }),
-          fetch("/api/moments", { cache: "no-store" }),
-        ]);
-
+        const memRes = await fetch("/api/members", { cache: "no-store" });
         if (memRes.ok) {
           const memData = await memRes.json();
           if (isMounted && Array.isArray(memData) && memData.length > 0) {
             setMembersList(memData);
-          }
-        }
-        if (momRes.ok) {
-          const momData = await momRes.json();
-          if (isMounted && Array.isArray(momData) && momData.length > 0) {
-            setMomentsList(momData);
           }
         }
       } catch (err) {
@@ -652,27 +502,11 @@ export default function MembersPage() {
         }
       }
     }
-    fetchData();
+    fetchMembers();
     return () => {
       isMounted = false;
     };
   }, []);
-
-  // Cross-reference each member with the archive moments they appear in
-  const momentsByMemberId = useMemo(() => {
-    const map: Record<number, Moment[]> = {};
-    for (const member of membersList) {
-      const slug = getMemberSlug(member).toLowerCase();
-      const nameLower = member.name.toLowerCase();
-      map[member.id] = momentsList.filter((m) =>
-        m.members.some(
-          (tag) =>
-            tag.toLowerCase() === slug || tag.toLowerCase() === nameLower
-        )
-      );
-    }
-    return map;
-  }, [membersList, momentsList]);
 
   return (
     <div className="relative min-h-dvh bg-white text-[#0c0c0c] flex flex-col selection:bg-[#0c0c0c] selection:text-white cursor-default">
@@ -681,40 +515,14 @@ export default function MembersPage() {
 
       <main className="flex-1 w-full pt-[148px] pb-28 px-[3vw]">
         <div className="max-w-[1320px] mx-auto">
-          {/* ─── Editorial Masthead ─── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end pb-10">
-            <div className="lg:col-span-7 pt-4">
-              <h1
-                style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[clamp(44px,5.8vw,86px)] lowercase text-[#0c0c0c] leading-[1.14] tracking-[-0.02em]"
-              >
-                collective pass
-              </h1>
-            </div>
-
-            <div className="lg:col-span-5 flex flex-col justify-between gap-4">
-              <p className="text-[16px] md:text-[17px] text-[#0c0c0c] leading-[1.55] max-w-[46ch]">
-                Eight interactive 3D credentials. Grab and pull any badge to
-                stretch its lanyard, glide your cursor to tilt in 3D, or click
-                to flip 180 degrees.
-              </p>
-            </div>
-          </div>
-
-          {/* ─── Subtle Interactive Physics Legend Bar ─── */}
-          <div className="flex flex-wrap items-center justify-between gap-4 py-3.5 px-5 mb-12 bg-[#f4f5f7] text-[13px] text-[#52525b]">
-            <span>
-              <strong className="text-[#0c0c0c] font-medium">
-                {membersList.length} active passes
-              </strong>{" "}
-              · Drag to pull lanyard · Click card to flip 3D
-            </span>
-            <TransitionLink
-              href="/admin"
-              className="text-[#0c0c0c] underline underline-offset-4 hover:opacity-65 transition-opacity"
+          {/* ─── Clean Editorial Masthead ─── */}
+          <div className="pb-12 pt-4">
+            <h1
+              style={{ fontFamily: "var(--font-wordmark)" }}
+              className="text-[clamp(44px,5.8vw,86px)] lowercase text-[#0c0c0c] leading-[1.14] tracking-[-0.02em]"
             >
-              Update photos & bios in admin
-            </TransitionLink>
+              members
+            </h1>
           </div>
 
           {/* ─── Error / Loading / Empty States ─── */}
@@ -733,9 +541,7 @@ export default function MembersPage() {
 
           {isLoading && membersList.length === 0 ? (
             <div className="py-32 text-center">
-              <p className="text-[16px] text-[#767676]">
-                Preparing collective 3D credentials...
-              </p>
+              <p className="text-[16px] text-[#767676]">Loading members...</p>
             </div>
           ) : membersList.length === 0 ? (
             <div className="py-28 px-6 bg-[#f4f5f7] text-center space-y-4">
@@ -743,20 +549,16 @@ export default function MembersPage() {
                 style={{ fontFamily: "var(--font-wordmark)" }}
                 className="text-[36px] lowercase text-[#0c0c0c]"
               >
-                no passes issued yet
+                no members yet
               </h2>
-              <p className="text-[15px] text-[#52525b]">
-                Add collective members from the admin dashboard.
-              </p>
             </div>
           ) : (
-            /* ─── 2-Column Hanging 3D ID / Business Cards Studio Rack ─── */
+            /* ─── 2-Column Hanging 3D ID Cards Studio Rack ─── */
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 lg:gap-x-16 gap-y-12">
               {membersList.map((member, idx) => (
                 <InteractiveIdCard
                   key={member.id}
                   member={member}
-                  memberMoments={momentsByMemberId[member.id] || []}
                   index={idx}
                 />
               ))}
@@ -790,12 +592,6 @@ export default function MembersPage() {
               className="underline hover:opacity-65"
             >
               Collective gallery
-            </TransitionLink>
-            <TransitionLink
-              href="/admin"
-              className="underline hover:opacity-65"
-            >
-              Manage roster in admin
             </TransitionLink>
           </div>
         </div>

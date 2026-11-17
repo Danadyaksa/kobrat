@@ -109,18 +109,18 @@ async function MemberContent({ params }: PageProps) {
 
           {/* Member Badge (No numbers) */}
           <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#767676] select-none flex items-center gap-2">
-            <span>{member.name.toUpperCase()} // PROFILE</span>
+            <span>{(member.nickname || member.name).toUpperCase()} // PROFILE</span>
           </div>
 
-          {/* Admin & Index Links */}
+          {/* Navigation Links */}
           <nav className="justify-self-end flex items-center gap-3">
-            <TransitionLink href="/admin" className="nav-item">
-              <span className="sr-only">Admin</span>
-              <RollingText text="ADMIN" />
+            <TransitionLink href="/members" className="nav-item">
+              <span className="sr-only">Members</span>
+              <RollingText text="MEMBERS" />
             </TransitionLink>
-            <TransitionLink href="/" className="nav-item">
-              <span className="sr-only">Home</span>
-              <RollingText text="INDEX" />
+            <TransitionLink href="/gallery" className="nav-item">
+              <span className="sr-only">Gallery</span>
+              <RollingText text="GALLERY" />
             </TransitionLink>
           </nav>
         </div>
@@ -139,37 +139,38 @@ async function MemberContent({ params }: PageProps) {
                 <span>MEMBER PROFILE</span>
               </div>
 
-              {/* Gossip Wordmark Name */}
+              {/* Gossip Wordmark Nickname (Nama Panggilan) */}
               <h1
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[clamp(44px,7vw,84px)] leading-[0.95] tracking-tight text-[#0c0c0c] lowercase mb-4"
+                className="text-[clamp(44px,7vw,84px)] leading-[1.06] tracking-tight text-[#0c0c0c] lowercase mb-2"
               >
-                {member.name}
+                {member.nickname || member.name}
               </h1>
 
-              {/* Nickname */}
-              <div className="flex items-center gap-3 mb-8">
-                <span className="font-mono text-[12px] uppercase tracking-[0.06em] bg-[#0c0c0c] text-white px-2.5 py-0.5 rounded-[4px] font-medium">
-                  {member.nickname}
-                </span>
+              {/* Full Name (Nama Panjang) */}
+              <div className="mb-8">
+                <p className="text-[18px] md:text-[21px] font-medium text-[#18181b]">
+                  {member.name}
+                </p>
               </div>
 
               {/* Bio / Persona Quote */}
-              <p className="text-[17px] md:text-[20px] leading-[1.45] text-[#333333] font-light max-w-[560px] mb-12">
-                {member.bio ||
-                  `Creative mind shaping digital presence and high-fidelity interaction design within the Kobrat collective.`}
-              </p>
+              {member.bio && (
+                <p className="text-[17px] md:text-[20px] leading-[1.45] text-[#333333] font-light max-w-[560px] mb-12">
+                  {member.bio}
+                </p>
+              )}
             </div>
 
             {/* Spec Sheet / Metadata Table */}
             <div className="border-t border-[#e5e7eb] pt-6 flex flex-col divide-y divide-[#f4f4f5] font-mono text-[11px] tracking-[0.04em]">
               <div className="py-3 flex items-center justify-between">
-                <span className="text-[#767676] uppercase">NAME</span>
-                <span className="text-[#0c0c0c] uppercase font-medium">{member.name}</span>
+                <span className="text-[#767676] uppercase">NICKNAME</span>
+                <span className="text-[#0c0c0c] font-medium">{member.nickname || member.name}</span>
               </div>
               <div className="py-3 flex items-center justify-between">
-                <span className="text-[#767676] uppercase">IDENTITY / NICKNAME</span>
-                <span className="text-[#0c0c0c] uppercase font-medium">{member.nickname}</span>
+                <span className="text-[#767676] uppercase">FULL NAME</span>
+                <span className="text-[#0c0c0c] font-medium">{member.name}</span>
               </div>
               {member.instagram && (
                 <div className="py-3 flex items-center justify-between">
@@ -187,17 +188,6 @@ async function MemberContent({ params }: PageProps) {
                   </a>
                 </div>
               )}
-            </div>
-
-            {/* Admin Quick Edit Button */}
-            <div className="mt-8 pt-4">
-              <TransitionLink
-                href={`/admin?edit=${member.id}`}
-                className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.06em] text-[#767676] hover:text-[#0c0c0c] transition-colors group"
-              >
-                <span>EDIT THIS PROFILE IN ADMIN</span>
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
-              </TransitionLink>
             </div>
           </div>
 

@@ -249,7 +249,7 @@ export default function GalleryPage() {
               <p className="text-[15px] text-[#52525b] max-w-md mx-auto">
                 There are no photographs tagged under{" "}
                 <span className="lowercase">{selectedCategory}</span> yet. Reset
-                the filter to view all rolls or upload one in the admin page.
+                the filter to view all rolls.
               </p>
               <button
                 type="button"
@@ -434,10 +434,10 @@ export default function GalleryPage() {
               Back to home
             </TransitionLink>
             <TransitionLink
-              href="/admin?tab=moments"
+              href="/members"
               className="underline hover:opacity-65"
             >
-              Manage gallery in admin
+              Collective members
             </TransitionLink>
           </div>
         </div>
