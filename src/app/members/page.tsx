@@ -349,6 +349,7 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
             rotateZ: swingZ,
             transformOrigin: "50% 0%",
           }}
+          data-lanyard-card="true"
           className={`relative w-full min-h-[300px] sm:min-h-[324px] transform-style-3d will-change-transform touch-pan-y cursor-grab active:cursor-grabbing ${
             isDragging ? "z-[60]" : "z-[20]"
           }`}

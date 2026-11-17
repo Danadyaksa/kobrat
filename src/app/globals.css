@@ -175,3 +175,48 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a1a1aa;
 }
+
+/* ─── Tactile Sound Equalizer Micro-Animation ─── */
+@keyframes eqPulse1 {
+  0%, 100% { height: 4px; }
+  50% { height: 10px; }
+}
+@keyframes eqPulse2 {
+  0%, 100% { height: 9px; }
+  50% { height: 3px; }
+}
+@keyframes eqPulse3 {
+  0%, 100% { height: 5px; }
+  45% { height: 10px; }
+}
+@keyframes eqPulse4 {
+  0%, 100% { height: 8px; }
+  60% { height: 3px; }
+}
+
+.eq-bar-1 { animation: eqPulse1 0.9s ease-in-out infinite; }
+.eq-bar-2 { animation: eqPulse2 0.75s ease-in-out infinite; }
+.eq-bar-3 { animation: eqPulse3 1.05s ease-in-out infinite; }
+.eq-bar-4 { animation: eqPulse4 0.85s ease-in-out infinite; }
+
+/* ─── 35mm Darkroom Silver Mode Easter Egg (html[data-darkroom="true"]) ─── */
+/* Paired with the z-[9990] mix-blend-difference optical veil in ExperienceProvider:
+   grayscale -> invert(1) before the difference veil yields authentic Tri-X B&W prints,
+   and removing grayscale on hover develops the print into 100% vivid full color! */
+html[data-darkroom="true"] img {
+  filter: grayscale(0.88) contrast(1.06) invert(1);
+  transition: filter 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html[data-darkroom="true"] img:hover,
+html[data-darkroom="true"] .group:hover img,
+html[data-darkroom="true"] .polaroid-print:hover img,
+html[data-darkroom="true"] [data-lanyard-card="true"]:hover img,
+html[data-darkroom="true"] [data-cursor="DRAG"]:hover img {
+  filter: grayscale(0) contrast(1.02) invert(1);
+}
+
+/* Modals above z-[9990] sit above the optical veil, so keep their images unfiltered */
+html[data-darkroom="true"] [data-darkroom-keep="true"] img {
+  filter: none;
+}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import SmoothScroll from "@/components/SmoothScroll";
 import PageTransitionProvider from "@/components/PageTransition";
+import ExperienceProvider from "@/components/ExperienceProvider";
 import CustomCursor from "@/components/CustomCursor";
 import "./globals.css";
 
@@ -28,8 +29,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-dvh bg-white text-[#0c0c0c] flex flex-col font-sans selection:bg-[#0c0c0c] selection:text-white">
         <PageTransitionProvider>
-          <CustomCursor />
-          <SmoothScroll>{children}</SmoothScroll>
+          <ExperienceProvider>
+            <CustomCursor />
+            <SmoothScroll>{children}</SmoothScroll>
+          </ExperienceProvider>
         </PageTransitionProvider>
       </body>
     </html>
