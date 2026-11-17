@@ -14,6 +14,7 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
   const [isHomePreloader, setIsHomePreloader] = useState(false);
   const dotWrapRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLDivElement>(null);
+  const currentCardRef = useRef<Element | null>(null);
   const [pillText, setPillText] = useState<string>("VIEW PROFILE");
   const [cursorKind, setCursorKind] = useState<"default" | "link" | "pill">("default");
   const [isPressed, setIsPressed] = useState<boolean>(false);
@@ -29,6 +30,7 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
 
   useEffect(() => {
     if (isTransitioning) {
+      currentCardRef.current = null;
       setCursorKind("default");
       if (pillRef.current) {
         gsap.to(pillRef.current, { scale: 0.4, autoAlpha: 0, duration: 0.15 });
@@ -64,7 +66,6 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
     const pillYTo = gsap.quickTo(pill, "y", { duration: 0.42, ease: "power3" });
 
     let hasPositioned = false;
-    let currentCard: Element | null = null;
 
     const handlePointerMove = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
@@ -83,8 +84,8 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
       const target = document.elementFromPoint(e.clientX, e.clientY);
       const isInput = target?.closest('input, textarea, select, [contenteditable="true"]');
       if (isInput) {
-        if (currentCard) {
-          currentCard = null;
+        if (currentCardRef.current) {
+          currentCardRef.current = null;
           gsap.to(pill, { scale: 0.4, autoAlpha: 0, duration: 0.15 });
         }
         gsap.to(dotWrap, { autoAlpha: 0, duration: 0.15 });
@@ -98,8 +99,8 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
 
       if (card) {
         const text = card.getAttribute("data-cursor") || "VIEW PROFILE";
-        if (card !== currentCard) {
-          currentCard = card;
+        if (card !== currentCardRef.current) {
+          currentCardRef.current = card;
           setPillText(text);
           setCursorKind("pill");
           gsap.to(pill, {
@@ -111,8 +112,8 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
           });
         }
       } else {
-        if (currentCard) {
-          currentCard = null;
+        if (currentCardRef.current) {
+          currentCardRef.current = null;
           gsap.to(pill, {
             scale: 0.4,
             autoAlpha: 0,
@@ -143,7 +144,7 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
     const handlePointerLeave = () => {
       gsap.to([dotWrap, pill], { autoAlpha: 0, duration: 0.2 });
       hasPositioned = false;
-      currentCard = null;
+      currentCardRef.current = null;
       setCursorKind("default");
     };
 
