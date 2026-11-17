@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence, useSpring } from "motion/react";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import Header from "@/components/Header";
 import TransitionLink from "@/components/TransitionLink";
+import { getLenis } from "@/components/SmoothScroll";
 import {
   Member,
   members as staticMembers,
@@ -12,263 +18,598 @@ import {
 } from "@/data/members";
 import { Moment, moments as staticMoments } from "@/data/moments";
 
-interface BusinessCardProps {
+// Deterministic crisp SVG barcode unique to each member's name & ID
+function MemberBarcode({ seed }: { seed: string }) {
+  const bars = useMemo(() => {
+    const list: { w: number; gap: number }[] = [];
+    let hash = 2166136261;
+    for (let i = 0; i < seed.length; i++) {
+      hash ^= seed.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    for (let i = 0; i < 22; i++) {
+      hash ^= hash << 13;
+      hash ^= hash >>> 17;
+      hash ^= hash << 5;
+      const v = Math.abs(hash);
+      list.push({
+        w: (v % 3) + 1,
+        gap: ((v >> 3) % 2) + 1,
+      });
+    }
+    return list;
+  }, [seed]);
+
+  let x = 0;
+  return (
+    <svg
+      width="88"
+      height="18"
+      viewBox="0 0 88 18"
+      fill="currentColor"
+      aria-hidden="true"
+      className="text-[#0c0c0c]/80 shrink-0"
+    >
+      {bars.map((b, idx) => {
+        const curX = x;
+        x += b.w + b.gap;
+        if (curX + b.w > 88) return null;
+        return <rect key={idx} x={curX} y={0} width={b.w} height={18} />;
+      })}
+    </svg>
+  );
+}
+
+// Crisp pixel seal matching Kobrat's voxel identity without WebGL context overhead
+function PixelSeal({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 7 7"
+      fill="currentColor"
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M2 0h3v3H2zM1 4h5v1H1zM0 5h7v2H0z" />
+    </svg>
+  );
+}
+
+interface InteractiveIdCardProps {
   member: Member;
   memberMoments: Moment[];
   index: number;
-  isLarge?: boolean;
 }
 
-function TactileBusinessCard({
+function InteractiveIdCard({
   member,
   memberMoments,
   index,
-  isLarge = false,
-}: BusinessCardProps) {
+}: InteractiveIdCardProps) {
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  // Smooth spring-driven 3D mouse tilt
-  const tiltX = useSpring(0, { stiffness: 220, damping: 22, mass: 0.4 });
-  const tiltY = useSpring(0, { stiffness: 220, damping: 22, mass: 0.4 });
+  const pointerState = useRef({
+    active: false,
+    pointerId: -1,
+    startX: 0,
+    startY: 0,
+    lastX: 0,
+    lastY: 0,
+    totalDist: 0,
+  });
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Physical elastic lanyard displacement (underdamped spring so releasing bounces like a real lanyard!)
+  const rawDragX = useMotionValue(0);
+  const rawDragY = useMotionValue(0);
+  const dragX = useSpring(rawDragX, { stiffness: 270, damping: 15, mass: 0.78 });
+  const dragY = useSpring(rawDragY, { stiffness: 270, damping: 15, mass: 0.78 });
+
+  // 3D Gyro Pitch (X), Yaw (Y), and Pendulum Swing (Z)
+  const targetTiltX = useMotionValue(0);
+  const targetTiltY = useMotionValue(0);
+  const targetSwingZ = useMotionValue(0);
+
+  const tiltX = useSpring(targetTiltX, { stiffness: 230, damping: 19, mass: 0.55 });
+  const tiltY = useSpring(targetTiltY, { stiffness: 230, damping: 19, mass: 0.55 });
+  const swingZ = useSpring(targetSwingZ, { stiffness: 190, damping: 13, mass: 0.85 });
+
+  // 180-degree 3D card flip spring (smooth, interruptible, physical overshoot)
+  const flipTarget = useMotionValue(0);
+  const flipAngle = useSpring(flipTarget, { stiffness: 150, damping: 18, mass: 0.9 });
+
+  // Dynamic acrylic studio light sheen position
+  const sheenX = useSpring(50, { stiffness: 200, damping: 24 });
+  const sheenOpacity = useSpring(0, { stiffness: 200, damping: 24 });
+  const sheenTransform = useTransform(
+    sheenX,
+    (val) => `translate3d(${(val - 50) * 2.4}%, 0, 0) skewX(-22deg)`
+  );
+
+  // Sync flip state with spring target
+  useEffect(() => {
+    flipTarget.set(isFlipped ? 180 : 0);
+  }, [isFlipped, flipTarget]);
+
+  // Scroll-velocity reactive 3D sway (connects to Lenis just like the Hero 3D ring!)
+  useEffect(() => {
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (prefersReduced) return;
+
+    let rafId: number;
+    let lastScrollY = window.scrollY;
+    const colDirection = index % 2 === 0 ? 1 : -1;
+
+    const tick = () => {
+      if (!pointerState.current.active) {
+        const lenis = getLenis();
+        const dy = window.scrollY - lastScrollY;
+        lastScrollY = window.scrollY;
+        const vel = lenis ? lenis.velocity : dy * 0.8;
+
+        if (Math.abs(vel) > 0.15) {
+          const clampedPitch = Math.max(-11, Math.min(11, vel * 0.22));
+          const clampedSway = Math.max(-4.5, Math.min(4.5, vel * 0.07 * colDirection));
+          targetTiltX.set(clampedPitch);
+          targetSwingZ.set(clampedSway);
+        }
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [index, targetSwingZ, targetTiltX]);
+
+  // Dynamic SVG path for the elastic woven lanyard strap from ceiling rail (140, 0) to card clip (140 + dx, 68 + dy)
+  const lanyardPath = useTransform([dragX, dragY], ([x, y]) => {
+    const dx = Number(x) || 0;
+    const dy = Number(y) || 0;
+    const startX = 140;
+    const startY = 4;
+    const endX = 140 + dx;
+    const endY = Math.max(20, 68 + dy);
+    const ctrlX = startX + dx * 0.32;
+    const ctrlY = startY + (endY - startY) * 0.58 + Math.abs(dx) * 0.08;
+    return `M ${startX} ${startY} Q ${ctrlX} ${ctrlY} ${endX} ${endY}`;
+  });
+
+  const claspTransform = useTransform(
+    [dragX, dragY, swingZ],
+    ([x, y, r]) =>
+      `translate3d(${Number(x) || 0}px, ${Number(y) || 0}px, 0) rotate(${
+        (Number(r) || 0) * 0.45
+      }deg)`
+  );
+
+  // Pointer Down: initiate elastic lanyard drag (unless clicking an interactive button/link)
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("a, button")) return;
+
+    e.currentTarget.setPointerCapture(e.pointerId);
+    pointerState.current = {
+      active: true,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      lastX: e.clientX,
+      lastY: e.clientY,
+      totalDist: 0,
+    };
+    setIsDragging(true);
+    sheenOpacity.set(0.55);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const ps = pointerState.current;
+
+    if (ps.active) {
+      const rawDx = e.clientX - ps.startX;
+      const rawDy = e.clientY - ps.startY;
+      const stepDx = e.clientX - ps.lastX;
+      ps.totalDist += Math.hypot(e.clientX - ps.lastX, e.clientY - ps.lastY);
+      ps.lastX = e.clientX;
+      ps.lastY = e.clientY;
+
+      // Rubber-band boundary damping so pulling further feels taut like a real strap
+      const dampedX =
+        Math.sign(rawDx) * Math.min(135, Math.pow(Math.abs(rawDx), 0.84) * 1.55);
+      const dampedY =
+        rawDy >= 0
+          ? Math.min(125, Math.pow(rawDy, 0.84) * 1.5)
+          : -Math.min(42, Math.pow(Math.abs(rawDy), 0.78) * 1.1);
+
+      rawDragX.set(dampedX);
+      rawDragY.set(dampedY);
+
+      // Pendulum swing torque + 3D perspective pitch/yaw while pulling
+      const swing = Math.max(
+        -18,
+        Math.min(18, -dampedX * 0.09 + stepDx * 0.32)
+      );
+      targetSwingZ.set(swing);
+      targetTiltY.set(Math.max(-22, Math.min(22, dampedX * 0.16)));
+      targetTiltX.set(Math.max(-18, Math.min(18, -dampedY * 0.14)));
+      sheenX.set(50 + dampedX * 0.35);
+      return;
+    }
+
+    // Hover 3D gyroscopic tilt when not dragging
     const rect = e.currentTarget.getBoundingClientRect();
     const nx = (e.clientX - rect.left) / rect.width - 0.5;
     const ny = (e.clientY - rect.top) / rect.height - 0.5;
-    tiltX.set(-ny * 9);
-    tiltY.set(nx * 11);
+
+    targetTiltX.set(-ny * 16);
+    targetTiltY.set(nx * 20);
+    targetSwingZ.set(nx * 2.6);
+    sheenX.set((nx + 0.5) * 100);
+    sheenOpacity.set(0.45);
   };
 
-  const handleMouseLeave = () => {
-    tiltX.set(0);
-    tiltY.set(0);
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const ps = pointerState.current;
+    if (!ps.active) return;
+
+    if (e.currentTarget.hasPointerCapture(ps.pointerId)) {
+      e.currentTarget.releasePointerCapture(ps.pointerId);
+    }
+
+    const wasClick = ps.totalDist < 7;
+    ps.active = false;
+    setIsDragging(false);
+
+    // Snap back on the elastic lanyard spring!
+    rawDragX.set(0);
+    rawDragY.set(0);
+    targetSwingZ.set(0);
+    targetTiltX.set(0);
+    targetTiltY.set(0);
+    sheenOpacity.set(0);
+
+    // Clean click without drag flips the 3D ID card 180 degrees
+    if (wasClick) {
+      setIsFlipped((prev) => !prev);
+    }
+  };
+
+  const handlePointerLeave = () => {
+    if (pointerState.current.active) return;
+    targetTiltX.set(0);
+    targetTiltY.set(0);
+    targetSwingZ.set(0);
+    sheenOpacity.set(0);
   };
 
   const slug = getMemberSlug(member);
   const igHandle = member.instagram?.replace(/^@/, "");
+  const credentialCode = `KBRT · ${member.nickname.toUpperCase()}`;
 
-  // Alternate subtle tactile paper stocks across cards
-  const paperStocks = ["bg-[#eceef2]", "bg-[#ebe9e2]", "bg-[#e3e6ed]"];
-  const stockClass = paperStocks[index % paperStocks.length];
+  // Subtle alternating archival PVC / cotton stock tones
+  const cardStocks = ["bg-[#eff0f4]", "bg-[#eeece6]", "bg-[#e7ebf2]"];
+  const stockBg = cardStocks[index % cardStocks.length];
 
   return (
-    <motion.div
-      initial={isLarge ? false : { opacity: 0, y: 22 }}
-      whileInView={isLarge ? undefined : { opacity: 1, y: 0 }}
+    <motion.article
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{
-        duration: 0.45,
-        delay: isLarge ? 0 : (index % 2) * 0.06,
+        duration: 0.55,
+        delay: (index % 2) * 0.08,
         ease: [0.23, 1, 0.32, 1],
       }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="group perspective-1200 w-full select-none transition-opacity duration-300 group-hover/cards:opacity-50 hover:!opacity-100"
+      className="relative flex flex-col items-center w-full select-none"
     >
-      <motion.div
-        style={{
-          rotateX: tiltX,
-          rotateY: tiltY,
-        }}
-        className="w-full transform-style-3d will-change-transform"
+      {/* ─── Elastic Woven Lanyard Strap & Studio Rail Anchor ─── */}
+      <div
+        aria-hidden="true"
+        className="relative w-[280px] h-[68px] pointer-events-none z-[30] overflow-visible"
       >
-        <div
-          onClick={() => setIsFlipped((prev) => !prev)}
-          data-cursor={isFlipped ? "FLIP BACK" : "FLIP CARD"}
-          style={{
-            transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-            transition: "transform 0.65s cubic-bezier(0.23, 1, 0.32, 1)",
-          }}
-          className={`relative w-full ${
-            isLarge
-              ? "min-h-[340px] sm:min-h-[380px]"
-              : "min-h-[290px] sm:min-h-[320px]"
-          } transform-style-3d cursor-pointer`}
+        {/* Top Architectural Ceiling Bracket */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-11 h-2 bg-[#0c0c0c] rounded-full" />
+
+        {/* Dynamic Elastic SVG Lanyard Ribbon */}
+        <svg
+          width="280"
+          height="68"
+          viewBox="0 0 280 68"
+          className="overflow-visible w-full h-full"
         >
-          {/* ═══════════════════════════════════════════════════════════════ */}
-          {/* FRONT OF BUSINESS CARD                                          */}
-          {/* ═══════════════════════════════════════════════════════════════ */}
-          <div
-            className={`absolute inset-0 w-full h-full ${stockClass} p-5 sm:p-7 flex flex-row items-stretch justify-between gap-5 backface-hidden`}
+          {/* Outer Matte Black Woven Strap */}
+          <motion.path
+            d={lanyardPath}
+            fill="none"
+            stroke="#141416"
+            strokeWidth="15"
+            strokeLinecap="round"
+          />
+          {/* Inner Center Stitch Detail */}
+          <motion.path
+            d={lanyardPath}
+            fill="none"
+            stroke="#3f3f46"
+            strokeWidth="1.5"
+            strokeDasharray="3 3"
+          />
+        </svg>
+
+        {/* Metal Badge Clip Locked Into the Card's Die-Cut Slot */}
+        <motion.div
+          style={{ transform: claspTransform }}
+          className="absolute bottom-[-8px] left-1/2 -ml-[15px] w-[30px] h-[20px] bg-[#18181b] rounded-[4px] flex flex-col items-center justify-between py-1 z-[35]"
+        >
+          <span className="w-3.5 h-1 bg-[#71717a] rounded-full" />
+          <span className="w-2 h-2 rounded-full bg-[#a1a1aa]" />
+        </motion.div>
+      </div>
+
+      {/* ─── 3D Draggable & Gyro-Tilting Physical ID Card / Kartu Nama ─── */}
+      <div className="w-full max-w-[560px] perspective-1200">
+        <motion.div
+          data-ui="id-card"
+          data-cursor={
+            isDragging ? "RELEASE TO SNAP" : isFlipped ? "DRAG OR FLIP" : "DRAG OR FLIP"
+          }
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onPointerLeave={handlePointerLeave}
+          style={{
+            x: dragX,
+            y: dragY,
+            rotateX: tiltX,
+            rotateY: tiltY,
+            rotateZ: swingZ,
+            transformOrigin: "50% 0%",
+          }}
+          className={`relative w-full transform-style-3d will-change-transform touch-pan-y ${
+            isDragging ? "z-[60]" : "z-[20]"
+          }`}
+        >
+          {/* Inner 180° Flip Rotor */}
+          <motion.div
+            style={{
+              rotateY: flipAngle,
+            }}
+            className="relative w-full min-h-[305px] sm:min-h-[332px] transform-style-3d will-change-transform cursor-grab active:cursor-grabbing"
           >
-            {/* Left Column: Typography, Identity & Actions */}
-            <div className="flex-1 flex flex-col justify-between min-w-0">
-              {/* Card Top Stamp */}
-              <div className="flex items-baseline justify-between gap-2">
-                <span
-                  style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[20px] lowercase text-[#0c0c0c] leading-none"
-                >
-                  kobrat
-                </span>
-                <span className="text-[12px] text-[#767676]">
-                  collective card
+            {/* Physical PVC Card Core Thickness Edge Layer */}
+            <div
+              data-ui="id-card-edge"
+              aria-hidden="true"
+              className="absolute inset-0 rounded-[16px] bg-[#d4d6dc] pointer-events-none"
+            />
+
+            {/* ═════════════════════════════════════════════════════════════ */}
+            {/* FRONT FACE: STUDIO ID CREDENTIAL / KARTU NAMA                 */}
+            {/* ═════════════════════════════════════════════════════════════ */}
+            <div
+              style={{ transform: "translateZ(2px)" }}
+              className={`absolute inset-0 w-full h-full rounded-[16px] ${stockBg} pt-6 flex flex-col justify-between backface-hidden overflow-hidden`}
+            >
+              {/* Die-Cut Lanyard Punch Hole at Top Center */}
+              <div
+                aria-hidden="true"
+                className="absolute top-2.5 left-1/2 -translate-x-1/2 w-14 h-3 rounded-full bg-white"
+              />
+
+              {/* Dynamic Studio Acrylic Light Sheen Overlay */}
+              <motion.div
+                aria-hidden="true"
+                style={{
+                  opacity: sheenOpacity,
+                  transform: sheenTransform,
+                }}
+                className="pointer-events-none absolute -inset-y-12 left-1/3 w-28 bg-white/55 z-[25] will-change-transform"
+              />
+
+              {/* Card Top Header Row */}
+              <div
+                style={{ transform: "translateZ(16px)" }}
+                className="px-5 sm:px-7 flex items-center justify-between gap-3 pt-2"
+              >
+                <div className="flex items-center gap-2 text-[#0c0c0c]">
+                  <PixelSeal className="w-3.5 h-3.5" />
+                  <span
+                    style={{ fontFamily: "var(--font-wordmark)" }}
+                    className="text-[22px] lowercase leading-none"
+                  >
+                    kobrat
+                  </span>
+                </div>
+
+                <span className="text-[12px] text-[#52525b] tabular-nums font-medium">
+                  {credentialCode}
                 </span>
               </div>
 
-              {/* Center Member Name & Persona */}
-              <div className="my-auto py-3">
-                <h2
-                  style={{ fontFamily: "var(--font-wordmark)" }}
-                  className={`${
-                    isLarge
-                      ? "text-[clamp(40px,4.8vw,64px)]"
-                      : "text-[clamp(34px,3.8vw,52px)]"
-                  } lowercase text-[#0c0c0c] leading-[1.06] truncate`}
-                >
-                  {member.name}
-                </h2>
-
-                <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                  <span className="px-2 py-0.5 bg-[#0c0c0c] text-white text-[11px] uppercase">
-                    {member.nickname}
-                  </span>
-                  {member.instagram && (
-                    <a
-                      href={`https://instagram.com/${igHandle}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-[13px] text-[#52525b] hover:text-[#0c0c0c] underline underline-offset-4"
-                    >
-                      {member.instagram}
-                    </a>
-                  )}
+              {/* Card Center Body: Left 3:4 ID Portrait + Right Raised Identity */}
+              <div
+                style={{ transform: "translateZ(24px)" }}
+                className="px-5 sm:px-7 my-auto py-3 flex flex-row items-center gap-5 sm:gap-6"
+              >
+                {/* Authentic 3:4 ID Portrait Window */}
+                <div className="relative w-[112px] sm:w-[138px] aspect-[3/4] shrink-0 rounded-[10px] bg-[#111] p-1 overflow-hidden">
+                  <div className="relative w-full h-full rounded-[7px] overflow-hidden">
+                    <Image
+                      src={member.image}
+                      alt={member.name}
+                      fill
+                      sizes="150px"
+                      draggable={false}
+                      className="object-cover object-center pointer-events-none select-none"
+                    />
+                  </div>
                 </div>
 
-                {member.bio && (
-                  <p className="mt-3 text-[14px] text-[#3f3f46] line-clamp-2 leading-[1.45]">
-                    “{member.bio}”
+                {/* Right Identity Details */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <span className="text-[12px] text-[#71717a] mb-0.5">
+                    Collective member
+                  </span>
+
+                  <h2
+                    style={{ fontFamily: "var(--font-wordmark)" }}
+                    className="text-[clamp(34px,3.8vw,52px)] lowercase text-[#0c0c0c] leading-[1.06] truncate"
+                  >
+                    {member.name}
+                  </h2>
+
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-[4px] bg-[#0c0c0c] text-white text-[11px] font-medium">
+                      {member.nickname}
+                    </span>
+
+                    {member.instagram && (
+                      <a
+                        href={`https://instagram.com/${igHandle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[13px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4"
+                      >
+                        {member.instagram}
+                      </a>
+                    )}
+                  </div>
+
+                  <p className="mt-3 text-[13px] sm:text-[14px] text-[#3f3f46] line-clamp-2 leading-[1.45]">
+                    {member.bio
+                      ? `“${member.bio}”`
+                      : "Digital craft & visual direction."}
                   </p>
+                </div>
+              </div>
+
+              {/* Card Bottom Barcode & Tactile Triggers (Printed Tone Strip) */}
+              <div
+                style={{ transform: "translateZ(18px)" }}
+                className="w-full bg-black/[0.045] px-5 sm:px-7 py-3.5 flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3">
+                  <MemberBarcode seed={`${member.id}-${member.name}-${slug}`} />
+                  <span className="hidden sm:inline text-[11px] text-[#71717a]">
+                    JKT / ID
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsFlipped(true)}
+                    className="px-3 py-1.5 rounded-[6px] bg-white text-[#0c0c0c] text-[12px] font-medium hover:bg-[#e4e6eb] active:scale-[0.97] transition-[background-color,transform] duration-150 cursor-pointer"
+                  >
+                    Flip 180°
+                  </button>
+
+                  <TransitionLink
+                    href={`/${slug}`}
+                    data-cursor="VIEW PROFILE"
+                    className="px-3.5 py-1.5 rounded-[6px] bg-[#0c0c0c] text-white text-[12px] font-medium hover:bg-[#27272a] active:scale-[0.97] transition-[background-color,transform] duration-150"
+                  >
+                    Profile
+                  </TransitionLink>
+                </div>
+              </div>
+            </div>
+
+            {/* ═════════════════════════════════════════════════════════════ */}
+            {/* BACK FACE: MATTE OBSIDIAN KARTU NAMA BACKPLATE (180° SPIN)    */}
+            {/* ═════════════════════════════════════════════════════════════ */}
+            <div
+              style={{ transform: "rotateY(180deg) translateZ(2px)" }}
+              className="absolute inset-0 w-full h-full rounded-[16px] bg-[#0c0c0c] text-white flex flex-col justify-between backface-hidden overflow-hidden"
+            >
+              {/* Die-Cut Lanyard Punch Hole (Mirrored on Back!) */}
+              <div
+                aria-hidden="true"
+                className="absolute top-2.5 left-1/2 -translate-x-1/2 w-14 h-3 rounded-full bg-white z-[30]"
+              />
+
+              {/* Top Magnetic Credential Strip */}
+              <div className="w-full bg-[#1b1b1f] pt-8 pb-3 px-5 sm:px-7 flex items-center justify-between gap-4">
+                <div className="flex items-baseline gap-2.5">
+                  <span
+                    style={{ fontFamily: "var(--font-wordmark)" }}
+                    className="text-[24px] lowercase text-white leading-none"
+                  >
+                    {member.name}
+                  </span>
+                  <span className="text-[12px] text-white/50">
+                    {credentialCode}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFlipped(false)}
+                  className="px-3 py-1 rounded-[5px] bg-white/10 hover:bg-white hover:text-[#0c0c0c] text-[12px] text-white transition-colors duration-150 cursor-pointer"
+                >
+                  Front side
+                </button>
+              </div>
+
+              {/* Middle Dossier & Collective Moments Strip */}
+              <div className="px-5 sm:px-7 my-auto py-3 space-y-3.5">
+                <p className="text-[14px] text-white/85 leading-[1.5]">
+                  {member.bio ||
+                    "Shaping interactive experiences, visual identity, and late-night experiments within the Kobrat collective."}
+                </p>
+
+                {memberMoments.length > 0 && (
+                  <div>
+                    <span className="block text-[11px] text-white/50 mb-2">
+                      Appears in {memberMoments.length} archive rolls:
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {memberMoments.slice(0, 4).map((m) => (
+                        <TransitionLink
+                          key={m.id}
+                          href="/gallery"
+                          title={m.title}
+                          className="relative w-[72px] aspect-[16/10] rounded-[4px] bg-white/10 shrink-0 overflow-hidden group/thumb"
+                        >
+                          <Image
+                            src={m.image}
+                            alt={m.title}
+                            fill
+                            sizes="80px"
+                            draggable={false}
+                            className="object-cover group-hover/thumb:scale-110 transition-transform duration-300"
+                          />
+                        </TransitionLink>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {/* Card Bottom Bar */}
-              <div className="flex items-center justify-between gap-4 pt-2 text-[13px]">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsFlipped(true);
-                  }}
-                  className="text-[#52525b] hover:text-[#0c0c0c] underline underline-offset-4 cursor-pointer"
+              {/* Bottom Backplate Links */}
+              <div className="w-full bg-white/[0.06] px-5 sm:px-7 py-3.5 flex items-center justify-between gap-4 text-[12px]">
+                <TransitionLink
+                  href={`/admin?edit=${member.id}`}
+                  className="text-white/60 hover:text-white underline underline-offset-4"
                 >
-                  Flip card
-                </button>
+                  Edit card in admin
+                </TransitionLink>
 
                 <TransitionLink
                   href={`/${slug}`}
-                  onClick={(e) => e.stopPropagation()}
-                  data-cursor="OPEN PROFILE"
-                  className="px-3.5 py-1.5 bg-[#0c0c0c] text-white text-[12px] hover:bg-[#27272a] transition-colors"
+                  data-cursor="VIEW PROFILE"
+                  className="px-4 py-1.5 rounded-[6px] bg-white text-[#0c0c0c] font-medium hover:bg-[#e4e6eb] transition-colors duration-150"
                 >
-                  Open profile
+                  Open full dossier
                 </TransitionLink>
               </div>
             </div>
-
-            {/* Right Column: Exact 3:4 Studio Portrait Cutout */}
-            <div className="relative w-[135px] sm:w-[185px] aspect-[3/4] self-center shrink-0 bg-[#111] overflow-hidden">
-              <Image
-                src={member.image}
-                alt={member.name}
-                fill
-                sizes="190px"
-                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-              />
-            </div>
-          </div>
-
-          {/* ═══════════════════════════════════════════════════════════════ */}
-          {/* BACK OF BUSINESS CARD (180° 3D FLIP)                            */}
-          {/* ═══════════════════════════════════════════════════════════════ */}
-          <div
-            style={{ transform: "rotateY(180deg)" }}
-            className="absolute inset-0 w-full h-full bg-[#0c0c0c] text-white p-5 sm:p-7 flex flex-col justify-between backface-hidden"
-          >
-            {/* Top Bar */}
-            <div className="flex items-baseline justify-between gap-4">
-              <div className="flex items-baseline gap-3">
-                <span
-                  style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[28px] lowercase text-white leading-[1.06]"
-                >
-                  {member.name}
-                </span>
-                <span className="text-[12px] text-white/50 uppercase">
-                  {member.nickname}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsFlipped(false);
-                }}
-                className="text-[12px] text-white/70 hover:text-white underline underline-offset-4 cursor-pointer"
-              >
-                Flip to front
-              </button>
-            </div>
-
-            {/* Middle: Bio & Archive Moments Appeared In */}
-            <div className="my-auto py-3 space-y-4">
-              <p className="text-[14px] sm:text-[15px] text-white/85 leading-[1.5] max-w-[46ch]">
-                {member.bio ||
-                  "Creative mind shaping digital presence and interactive experiences within the Kobrat collective."}
-              </p>
-
-              {memberMoments.length > 0 && (
-                <div>
-                  <p className="text-[11px] text-white/50 mb-2">
-                    Featured in {memberMoments.length} archive frames:
-                  </p>
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                    {memberMoments.slice(0, 4).map((m) => (
-                      <TransitionLink
-                        key={m.id}
-                        href="/gallery"
-                        onClick={(e) => e.stopPropagation()}
-                        title={m.title}
-                        className="relative w-[68px] aspect-[16/10] bg-white/10 shrink-0 overflow-hidden group/thumb"
-                      >
-                        <Image
-                          src={m.image}
-                          alt={m.title}
-                          fill
-                          sizes="72px"
-                          className="object-cover group-hover/thumb:scale-110 transition-transform duration-300"
-                        />
-                      </TransitionLink>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Links */}
-            <div className="flex items-center justify-between gap-4 pt-2 text-[12px]">
-              <TransitionLink
-                href={`/admin?edit=${member.id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="text-white/60 hover:text-white underline underline-offset-4"
-              >
-                Edit card in admin
-              </TransitionLink>
-
-              <TransitionLink
-                href={`/${slug}`}
-                onClick={(e) => e.stopPropagation()}
-                className="px-4 py-1.5 bg-white text-[#0c0c0c] font-medium hover:bg-[#e4e6eb] transition-colors"
-              >
-                Full dossier
-              </TransitionLink>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </motion.article>
   );
 }
 
@@ -277,8 +618,6 @@ export default function MembersPage() {
   const [momentsList, setMomentsList] = useState<Moment[]>(staticMoments);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"cards" | "rolodex">("cards");
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -319,7 +658,7 @@ export default function MembersPage() {
     };
   }, []);
 
-  // Map each member to the archive moments they appear in
+  // Cross-reference each member with the archive moments they appear in
   const momentsByMemberId = useMemo(() => {
     const map: Record<number, Moment[]> = {};
     for (const member of membersList) {
@@ -335,65 +674,47 @@ export default function MembersPage() {
     return map;
   }, [membersList, momentsList]);
 
-  const activeRolodexMember = membersList[selectedIndex] || membersList[0];
-
   return (
     <div className="relative min-h-dvh bg-white text-[#0c0c0c] flex flex-col selection:bg-[#0c0c0c] selection:text-white cursor-default">
       {/* Top Navigation */}
       <Header introComplete={true} />
 
-      <main className="flex-1 w-full pt-[148px] pb-24 px-[3vw]">
-        <div className="max-w-[1440px] mx-auto">
+      <main className="flex-1 w-full pt-[148px] pb-28 px-[3vw]">
+        <div className="max-w-[1320px] mx-auto">
           {/* ─── Editorial Masthead ─── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end pb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end pb-10">
             <div className="lg:col-span-7 pt-4">
               <h1
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[clamp(42px,5.4vw,80px)] lowercase text-[#0c0c0c] leading-[1.15] tracking-[-0.02em]"
+                className="text-[clamp(44px,5.8vw,86px)] lowercase text-[#0c0c0c] leading-[1.14] tracking-[-0.02em]"
               >
-                collective roster
+                collective pass
               </h1>
             </div>
 
             <div className="lg:col-span-5 flex flex-col justify-between gap-4">
               <p className="text-[16px] md:text-[17px] text-[#0c0c0c] leading-[1.55] max-w-[46ch]">
-                Eight minds on one wavelength. Move your cursor across any card
-                to tilt it in 3D space, click to flip the card over, or open
-                their full dossier.
+                Eight interactive 3D credentials. Grab and pull any badge to
+                stretch its lanyard, glide your cursor to tilt in 3D, or click
+                to flip 180 degrees.
               </p>
             </div>
           </div>
 
-          {/* ─── View Mode Toolbar ─── */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 mb-12 bg-[#f4f5f7] px-5">
-            <div className="text-[13px] text-[#52525b]">
-              Showing <span className="text-[#0c0c0c] font-medium">{membersList.length}</span> active collective cards · Click any card to flip 180°
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setViewMode("cards")}
-                className={`px-4 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
-                  viewMode === "cards"
-                    ? "bg-[#0c0c0c] text-white font-medium"
-                    : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
-                }`}
-              >
-                Business cards
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("rolodex")}
-                className={`px-4 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
-                  viewMode === "rolodex"
-                    ? "bg-[#0c0c0c] text-white font-medium"
-                    : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
-                }`}
-              >
-                Spotlight deck
-              </button>
-            </div>
+          {/* ─── Subtle Interactive Physics Legend Bar ─── */}
+          <div className="flex flex-wrap items-center justify-between gap-4 py-3.5 px-5 mb-12 bg-[#f4f5f7] text-[13px] text-[#52525b]">
+            <span>
+              <strong className="text-[#0c0c0c] font-medium">
+                {membersList.length} active passes
+              </strong>{" "}
+              · Drag to pull lanyard · Click card to flip 3D
+            </span>
+            <TransitionLink
+              href="/admin"
+              className="text-[#0c0c0c] underline underline-offset-4 hover:opacity-65 transition-opacity"
+            >
+              Update photos & bios in admin
+            </TransitionLink>
           </div>
 
           {/* ─── Error / Loading / Empty States ─── */}
@@ -413,7 +734,7 @@ export default function MembersPage() {
           {isLoading && membersList.length === 0 ? (
             <div className="py-32 text-center">
               <p className="text-[16px] text-[#767676]">
-                Loading collective member cards...
+                Preparing collective 3D credentials...
               </p>
             </div>
           ) : membersList.length === 0 ? (
@@ -422,19 +743,17 @@ export default function MembersPage() {
                 style={{ fontFamily: "var(--font-wordmark)" }}
                 className="text-[36px] lowercase text-[#0c0c0c]"
               >
-                no members found
+                no passes issued yet
               </h2>
               <p className="text-[15px] text-[#52525b]">
-                Add or update collective members from the admin dashboard.
+                Add collective members from the admin dashboard.
               </p>
             </div>
-          ) : viewMode === "cards" ? (
-            /* ═══════════════════════════════════════════════════════════════════ */
-            /* MODE 1: 3D FLIPPABLE BUSINESS CARDS GRID (2 COLUMNS)                */
-            /* ═══════════════════════════════════════════════════════════════════ */
-            <div className="group/cards grid grid-cols-1 lg:grid-cols-2 gap-8">
+          ) : (
+            /* ─── 2-Column Hanging 3D ID / Business Cards Studio Rack ─── */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 lg:gap-x-16 gap-y-12">
               {membersList.map((member, idx) => (
-                <TactileBusinessCard
+                <InteractiveIdCard
                   key={member.id}
                   member={member}
                   memberMoments={momentsByMemberId[member.id] || []}
@@ -442,76 +761,13 @@ export default function MembersPage() {
                 />
               ))}
             </div>
-          ) : (
-            /* ═══════════════════════════════════════════════════════════════════ */
-            /* MODE 2: INTERACTIVE SPOTLIGHT ROLODEX DECK                          */
-            /* ═══════════════════════════════════════════════════════════════════ */
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-              {/* Left Column: Kinetic Selector List */}
-              <div className="lg:col-span-5 flex flex-col">
-                {membersList.map((member, idx) => {
-                  const isSelected = idx === selectedIndex;
-                  return (
-                    <button
-                      key={member.id}
-                      type="button"
-                      onMouseEnter={() => setSelectedIndex(idx)}
-                      onClick={() => setSelectedIndex(idx)}
-                      className={`w-full text-left py-4 px-5 flex items-baseline justify-between gap-4 transition-[background-color,color] duration-150 cursor-pointer ${
-                        isSelected
-                          ? "bg-[#0c0c0c] text-white"
-                          : "even:bg-[#f4f5f7] text-[#0c0c0c] hover:bg-[#e4e6eb]"
-                      }`}
-                    >
-                      <span
-                        style={{ fontFamily: "var(--font-wordmark)" }}
-                        className="text-[clamp(28px,3.5vw,44px)] lowercase leading-[1.06]"
-                      >
-                        {member.name}
-                      </span>
-                      <span
-                        className={`text-[12px] uppercase ${
-                          isSelected ? "text-white/70" : "text-[#767676]"
-                        }`}
-                      >
-                        {member.nickname}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Right Column: Oversized 3D Interactive Card Stage */}
-              <div className="lg:col-span-7">
-                <AnimatePresence mode="wait">
-                  {activeRolodexMember && (
-                    <motion.div
-                      key={activeRolodexMember.id}
-                      initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -12, scale: 0.98 }}
-                      transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-                    >
-                      <TactileBusinessCard
-                        member={activeRolodexMember}
-                        memberMoments={
-                          momentsByMemberId[activeRolodexMember.id] || []
-                        }
-                        index={selectedIndex}
-                        isLarge={true}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
           )}
         </div>
       </main>
 
       {/* ─── Designed Footer Close ─── */}
       <footer className="w-full bg-[#f4f5f7] px-[3vw] py-16">
-        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+        <div className="max-w-[1320px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
           <div>
             <TransitionLink
               href="/"
