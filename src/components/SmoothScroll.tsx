@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import gsap from "gsap";
@@ -17,9 +17,27 @@ export function getLenis(): Lenis | null {
   return globalLenis || (window as unknown as { __lenis?: Lenis }).__lenis || null;
 }
 
-export default function SmoothScroll({ children }: { children: React.ReactNode }) {
+function ScrollRouteSync() {
   const pathname = usePathname();
 
+  useEffect(() => {
+    const lenis = getLenis();
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+      lenis.resize();
+    }
+    const timer = setTimeout(() => {
+      getLenis()?.resize();
+      ScrollTrigger.refresh();
+    }, 180);
+
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  return null;
+}
+
+export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.1,
@@ -33,7 +51,6 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     globalLenis = lenis;
     (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
 
-    // Official GSAP ScrollTrigger + Lenis synchronization so scroll never gets stuck
     lenis.on("scroll", ScrollTrigger.update);
 
     const updateTicker = (time: number) => {
@@ -53,20 +70,12 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     };
   }, []);
 
-  // Recalculate scroll bounds & ScrollTrigger positions on route changes
-  useEffect(() => {
-    const lenis = getLenis();
-    if (lenis) {
-      lenis.scrollTo(0, { immediate: true });
-      lenis.resize();
-    }
-    const timer = setTimeout(() => {
-      getLenis()?.resize();
-      ScrollTrigger.refresh();
-    }, 180);
-
-    return () => clearTimeout(timer);
-  }, [pathname]);
-
-  return <>{children}</>;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <ScrollRouteSync />
+      </Suspense>
+      {children}
+    </>
+  );
 }

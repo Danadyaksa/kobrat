@@ -62,11 +62,15 @@ function AdminContent() {
     name: string;
     nickname: string;
     instagram: string;
+    website: string;
+    github: string;
     bio: string;
   }>({
     name: "",
     nickname: "",
     instagram: "",
+    website: "",
+    github: "",
     bio: "",
   });
 
@@ -171,6 +175,8 @@ function AdminContent() {
       name: member.name,
       nickname: member.nickname,
       instagram: member.instagram || "",
+      website: member.website || "",
+      github: member.github || "",
       bio: member.bio || "",
     });
     setMemberPreviewUrl(member.image);
@@ -234,6 +240,8 @@ function AdminContent() {
         name: memberFormData.name.trim(),
         nickname: memberFormData.nickname.trim(),
         instagram: memberFormData.instagram.trim(),
+        website: memberFormData.website.trim(),
+        github: memberFormData.github.trim(),
         bio: memberFormData.bio.trim(),
         image: finalImageUrl,
       };
@@ -578,10 +586,20 @@ function AdminContent() {
                           {member.name}
                         </p>
 
-                        {member.instagram && (
-                          <p className="font-mono text-[10px] text-[#767676] pt-0.5">
-                            {member.instagram}
-                          </p>
+                        {(member.instagram || member.github || member.website) && (
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1 font-mono text-[10px] text-[#767676]">
+                            {member.instagram && <span>{member.instagram}</span>}
+                            {member.github && (
+                              <span className="px-1.5 py-0.5 rounded bg-[#f4f4f5] text-[#0c0c0c]">
+                                GH
+                              </span>
+                            )}
+                            {member.website && (
+                              <span className="px-1.5 py-0.5 rounded bg-[#f4f4f5] text-[#0c0c0c]">
+                                WEB
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1061,19 +1079,51 @@ function AdminContent() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                    INSTAGRAM HANDLE
-                  </label>
-                  <input
-                    type="text"
-                    value={memberFormData.instagram}
-                    onChange={(e) =>
-                      setMemberFormData({ ...memberFormData, instagram: e.target.value })
-                    }
-                    placeholder="@username"
-                    className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
+                      INSTAGRAM HANDLE
+                    </label>
+                    <input
+                      type="text"
+                      value={memberFormData.instagram}
+                      onChange={(e) =>
+                        setMemberFormData({ ...memberFormData, instagram: e.target.value })
+                      }
+                      placeholder="@username"
+                      className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
+                      GITHUB (OPSIONAL)
+                    </label>
+                    <input
+                      type="text"
+                      value={memberFormData.github}
+                      onChange={(e) =>
+                        setMemberFormData({ ...memberFormData, github: e.target.value })
+                      }
+                      placeholder="username / github.com/..."
+                      className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
+                      WEBSITE PORTOFOLIO (OPSIONAL)
+                    </label>
+                    <input
+                      type="text"
+                      value={memberFormData.website}
+                      onChange={(e) =>
+                        setMemberFormData({ ...memberFormData, website: e.target.value })
+                      }
+                      placeholder="https://namadomain.com"
+                      className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-[5px] text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
+                    />
+                  </div>
                 </div>
 
                 <div>

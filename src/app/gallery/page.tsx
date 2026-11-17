@@ -317,7 +317,7 @@ export default function GalleryPage() {
                       <h2
                         onClick={() => setLightboxIndex(idx)}
                         style={{ fontFamily: "var(--font-wordmark)" }}
-                        className="text-[clamp(24px,2.4vw,34px)] lowercase text-[#0c0c0c] leading-[1.08] cursor-pointer"
+                        className="text-[clamp(24px,2.4vw,34px)] lowercase text-[#0c0c0c] leading-[1.24] cursor-pointer"
                       >
                         {moment.title}
                       </h2>

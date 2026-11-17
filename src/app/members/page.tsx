@@ -15,6 +15,9 @@ import {
   Member,
   members as staticMembers,
   getMemberSlug,
+  formatInstagramLink,
+  formatGithubLink,
+  formatWebsiteLink,
 } from "@/data/members";
 
 // Deterministic crisp SVG barcode unique to each member's name & ID
@@ -266,7 +269,9 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
   const slug = getMemberSlug(member);
   const nicknameDisplay = member.nickname?.trim() || member.name.trim();
   const fullNameDisplay = member.name.trim();
-  const igHandle = member.instagram?.replace(/^@/, "");
+  const igInfo = formatInstagramLink(member.instagram);
+  const ghInfo = formatGithubLink(member.github);
+  const webInfo = formatWebsiteLink(member.website);
   const credentialCode = `KBRT · ${nicknameDisplay.toUpperCase()}`;
 
   // Subtle alternating archival PVC / cotton stock tones
@@ -429,17 +434,72 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
                   {fullNameDisplay}
                 </p>
 
-                {/* 3. Instagram Handle (Stacked Directly Below Full Name) */}
-                {member.instagram && (
-                  <div className="mt-1">
-                    <a
-                      href={`https://instagram.com/${igHandle}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block text-[13px] text-[#52525b] hover:text-[#0c0c0c] underline underline-offset-4"
-                    >
-                      {member.instagram}
-                    </a>
+                {/* 3. Social & Portfolio Links (Stacked Directly Below Full Name) */}
+                {(igInfo || ghInfo || webInfo) && (
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3.5 gap-y-1">
+                    {igInfo && (
+                      <a
+                        href={igInfo.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[12.5px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4"
+                      >
+                        <svg
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.4"
+                          aria-hidden="true"
+                          className="w-3.5 h-3.5 shrink-0"
+                        >
+                          <rect x="2" y="2" width="12" height="12" rx="3.5" />
+                          <circle cx="8" cy="8" r="2.75" />
+                          <circle cx="11.6" cy="4.4" r="0.7" fill="currentColor" stroke="none" />
+                        </svg>
+                        <span>{igInfo.label}</span>
+                      </a>
+                    )}
+
+                    {ghInfo && (
+                      <a
+                        href={ghInfo.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[12.5px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4"
+                      >
+                        <svg
+                          viewBox="0 0 16 16"
+                          fill="currentColor"
+                          aria-hidden="true"
+                          className="w-3.5 h-3.5 shrink-0"
+                        >
+                          <path d="M8 1.2a6.8 6.8 0 0 0-2.15 13.25c.34.06.46-.15.46-.33v-1.15c-1.89.41-2.29-.91-2.29-.91-.31-.78-.75-.99-.75-.99-.62-.42.05-.41.05-.41.68.05 1.04.7 1.04.7.61 1.04 1.59.74 1.98.57.06-.44.24-.74.43-.91-1.51-.17-3.1-.76-3.1-3.37 0-.74.27-1.35.7-1.83-.07-.17-.3-.86.07-1.8 0 0 .57-.18 1.87.7a6.5 6.5 0 0 1 3.4 0c1.3-.88 1.87-.7 1.87-.7.37.94.14 1.63.07 1.8.44.48.7 1.09.7 1.83 0 2.62-1.59 3.2-3.11 3.37.24.21.46.62.46 1.26v1.87c0 .18.12.39.47.33A6.8 6.8 0 0 0 8 1.2Z" />
+                        </svg>
+                        <span>{ghInfo.username}</span>
+                      </a>
+                    )}
+
+                    {webInfo && (
+                      <a
+                        href={webInfo.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[12.5px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4"
+                      >
+                        <svg
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.4"
+                          aria-hidden="true"
+                          className="w-3.5 h-3.5 shrink-0"
+                        >
+                          <circle cx="8" cy="8" r="6" />
+                          <path d="M2.2 8h11.6M8 2a9.8 9.8 0 0 1 2.4 6A9.8 9.8 0 0 1 8 14a9.8 9.8 0 0 1-2.4-6A9.8 9.8 0 0 1 8 2Z" />
+                        </svg>
+                        <span className="truncate max-w-[160px]">{webInfo.label}</span>
+                      </a>
+                    )}
                   </div>
                 )}
 
