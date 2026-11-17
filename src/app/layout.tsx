@@ -24,9 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-      <body className="min-h-full bg-white text-[#0c0c0c] flex flex-col font-sans selection:bg-[#0c0c0c] selection:text-white">
+      <body className="min-h-dvh bg-white text-[#0c0c0c] flex flex-col font-sans selection:bg-[#0c0c0c] selection:text-white">
         <PageTransitionProvider>
           <CustomCursor />
           <SmoothScroll>{children}</SmoothScroll>

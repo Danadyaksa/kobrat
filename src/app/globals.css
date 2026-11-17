@@ -17,11 +17,12 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+html,
 body {
   background-color: var(--bg);
   color: var(--fg);
   font-family: var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  overflow-x: hidden;
+  overflow-x: clip;
   margin: 0;
   line-height: 1.45;
 }

@@ -26,7 +26,8 @@ function RollingText({ text }: { text: string }) {
 
 export default function CollectiveGallery() {
   const sectionRef = useRef<HTMLElement>(null);
-  const introSheetRef = useRef<HTMLDivElement>(null);
+  const stageTiltRef = useRef<HTMLDivElement>(null);
+  const bgWordRef = useRef<HTMLDivElement>(null);
   const card1Ref = useRef<HTMLDivElement>(null);
   const card1ImgRef = useRef<HTMLDivElement>(null);
   const card2Ref = useRef<HTMLDivElement>(null);
@@ -59,7 +60,7 @@ export default function CollectiveGallery() {
     };
   }, []);
 
-  // 3 Flagship Moments for the Landing Page Scroll Stack
+  // 3 Flagship Moments for the Landing Page 3D Scroll Stack
   const featuredMoments = useMemo(() => {
     const slot1 = momentsList.find((m) => m.highlightSlot === 1);
     const slot2 = momentsList.find((m) => m.highlightSlot === 2);
@@ -72,10 +73,40 @@ export default function CollectiveGallery() {
     return [card1, card2, card3];
   }, [momentsList]);
 
-  // GSAP ScrollTrigger Multi-Phase Choreography (inspired by The Line Studio)
+  // Subtle 3D Mouse Tilt on the Stack (Matches the tactile feel of the top 3D Hero ring)
+  useEffect(() => {
+    const stageTilt = stageTiltRef.current;
+    if (!stageTilt) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (prefersReducedMotion) return;
+
+    const xTo = gsap.quickTo(stageTilt, "rotationY", {
+      duration: 0.7,
+      ease: "power3.out",
+    });
+    const yTo = gsap.quickTo(stageTilt, "rotationX", {
+      duration: 0.7,
+      ease: "power3.out",
+    });
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const nx = (e.clientX / window.innerWidth - 0.5) * 2;
+      const ny = (e.clientY / window.innerHeight - 0.5) * 2;
+      xTo(nx * 3.2);
+      yTo(-ny * 2.4);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  // GSAP ScrollTrigger 3-Act Spatial Deck Choreography
   useEffect(() => {
     const section = sectionRef.current;
-    const intro = introSheetRef.current;
+    const bgWord = bgWordRef.current;
     const c1 = card1Ref.current;
     const c1Img = card1ImgRef.current;
     const c2 = card2Ref.current;
@@ -83,7 +114,7 @@ export default function CollectiveGallery() {
     const c3 = card3Ref.current;
     const c3Img = card3ImgRef.current;
 
-    if (!section || !intro || !c1 || !c2 || !c3 || !c1Img || !c2Img || !c3Img) {
+    if (!section || !c1 || !c2 || !c3 || !c1Img || !c2Img || !c3Img) {
       return;
     }
 
@@ -96,43 +127,43 @@ export default function CollectiveGallery() {
     }
 
     const ctx = gsap.context(() => {
-      // Initial states:
-      // Card 1 starts peeking at the bottom edge with a slight tilt
+      // Card 1 starts as a compact tilted aperture ready to bloom as user scrolls down from Hero
       gsap.set(c1, {
-        yPercent: 42,
+        yPercent: 24,
         rotation: 2.2,
-        scale: 0.98,
+        scale: 0.78,
         transformOrigin: "50% 50%",
       });
-      gsap.set(c1Img, { scale: 1.12 });
+      gsap.set(c1Img, { scale: 1.14 });
 
-      // Card 2 waits below viewport at a counter-tilt
+      // Card 2 waits below the stage at a counter-angle
       gsap.set(c2, {
-        yPercent: 110,
+        yPercent: 112,
         rotation: -4.2,
-        scale: 1,
+        scale: 0.94,
         transformOrigin: "50% 50%",
       });
-      gsap.set(c2Img, { scale: 1.14 });
+      gsap.set(c2Img, { scale: 1.16 });
 
-      // Card 3 waits below viewport at a positive tilt
+      // Card 3 waits below the stage at a positive angle
       gsap.set(c3, {
-        yPercent: 110,
-        rotation: 4.0,
-        scale: 1,
+        yPercent: 112,
+        rotation: 3.8,
+        scale: 0.94,
         transformOrigin: "50% 50%",
       });
-      gsap.set(c3Img, { scale: 1.14 });
+      gsap.set(c3Img, { scale: 1.16 });
 
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
           start: "top top",
           end: "bottom bottom",
-          scrub: 0.55,
+          scrub: 0.5,
+          invalidateOnRefresh: true,
           onUpdate: (self) => {
             const p = self.progress;
-            if (p < 0.36) {
+            if (p < 0.35) {
               setActiveCardIndex(0);
             } else if (p < 0.68) {
               setActiveCardIndex(1);
@@ -143,47 +174,44 @@ export default function CollectiveGallery() {
         },
       });
 
-      // ── ACT 1 (0.00 -> 0.28): Intro tilts back, Card 1 rises to stage ──
-      tl.to(
-        intro,
-        {
-          yPercent: -14,
-          rotation: -1.5,
-          scale: 0.95,
-          opacity: 0.35,
-          ease: "power2.inOut",
-          duration: 0.28,
-        },
-        0
-      )
-        .to(
-          c1,
-          {
-            yPercent: 0,
-            rotation: -0.6,
-            scale: 1,
-            ease: "power2.out",
-            duration: 0.28,
-          },
-          0
-        )
-        .to(
-          c1Img,
-          {
-            scale: 1.0,
-            ease: "power2.out",
-            duration: 0.32,
-          },
+      // Background kinetic wordmark drift
+      if (bgWord) {
+        tl.fromTo(
+          bgWord,
+          { xPercent: 8 },
+          { xPercent: -12, ease: "none", duration: 1 },
           0
         );
+      }
 
-      // ── ACT 2 (0.28 -> 0.62): Card 1 glides up so its landscape photo peeks at top; Card 2 slices in ──
+      // ── ACT 1 (0.00 -> 0.28): Card 1 blooms open to full widescreen stage ──
       tl.to(
         c1,
         {
-          yPercent: -13,
-          rotation: -1.6,
-          scale: 0.96,
+          yPercent: 0,
+          rotation: -0.6,
+          scale: 1,
+          ease: "power2.out",
+          duration: 0.28,
+        },
+        0
+      ).to(
+        c1Img,
+        {
+          scale: 1.0,
+          ease: "power2.out",
+          duration: 0.3,
+        },
+        0
+      );
+
+      // ── ACT 2 (0.28 -> 0.62): Card 1 recedes upward into 3D stack; Card 2 slices in diagonally ──
+      tl.to(
+        c1,
+        {
+          yPercent: -11,
+          rotation: -2.1,
+          scale: 0.91,
           ease: "power2.inOut",
           duration: 0.32,
         },
@@ -192,7 +220,7 @@ export default function CollectiveGallery() {
         .to(
           c2,
           {
-            yPercent: 3,
+            yPercent: 2,
             rotation: 1.1,
             scale: 1,
             ease: "power2.out",
@@ -210,13 +238,13 @@ export default function CollectiveGallery() {
           0.3
         );
 
-      // ── ACT 3 (0.62 -> 0.94): Card 2 glides up; Card 3 slices in ──
+      // ── ACT 3 (0.62 -> 0.94): Card 1 & Card 2 form a stacked fan at the top; Card 3 takes foreground ──
       tl.to(
         c1,
         {
           yPercent: -18,
-          rotation: -2.2,
-          scale: 0.93,
+          rotation: -2.8,
+          scale: 0.85,
           ease: "power2.inOut",
           duration: 0.3,
         },
@@ -225,9 +253,9 @@ export default function CollectiveGallery() {
         .to(
           c2,
           {
-            yPercent: -11,
-            rotation: 1.8,
-            scale: 0.97,
+            yPercent: -9,
+            rotation: 2.0,
+            scale: 0.93,
             ease: "power2.inOut",
             duration: 0.3,
           },
@@ -237,7 +265,7 @@ export default function CollectiveGallery() {
           c3,
           {
             yPercent: 4,
-            rotation: -0.9,
+            rotation: -0.8,
             scale: 1,
             ease: "power2.out",
             duration: 0.32,
@@ -254,8 +282,8 @@ export default function CollectiveGallery() {
           0.64
         );
 
-      // Final subtle hold (0.94 -> 1.00)
-      tl.to(c3, { yPercent: 2, rotation: -0.4, duration: 0.06 }, 0.94);
+      // Final settle (0.94 -> 1.00)
+      tl.to(c3, { yPercent: 2, rotation: -0.3, duration: 0.06 }, 0.94);
     }, section);
 
     return () => ctx.revert();
@@ -283,249 +311,232 @@ export default function CollectiveGallery() {
         ref={sectionRef}
         id="gallery"
         aria-label="Selected collective highlights"
-        className="relative w-full h-[420vh] bg-white text-[#0c0c0c] select-none"
+        className="relative w-full h-[360vh] bg-white text-[#0c0c0c] select-none"
       >
-        {/* Sticky Full-Viewport Choreographed Stage */}
-        <div className="sticky top-0 h-dvh w-full overflow-hidden bg-white">
-          {/* ─── LAYER 0: Editorial Masthead Sheet (Tilts & recedes on scroll) ─── */}
+        {/* Sticky Full-Viewport Spatial Stage */}
+        <div className="sticky top-0 h-dvh w-full overflow-hidden bg-white flex flex-col justify-between">
+          {/* Giant Subtle Kinetic Background Wordmark (drifts with scroll) */}
           <div
-            ref={introSheetRef}
-            className="absolute inset-x-0 top-0 h-[56vh] bg-white px-[4vw] pt-[96px] pb-8 flex flex-col justify-between z-[5] origin-top"
+            ref={bgWordRef}
+            aria-hidden="true"
+            style={{ fontFamily: "var(--font-wordmark)" }}
+            className="pointer-events-none absolute top-1/2 -translate-y-1/2 left-0 whitespace-nowrap text-[clamp(140px,24vw,340px)] lowercase text-[#f4f5f7] leading-none select-none z-[1] will-change-transform"
           >
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <div>
-                <h2
-                  style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(52px,8vw,116px)] lowercase text-[#0c0c0c] leading-[1.12] tracking-[-0.02em]"
-                >
-                  highlights
-                </h2>
-                <p className="mt-6 max-w-[46ch] text-[16px] md:text-[18px] text-[#0c0c0c] leading-[1.5]">
-                  Three selected frames from our collective archive. Scroll to
-                  step through the reels, or enter the dedicated gallery.
-                </p>
-              </div>
+            highlights · kobrat
+          </div>
 
-              {/* Direct Navigation Links (Matching The Line Studio's underlined dual links) */}
-              <div className="flex flex-wrap items-center gap-8 pb-2">
-                <TransitionLink
-                  href="/gallery"
-                  data-cursor="GALLERY"
-                  className="group inline-flex items-baseline gap-2 text-[18px] md:text-[21px] font-normal tracking-[-0.02em] text-[#0c0c0c] underline underline-offset-8 decoration-[1.5px] hover:opacity-65 transition-opacity"
-                >
-                  <span>The Gallery</span>
-                  <span className="text-[12px] text-[#767676] font-normal">
-                    ({momentsList.length})
-                  </span>
-                </TransitionLink>
+          {/* ─── Top Persistent Editorial HUD Bar ─── */}
+          <div className="relative z-[45] w-full px-[3vw] pt-[64px] pb-2 flex items-end justify-between gap-4">
+            <div className="flex items-baseline gap-4">
+              <h2
+                style={{ fontFamily: "var(--font-wordmark)" }}
+                className="text-[clamp(32px,4.5vw,58px)] lowercase text-[#0c0c0c] leading-[1.08]"
+              >
+                highlights
+              </h2>
+              <span className="text-[13px] text-[#767676]">
+                {activeCardIndex + 1} of 3
+              </span>
+            </div>
 
-                <a
-                  href="#home"
-                  className="group inline-flex items-baseline gap-2 text-[18px] md:text-[21px] font-normal tracking-[-0.02em] text-[#0c0c0c] underline underline-offset-8 decoration-[1.5px] hover:opacity-65 transition-opacity"
-                >
-                  <span>The Collective</span>
-                </a>
-              </div>
+            <div className="flex items-center gap-6 pb-1">
+              <TransitionLink
+                href="/gallery"
+                data-cursor="OPEN GALLERY"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0c0c0c] text-white text-[12px] hover:bg-[#27272a] active:scale-[0.97] transition-[background-color,transform] duration-150 ease-out"
+              >
+                <RollingText text={`FULL GALLERY (${momentsList.length})`} />
+              </TransitionLink>
             </div>
           </div>
 
-          {/* ─── LAYER 1: Flagship Card 1 ─── */}
-          <div
-            ref={card1Ref}
-            className="absolute inset-x-0 top-[10vh] w-[104vw] -left-[2vw] h-[86vh] bg-[#e6e8ee] flex flex-col justify-between pb-[4vh] z-[10] will-change-transform"
-          >
-            {/* Card Sheet Top Header */}
-            <div className="h-[11vh] min-h-[72px] px-[5vw] pt-[2vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
-              <div className="flex items-baseline gap-4 min-w-0">
-                <h3
-                  style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(26px,4vw,56px)] lowercase text-[#0c0c0c] leading-[1.08]"
-                >
-                  {featuredMoments[0].title}
-                </h3>
-                <span className="hidden lg:inline-block text-[14px] text-[#52525b] shrink-0">
-                  {formatLocation(
-                    featuredMoments[0].location,
-                    featuredMoments[0].year
-                  )}
-                </span>
-              </div>
+          {/* ─── Center 3D Perspective Stack Stage ─── */}
+          <div className="relative flex-1 w-full flex items-center justify-center perspective-1200 z-[20]">
+            <div
+              ref={stageTiltRef}
+              className="relative w-full h-full flex items-center justify-center transform-style-3d will-change-transform"
+            >
+              {/* ── CARD 1: First Flagship Widescreen Print ── */}
+              <div
+                ref={card1Ref}
+                className="absolute w-[90vw] max-w-[1260px] bg-[#eceef2] p-3 sm:p-5 flex flex-col gap-3 z-[10] will-change-transform"
+              >
+                <div className="flex items-baseline justify-between gap-4 px-1">
+                  <div className="flex items-baseline gap-3 min-w-0">
+                    <h3
+                      style={{ fontFamily: "var(--font-wordmark)" }}
+                      className="text-[clamp(24px,3.4vw,46px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                    >
+                      {featuredMoments[0].title}
+                    </h3>
+                    <span className="hidden md:inline text-[13px] text-[#52525b]">
+                      {formatLocation(
+                        featuredMoments[0].location,
+                        featuredMoments[0].year
+                      )}
+                    </span>
+                  </div>
 
-              <div className="flex items-center gap-6 shrink-0 pb-1">
-                <button
-                  type="button"
+                  <button
+                    type="button"
+                    onClick={() => setLightboxMoment(featuredMoments[0])}
+                    data-cursor="INSPECT"
+                    className="text-[13px] md:text-[14px] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity shrink-0"
+                  >
+                    Inspect frame
+                  </button>
+                </div>
+
+                {/* Widescreen 16:9 / 2.2:1 Landscape Frame */}
+                <div
                   onClick={() => setLightboxMoment(featuredMoments[0])}
-                  data-cursor="INSPECT"
-                  className="text-[15px] md:text-[17px] text-[#0c0c0c] underline underline-offset-4 decoration-[1.5px] hover:opacity-60 transition-opacity cursor-pointer"
+                  data-cursor="VIEW"
+                  className="relative w-full h-[46vh] sm:h-[54vh] md:h-[58vh] max-h-[520px] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
                 >
-                  View moment
-                </button>
-              </div>
-            </div>
-
-            {/* Sleek Widescreen Landscape Artwork Frame (2.1:1 / 16:9 Cinema Proportions) */}
-            <div
-              onClick={() => setLightboxMoment(featuredMoments[0])}
-              data-cursor="VIEW"
-              className="relative w-[92vw] max-w-[1440px] h-[54vh] md:h-[62vh] max-h-[560px] mx-auto overflow-hidden bg-[#0c0c0c] cursor-pointer group"
-            >
-              <div ref={card1ImgRef} className="relative w-full h-full will-change-transform">
-                <Image
-                  src={featuredMoments[0].image}
-                  alt={featuredMoments[0].title}
-                  fill
-                  priority
-                  sizes="92vw"
-                  className="object-cover object-[center_62%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* ─── LAYER 2: Flagship Card 2 (Slices diagonally across Card 1's photo) ─── */}
-          <div
-            ref={card2Ref}
-            className="absolute inset-x-0 top-[10vh] w-[104vw] -left-[2vw] h-[86vh] bg-[#eceae4] flex flex-col justify-between pb-[4vh] z-[20] will-change-transform"
-          >
-            {/* Card Sheet Top Header */}
-            <div className="h-[11vh] min-h-[72px] px-[5vw] pt-[2vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
-              <div className="flex items-baseline gap-4 min-w-0">
-                <h3
-                  style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(26px,4vw,56px)] lowercase text-[#0c0c0c] leading-[1.08]"
-                >
-                  {featuredMoments[1].title}
-                </h3>
-                <span className="hidden lg:inline-block text-[14px] text-[#52525b] shrink-0">
-                  {formatLocation(
-                    featuredMoments[1].location,
-                    featuredMoments[1].year
-                  )}
-                </span>
+                  <div
+                    ref={card1ImgRef}
+                    className="relative w-full h-full will-change-transform"
+                  >
+                    <Image
+                      src={featuredMoments[0].image}
+                      alt={featuredMoments[0].title}
+                      fill
+                      priority
+                      sizes="(max-width: 1280px) 90vw, 1260px"
+                      className="object-cover object-[center_62%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-6 shrink-0 pb-1">
-                <button
-                  type="button"
+              {/* ── CARD 2: Second Flagship Widescreen Print ── */}
+              <div
+                ref={card2Ref}
+                className="absolute w-[90vw] max-w-[1260px] bg-[#ebe9e2] p-3 sm:p-5 flex flex-col gap-3 z-[20] will-change-transform"
+              >
+                <div className="flex items-baseline justify-between gap-4 px-1">
+                  <div className="flex items-baseline gap-3 min-w-0">
+                    <h3
+                      style={{ fontFamily: "var(--font-wordmark)" }}
+                      className="text-[clamp(24px,3.4vw,46px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                    >
+                      {featuredMoments[1].title}
+                    </h3>
+                    <span className="hidden md:inline text-[13px] text-[#52525b]">
+                      {formatLocation(
+                        featuredMoments[1].location,
+                        featuredMoments[1].year
+                      )}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setLightboxMoment(featuredMoments[1])}
+                    data-cursor="INSPECT"
+                    className="text-[13px] md:text-[14px] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity shrink-0"
+                  >
+                    Inspect frame
+                  </button>
+                </div>
+
+                {/* Widescreen Landscape Frame */}
+                <div
                   onClick={() => setLightboxMoment(featuredMoments[1])}
-                  data-cursor="INSPECT"
-                  className="text-[15px] md:text-[17px] text-[#0c0c0c] underline underline-offset-4 decoration-[1.5px] hover:opacity-60 transition-opacity cursor-pointer"
+                  data-cursor="VIEW"
+                  className="relative w-full h-[46vh] sm:h-[54vh] md:h-[58vh] max-h-[520px] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
                 >
-                  View moment
-                </button>
-              </div>
-            </div>
-
-            {/* Sleek Widescreen Landscape Artwork Frame */}
-            <div
-              onClick={() => setLightboxMoment(featuredMoments[1])}
-              data-cursor="VIEW"
-              className="relative w-[92vw] max-w-[1440px] h-[54vh] md:h-[62vh] max-h-[560px] mx-auto overflow-hidden bg-[#0c0c0c] cursor-pointer group"
-            >
-              <div ref={card2ImgRef} className="relative w-full h-full will-change-transform">
-                <Image
-                  src={featuredMoments[1].image}
-                  alt={featuredMoments[1].title}
-                  fill
-                  sizes="92vw"
-                  className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* ─── LAYER 3: Flagship Card 3 (Slices across Card 2's photo) ─── */}
-          <div
-            ref={card3Ref}
-            className="absolute inset-x-0 top-[10vh] w-[104vw] -left-[2vw] h-[86vh] bg-[#dfe3ec] flex flex-col justify-between pb-[4vh] z-[30] will-change-transform"
-          >
-            {/* Card Sheet Top Header */}
-            <div className="h-[11vh] min-h-[72px] px-[5vw] pt-[2vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
-              <div className="flex items-baseline gap-4 min-w-0">
-                <h3
-                  style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(26px,4vw,56px)] lowercase text-[#0c0c0c] leading-[1.08]"
-                >
-                  {featuredMoments[2].title}
-                </h3>
-                <span className="hidden lg:inline-block text-[14px] text-[#52525b] shrink-0">
-                  {formatLocation(
-                    featuredMoments[2].location,
-                    featuredMoments[2].year
-                  )}
-                </span>
+                  <div
+                    ref={card2ImgRef}
+                    className="relative w-full h-full will-change-transform"
+                  >
+                    <Image
+                      src={featuredMoments[1].image}
+                      alt={featuredMoments[1].title}
+                      fill
+                      sizes="(max-width: 1280px) 90vw, 1260px"
+                      className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-6 shrink-0 pb-1">
-                <button
-                  type="button"
+              {/* ── CARD 3: Third Flagship Widescreen Print ── */}
+              <div
+                ref={card3Ref}
+                className="absolute w-[90vw] max-w-[1260px] bg-[#dfe3ec] p-3 sm:p-5 flex flex-col gap-3 z-[30] will-change-transform"
+              >
+                <div className="flex items-baseline justify-between gap-4 px-1">
+                  <div className="flex items-baseline gap-3 min-w-0">
+                    <h3
+                      style={{ fontFamily: "var(--font-wordmark)" }}
+                      className="text-[clamp(24px,3.4vw,46px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                    >
+                      {featuredMoments[2].title}
+                    </h3>
+                    <span className="hidden md:inline text-[13px] text-[#52525b]">
+                      {formatLocation(
+                        featuredMoments[2].location,
+                        featuredMoments[2].year
+                      )}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setLightboxMoment(featuredMoments[2])}
+                    data-cursor="INSPECT"
+                    className="text-[13px] md:text-[14px] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity shrink-0"
+                  >
+                    Inspect frame
+                  </button>
+                </div>
+
+                {/* Widescreen Landscape Frame */}
+                <div
                   onClick={() => setLightboxMoment(featuredMoments[2])}
-                  data-cursor="INSPECT"
-                  className="text-[15px] md:text-[17px] text-[#0c0c0c] underline underline-offset-4 decoration-[1.5px] hover:opacity-60 transition-opacity cursor-pointer"
+                  data-cursor="VIEW"
+                  className="relative w-full h-[46vh] sm:h-[54vh] md:h-[58vh] max-h-[520px] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
                 >
-                  View moment
-                </button>
-              </div>
-            </div>
-
-            {/* Sleek Widescreen Landscape Artwork Frame */}
-            <div
-              onClick={() => setLightboxMoment(featuredMoments[2])}
-              data-cursor="VIEW"
-              className="relative w-[92vw] max-w-[1440px] h-[54vh] md:h-[62vh] max-h-[560px] mx-auto overflow-hidden bg-[#0c0c0c] cursor-pointer group"
-            >
-              <div ref={card3ImgRef} className="relative w-full h-full will-change-transform">
-                <Image
-                  src={featuredMoments[2].image}
-                  alt={featuredMoments[2].title}
-                  fill
-                  sizes="92vw"
-                  className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                />
+                  <div
+                    ref={card3ImgRef}
+                    className="relative w-full h-full will-change-transform"
+                  >
+                    <Image
+                      src={featuredMoments[2].image}
+                      alt={featuredMoments[2].title}
+                      fill
+                      sizes="(max-width: 1280px) 90vw, 1260px"
+                      className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Floating Bottom-Left Progress Pill (Minimal tactile indicator) */}
-          <div className="pointer-events-none absolute bottom-5 left-[3vw] z-[40] hidden sm:flex items-center gap-3 bg-[#0c0c0c] text-white px-3.5 py-1.5 text-[12px]">
-            <span>
-              {activeCardIndex + 1} of 3
-            </span>
-            <span className="text-white/40">/</span>
-            <span className="lowercase" style={{ fontFamily: "var(--font-wordmark)" }}>
-              {featuredMoments[activeCardIndex]?.title}
-            </span>
-          </div>
-        </div>
-      </section>
+          {/* ─── Bottom Stage Status Bar ─── */}
+          <div className="relative z-[45] w-full px-[3vw] pb-5 flex items-center justify-between text-[13px] text-[#52525b]">
+            <div className="flex items-center gap-3">
+              <span className="text-[#0c0c0c] font-medium">
+                {featuredMoments[activeCardIndex]?.category}
+              </span>
+              <span>·</span>
+              <span>
+                {featuredMoments[activeCardIndex] &&
+                  formatLocation(
+                    featuredMoments[activeCardIndex].location,
+                    featuredMoments[activeCardIndex].year
+                  )}
+              </span>
+            </div>
 
-      {/* ─── Editorial Bridge to the Dedicated /gallery Page ─── */}
-      <section
-        aria-label="Explore full gallery archive"
-        className="relative w-full bg-[#0c0c0c] text-white px-[3vw] py-24 md:py-32 z-[50]"
-      >
-        <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row lg:items-end justify-between gap-12">
-          <div className="space-y-4 max-w-2xl">
-            <h2
-              style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(44px,7vw,96px)] lowercase leading-[0.92] text-white"
-            >
-              the full archive
-            </h2>
-            <p className="text-[16px] md:text-[18px] text-white/75 leading-[1.55] max-w-[52ch]">
-              Every frame from our studio sessions, Jakarta rooftops, and late
-              night road trips lives in the dedicated gallery. Browse by
-              editorial spread or interactive index.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4">
             <TransitionLink
               href="/gallery"
-              data-cursor="OPEN GALLERY"
-              className="inline-flex items-center justify-center h-[52px] px-8 bg-white text-[#0c0c0c] text-[14px] font-medium tracking-[-0.01em] hover:bg-[#e4e6eb] active:scale-[0.97] transition-[background-color,transform] duration-150 ease-out cursor-pointer"
+              data-cursor="ALL FRAMES"
+              className="text-[#0c0c0c] underline underline-offset-4 hover:opacity-65 transition-opacity"
             >
-              <RollingText text={`ENTER GALLERY (${momentsList.length} FRAMES)`} />
+              Explore all {momentsList.length} frames in gallery
             </TransitionLink>
           </div>
         </div>

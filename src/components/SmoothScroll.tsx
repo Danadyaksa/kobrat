@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 let globalLenis: Lenis | null = null;
 
@@ -11,28 +18,33 @@ export function getLenis(): Lenis | null {
 }
 
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.1,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
+      autoResize: true,
     });
 
     globalLenis = lenis;
     (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
 
-    let animationFrameId: number;
-    function raf(time: number) {
-      lenis.raf(time);
-      animationFrameId = requestAnimationFrame(raf);
-    }
+    // Official GSAP ScrollTrigger + Lenis synchronization so scroll never gets stuck
+    lenis.on("scroll", ScrollTrigger.update);
 
-    animationFrameId = requestAnimationFrame(raf);
+    const updateTicker = (time: number) => {
+      lenis.raf(time * 1000);
+    };
+
+    gsap.ticker.add(updateTicker);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      gsap.ticker.remove(updateTicker);
       lenis.destroy();
       globalLenis = null;
       if (typeof window !== "undefined") {
@@ -40,6 +52,21 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       }
     };
   }, []);
+
+  // Recalculate scroll bounds & ScrollTrigger positions on route changes
+  useEffect(() => {
+    const lenis = getLenis();
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+      lenis.resize();
+    }
+    const timer = setTimeout(() => {
+      getLenis()?.resize();
+      ScrollTrigger.refresh();
+    }, 180);
+
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   return <>{children}</>;
 }

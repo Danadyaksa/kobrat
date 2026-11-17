@@ -261,10 +261,10 @@ export default function GalleryPage() {
             </div>
           ) : viewMode !== "index" ? (
             /* ═══════════════════════════════════════════════════════════════════ */
-            /* MODE 1: COMPACT 2 / 3 COLUMN LANDSCAPE GALLERY GRID                 */
+            /* MODE 1: FRAMELESS AWWWARDS CONTACT SHEET (3 / 2 COLUMNS + FOCUS)   */
             /* ═══════════════════════════════════════════════════════════════════ */
             <div
-              className={`grid gap-x-7 gap-y-12 ${
+              className={`group/grid grid gap-x-8 gap-y-14 ${
                 viewMode === "3col"
                   ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                   : "grid-cols-1 md:grid-cols-2"
@@ -282,14 +282,22 @@ export default function GalleryPage() {
                     delay: (idx % 3) * 0.06,
                     ease: [0.23, 1, 0.32, 1],
                   }}
-                  className="flex flex-col justify-between bg-[#f4f5f7] p-4 group"
+                  className="group flex flex-col justify-between transition-opacity duration-300 group-hover/grid:opacity-45 hover:!opacity-100"
                 >
                   <div>
-                    {/* Landscape 16:10 Frame */}
+                    {/* Top Frame Caption */}
+                    <div className="flex items-center justify-between gap-2 text-[12px] text-[#767676] mb-2">
+                      <span className="capitalize text-[#0c0c0c] font-medium">
+                        {moment.category.toLowerCase()}
+                      </span>
+                      <span>{formatLocation(moment.location, moment.year)}</span>
+                    </div>
+
+                    {/* Landscape 16:10 Contact Frame */}
                     <div
                       onClick={() => setLightboxIndex(idx)}
                       data-cursor="VIEW"
-                      className="relative w-full aspect-[16/10] bg-[#111] overflow-hidden cursor-pointer mb-4"
+                      className="relative w-full aspect-[16/10] bg-[#111] overflow-hidden cursor-pointer mb-3.5"
                     >
                       <Image
                         src={moment.image}
@@ -301,38 +309,36 @@ export default function GalleryPage() {
                             ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             : "(max-width: 768px) 100vw, 50vw"
                         }
-                        className="object-cover object-[center_58%] transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                        className="object-cover object-[center_58%] transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                       />
                     </div>
 
-                    {/* Meta & Gothic Title */}
-                    <div className="flex items-center justify-between gap-2 text-[12px] text-[#767676] mb-1">
-                      <span className="capitalize text-[#0c0c0c] font-medium">
-                        {moment.category.toLowerCase()}
-                      </span>
-                      <span>{formatLocation(moment.location, moment.year)}</span>
+                    <div className="flex items-baseline justify-between gap-3">
+                      <h2
+                        onClick={() => setLightboxIndex(idx)}
+                        style={{ fontFamily: "var(--font-wordmark)" }}
+                        className="text-[clamp(24px,2.4vw,34px)] lowercase text-[#0c0c0c] leading-[1.08] cursor-pointer"
+                      >
+                        {moment.title}
+                      </h2>
+
+                      <button
+                        type="button"
+                        onClick={() => setLightboxIndex(idx)}
+                        className="text-[12px] text-[#767676] group-hover:text-[#0c0c0c] underline underline-offset-4 cursor-pointer shrink-0"
+                      >
+                        Inspect
+                      </button>
                     </div>
-
-                    <h2
-                      onClick={() => setLightboxIndex(idx)}
-                      style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(24px,2.5vw,34px)] lowercase text-[#0c0c0c] leading-[1.08] cursor-pointer hover:opacity-70 transition-opacity"
-                    >
-                      {moment.title}
-                    </h2>
-
-                    <p className="mt-2 text-[14px] text-[#52525b] leading-[1.5] line-clamp-2">
-                      {moment.description}
-                    </p>
                   </div>
 
-                  {/* Member Links */}
-                  <div className="flex flex-wrap items-center gap-1.5 mt-4 pt-3">
+                  {/* Subtle Member Links */}
+                  <div className="flex flex-wrap items-center gap-1.5 mt-3">
                     {moment.members.map((slug) => (
                       <TransitionLink
                         key={slug}
                         href={`/${slug}`}
-                        className="px-2.5 py-1 bg-white hover:bg-[#0c0c0c] hover:text-white text-[11px] text-[#0c0c0c] capitalize transition-colors"
+                        className="px-2 py-0.5 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[11px] text-[#52525b] capitalize transition-colors"
                       >
                         {slug}
                       </TransitionLink>
