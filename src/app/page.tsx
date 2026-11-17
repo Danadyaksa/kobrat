@@ -72,6 +72,13 @@ export default function Home() {
           </a>
           <span>{"//"}</span>
           <TransitionLink
+            href="/gallery"
+            className="hover:text-[#0c0c0c] transition-colors"
+          >
+            GALLERY ARCHIVE
+          </TransitionLink>
+          <span>{"//"}</span>
+          <TransitionLink
             href="/admin"
             className="hover:text-[#0c0c0c] transition-colors"
           >

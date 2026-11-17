@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import TransitionLink from "./TransitionLink";
 
 interface HeaderProps {
@@ -39,6 +40,8 @@ function RollingWordmark({ text }: { text: string }) {
 
 export default function Header({ introComplete = true }: HeaderProps) {
   const [time, setTime] = useState<string>("--:--");
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     function updateClock() {
@@ -56,11 +59,20 @@ export default function Header({ introComplete = true }: HeaderProps) {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 24);
+    }
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <header
-      className={`fixed top-0 inset-x-0 z-[70] transition-opacity duration-500 pointer-events-none ${
+      className={`fixed top-0 inset-x-0 z-[70] transition-[opacity,background-color] duration-300 pointer-events-none ${
         introComplete ? "opacity-100 pointer-events-auto" : "opacity-0"
-      }`}
+      } ${isScrolled || pathname === "/gallery" ? "bg-white/95" : "bg-transparent"}`}
     >
       <div className="h-[52px] px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-6 pointer-events-auto">
         {/* Left: Local Time */}
@@ -80,15 +92,27 @@ export default function Header({ introComplete = true }: HeaderProps) {
 
         {/* Right: Nav items with vertical rolling chars on hover */}
         <nav className="justify-self-end flex items-center gap-2 select-none">
-          <TransitionLink href="/" className="nav-item">
+          <TransitionLink
+            href="/"
+            aria-current={pathname === "/" ? "page" : undefined}
+            className="nav-item"
+          >
             <span className="sr-only">Home</span>
             <RollingText text="HOME" />
           </TransitionLink>
-          <a href="#gallery" className="nav-item">
+          <TransitionLink
+            href="/gallery"
+            aria-current={pathname === "/gallery" ? "page" : undefined}
+            className="nav-item"
+          >
             <span className="sr-only">Gallery</span>
             <RollingText text="GALLERY" />
-          </a>
-          <TransitionLink href="/admin" className="nav-item">
+          </TransitionLink>
+          <TransitionLink
+            href="/admin"
+            aria-current={pathname === "/admin" ? "page" : undefined}
+            className="nav-item"
+          >
             <span className="sr-only">Admin</span>
             <RollingText text="ADMIN" />
           </TransitionLink>

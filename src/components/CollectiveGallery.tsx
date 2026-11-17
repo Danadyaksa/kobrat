@@ -2,19 +2,41 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  AnimatePresence,
-} from "motion/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { AnimatePresence, motion } from "motion/react";
 import { Moment, moments as staticMoments } from "@/data/moments";
 import TransitionLink from "./TransitionLink";
 
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+function RollingText({ text }: { text: string }) {
+  return (
+    <span className="chars-inner" aria-hidden="true">
+      {text.split("").map((char, index) => (
+        <span key={index} style={{ "--i": index } as React.CSSProperties}>
+          {char === " " ? "\u00A0" : char}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export default function CollectiveGallery() {
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const introSheetRef = useRef<HTMLDivElement>(null);
+  const card1Ref = useRef<HTMLDivElement>(null);
+  const card1ImgRef = useRef<HTMLDivElement>(null);
+  const card2Ref = useRef<HTMLDivElement>(null);
+  const card2ImgRef = useRef<HTMLDivElement>(null);
+  const card3Ref = useRef<HTMLDivElement>(null);
+  const card3ImgRef = useRef<HTMLDivElement>(null);
+
   const [momentsList, setMomentsList] = useState<Moment[]>(staticMoments);
+  const [activeCardIndex, setActiveCardIndex] = useState<number>(0);
+  const [lightboxMoment, setLightboxMoment] = useState<Moment | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -37,7 +59,7 @@ export default function CollectiveGallery() {
     };
   }, []);
 
-  // 3 Flagship Moments matching the 3 cards in thelinestudio.com
+  // 3 Flagship Moments for the Landing Page Scroll Stack
   const featuredMoments = useMemo(() => {
     const slot1 = momentsList.find((m) => m.highlightSlot === 1);
     const slot2 = momentsList.find((m) => m.highlightSlot === 2);
@@ -50,363 +72,516 @@ export default function CollectiveGallery() {
     return [card1, card2, card3];
   }, [momentsList]);
 
-  const [isArchiveOpen, setIsArchiveOpen] = useState<boolean>(false);
-  const [lightboxMoment, setLightboxMoment] = useState<Moment | null>(null);
+  // GSAP ScrollTrigger Multi-Phase Choreography (inspired by The Line Studio)
+  useEffect(() => {
+    const section = sectionRef.current;
+    const intro = introSheetRef.current;
+    const c1 = card1Ref.current;
+    const c1Img = card1ImgRef.current;
+    const c2 = card2Ref.current;
+    const c2Img = card2ImgRef.current;
+    const c3 = card3Ref.current;
+    const c3Img = card3ImgRef.current;
 
-  // Scroll Progress across the 3-card stacking track
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
+    if (!section || !intro || !c1 || !c2 || !c3 || !c1Img || !c2Img || !c3Img) {
+      return;
+    }
 
-  const smoothProgress = useSpring(scrollYProgress, {
-    damping: 24,
-    stiffness: 140,
-    mass: 0.18,
-  });
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
 
-  // Card 1 transforms: stays in place, slightly scales down as Card 2 slides over
-  const card1Scale = useTransform(smoothProgress, [0.22, 0.52], [1.0, 0.95]);
-  const card1Opacity = useTransform(smoothProgress, [0.22, 0.52], [1.0, 0.85]);
+    if (prefersReducedMotion) {
+      return;
+    }
 
-  // Card 2 transforms: slides up from 100vh to 0vh, then scales down as Card 3 slides over
-  const card2Y = useTransform(smoothProgress, [0.18, 0.50], ["100vh", "0vh"]);
-  const card2Scale = useTransform(smoothProgress, [0.55, 0.85], [1.0, 0.95]);
-  const card2Opacity = useTransform(smoothProgress, [0.55, 0.85], [1.0, 0.85]);
+    const ctx = gsap.context(() => {
+      // Initial states:
+      // Card 1 starts peeking at the bottom edge with a slight tilt (just like frame_01 of thelinestudio)
+      gsap.set(c1, {
+        yPercent: 38,
+        rotation: 2.4,
+        scale: 0.98,
+        transformOrigin: "50% 50%",
+      });
+      gsap.set(c1Img, { scale: 1.12 });
 
-  // Card 3 transforms: slides up from 100vh to 0vh
-  const card3Y = useTransform(smoothProgress, [0.50, 0.84], ["100vh", "0vh"]);
+      // Card 2 waits below viewport at a counter-tilt
+      gsap.set(c2, {
+        yPercent: 108,
+        rotation: -4.8,
+        scale: 1,
+        transformOrigin: "50% 50%",
+      });
+      gsap.set(c2Img, { scale: 1.15 });
 
-  // Keyboard navigation for modals
+      // Card 3 waits below viewport at a positive tilt
+      gsap.set(c3, {
+        yPercent: 108,
+        rotation: 4.5,
+        scale: 1,
+        transformOrigin: "50% 50%",
+      });
+      gsap.set(c3Img, { scale: 1.15 });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 0.55,
+          onUpdate: (self) => {
+            const p = self.progress;
+            if (p < 0.36) {
+              setActiveCardIndex(0);
+            } else if (p < 0.68) {
+              setActiveCardIndex(1);
+            } else {
+              setActiveCardIndex(2);
+            }
+          },
+        },
+      });
+
+      // ── ACT 1 (0.00 -> 0.28): Intro tilts back, Card 1 rises to full stage ──
+      tl.to(
+        intro,
+        {
+          yPercent: -14,
+          rotation: -1.6,
+          scale: 0.95,
+          opacity: 0.45,
+          ease: "power2.inOut",
+          duration: 0.28,
+        },
+        0
+      )
+        .to(
+          c1,
+          {
+            yPercent: 0,
+            rotation: -0.6,
+            scale: 1,
+            ease: "power2.out",
+            duration: 0.28,
+          },
+          0
+        )
+        .to(
+          c1Img,
+          {
+            scale: 1.0,
+            ease: "power2.out",
+            duration: 0.32,
+          },
+          0
+        );
+
+      // ── ACT 2 (0.28 -> 0.62): Card 1 glides up so its PHOTO fills top horizon; Card 2 slices in diagonally ──
+      tl.to(
+        c1,
+        {
+          yPercent: -16,
+          rotation: -1.8,
+          scale: 0.96,
+          ease: "power2.inOut",
+          duration: 0.32,
+        },
+        0.28
+      )
+        .to(
+          c2,
+          {
+            yPercent: 4,
+            rotation: 1.2,
+            scale: 1,
+            ease: "power2.out",
+            duration: 0.32,
+          },
+          0.3
+        )
+        .to(
+          c2Img,
+          {
+            scale: 1.0,
+            ease: "power2.out",
+            duration: 0.34,
+          },
+          0.3
+        );
+
+      // ── ACT 3 (0.62 -> 0.94): Card 2 glides up so its PHOTO fills top horizon; Card 3 slices in ──
+      tl.to(
+        c1,
+        {
+          yPercent: -21,
+          rotation: -2.4,
+          scale: 0.93,
+          ease: "power2.inOut",
+          duration: 0.3,
+        },
+        0.62
+      )
+        .to(
+          c2,
+          {
+            yPercent: -14,
+            rotation: 2.1,
+            scale: 0.97,
+            ease: "power2.inOut",
+            duration: 0.3,
+          },
+          0.62
+        )
+        .to(
+          c3,
+          {
+            yPercent: 5,
+            rotation: -1.1,
+            scale: 1,
+            ease: "power2.out",
+            duration: 0.32,
+          },
+          0.64
+        )
+        .to(
+          c3Img,
+          {
+            scale: 1.0,
+            ease: "power2.out",
+            duration: 0.34,
+          },
+          0.64
+        );
+
+      // Final subtle hold (0.94 -> 1.00)
+      tl.to(c3, { yPercent: 2, rotation: -0.5, duration: 0.06 }, 0.94);
+    }, section);
+
+    return () => ctx.revert();
+  }, [featuredMoments]);
+
+  // Keyboard navigation for Lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setLightboxMoment(null);
-        setIsArchiveOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const formatLocation = (loc: string, year: string) => {
+    const cleanLoc = loc.split("//")[0].trim();
+    return `${cleanLoc}, ${year}`;
+  };
+
   return (
-    <section
-      ref={sectionRef}
-      id="gallery"
-      className="relative w-full h-[360vh] bg-white text-[#0c0c0c] select-none"
-    >
-      {/* Editorial Section Introduction */}
-      <div className="w-full px-[3vw] pt-24 pb-8 md:pb-12 border-b border-[#0c0c0c]/10 bg-white flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="flex flex-col gap-1">
-          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#767676]">
-            / ABOUT KOBRAT
-          </span>
-          <h2
-            style={{ fontFamily: "var(--font-wordmark)" }}
-            className="text-[clamp(54px,8.5vw,112px)] lowercase text-[#0c0c0c] leading-[0.95]"
-          >
-            highlights
-          </h2>
-        </div>
-
-        {/* Action Links */}
-        <div className="flex items-center gap-6 font-sans text-[14px] font-normal tracking-[-0.01em] pb-1">
-          <button
-            type="button"
-            onClick={() => setIsArchiveOpen(true)}
-            data-cursor="ARCHIVE"
-            className="group flex items-center gap-1.5 hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
-          >
-            <span>The Archive</span>
-            <span className="font-mono text-[11px] text-[#767676] group-hover:text-[#0c0c0c]">
-              [{String(momentsList.length).padStart(2, "0")}]
-            </span>
-            <span className="transition-transform duration-200 group-hover:translate-x-1">
-              →
-            </span>
-          </button>
-
-          <a
-            href="#home"
-            className="group flex items-center gap-1.5 hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
-          >
-            <span>The Collective</span>
-            <span className="transition-transform duration-200 group-hover:translate-x-1">
-              →
-            </span>
-          </a>
-        </div>
-      </div>
-
-      {/* Sticky Fullscreen Stage (Edge-to-Edge full width, matching thelinestudio.com) */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden bg-white">
-        {/* ─── Card 1: The Midnight Brainstorm (rotate: -1.8deg) ─── */}
-        <motion.div
-          style={{
-            scale: card1Scale,
-            opacity: card1Opacity,
-            rotate: -1.8,
-          }}
-          className="absolute inset-0 w-[102vw] -left-[1vw] h-screen bg-[#e4e6eb] border-y border-[#0c0c0c]/10 shadow-2xl flex flex-col justify-between overflow-hidden z-10 origin-bottom"
-        >
-          {/* Card Top Title Row */}
-          <div className="h-[18vh] min-h-[100px] px-[4vw] pt-[5vh] pb-[2vh] flex items-end justify-between w-full">
-            <h3
-              style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(32px,5vw,64px)] lowercase text-[#0c0c0c] leading-[0.95]"
-            >
-              {featuredMoments[0].title}
-            </h3>
-
-            <button
-              type="button"
-              onClick={() => setLightboxMoment(featuredMoments[0])}
-              data-cursor="VIEW"
-              className="group flex items-center gap-1 font-sans text-[14px] font-normal tracking-[-0.01em] text-[#0c0c0c] hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
-            >
-              <span>View moment</span>
-              <span className="transition-transform duration-200 group-hover:translate-x-1">
-                →
-              </span>
-            </button>
-          </div>
-
-          {/* Clean Grand Artwork Container */}
+    <>
+      <section
+        ref={sectionRef}
+        id="gallery"
+        aria-label="Selected collective highlights"
+        className="relative w-full h-[420vh] bg-white text-[#0c0c0c] select-none"
+      >
+        {/* Sticky Full-Viewport Choreographed Stage */}
+        <div className="sticky top-0 h-dvh w-full overflow-hidden bg-white">
+          {/* ─── LAYER 0: Editorial Masthead Sheet (Tilts & recedes on scroll) ─── */}
           <div
-            onClick={() => setLightboxMoment(featuredMoments[0])}
-            className="flex-1 w-[calc(100%-6vw)] mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
+            ref={introSheetRef}
+            className="absolute inset-x-0 top-0 h-[56vh] bg-white px-[4vw] pt-[72px] pb-8 flex flex-col justify-between z-[5] origin-top"
           >
-            <Image
-              src={featuredMoments[0].image}
-              alt={featuredMoments[0].title}
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-            />
-          </div>
-        </motion.div>
-
-        {/* ─── Card 2: Golden Hour Rooftop (rotate: 1.5deg, slides up) ─── */}
-        <motion.div
-          style={{
-            y: card2Y,
-            scale: card2Scale,
-            opacity: card2Opacity,
-            rotate: 1.5,
-          }}
-          className="absolute inset-0 w-[102vw] -left-[1vw] h-screen bg-[#e6e8ed] border-y border-[#0c0c0c]/10 shadow-[0_-30px_70px_rgba(0,0,0,0.2)] flex flex-col justify-between overflow-hidden z-20 origin-bottom"
-        >
-          {/* Card Top Title Row */}
-          <div className="h-[18vh] min-h-[100px] px-[4vw] pt-[5vh] pb-[2vh] flex items-end justify-between w-full">
-            <h3
-              style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(32px,5vw,64px)] lowercase text-[#0c0c0c] leading-[0.95]"
-            >
-              {featuredMoments[1].title}
-            </h3>
-
-            <button
-              type="button"
-              onClick={() => setLightboxMoment(featuredMoments[1])}
-              data-cursor="VIEW"
-              className="group flex items-center gap-1 font-sans text-[14px] font-normal tracking-[-0.01em] text-[#0c0c0c] hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
-            >
-              <span>View moment</span>
-              <span className="transition-transform duration-200 group-hover:translate-x-1">
-                →
-              </span>
-            </button>
-          </div>
-
-          {/* Clean Grand Artwork Container */}
-          <div
-            onClick={() => setLightboxMoment(featuredMoments[1])}
-            className="flex-1 w-[calc(100%-6vw)] mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
-          >
-            <Image
-              src={featuredMoments[1].image}
-              alt={featuredMoments[1].title}
-              fill
-              sizes="100vw"
-              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-            />
-          </div>
-        </motion.div>
-
-        {/* ─── Card 3: Kota Tua 35mm Roll (rotate: -1.2deg, slides up) ─── */}
-        <motion.div
-          style={{
-            y: card3Y,
-            rotate: -1.2,
-          }}
-          className="absolute inset-0 w-[102vw] -left-[1vw] h-screen bg-[#e2e4ea] border-y border-[#0c0c0c]/10 shadow-[0_-35px_80px_rgba(0,0,0,0.25)] flex flex-col justify-between overflow-hidden z-30 origin-bottom"
-        >
-          {/* Card Top Title Row */}
-          <div className="h-[18vh] min-h-[100px] px-[4vw] pt-[5vh] pb-[2vh] flex items-end justify-between w-full">
-            <h3
-              style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(32px,5vw,64px)] lowercase text-[#0c0c0c] leading-[0.95]"
-            >
-              {featuredMoments[2].title}
-            </h3>
-
-            <button
-              type="button"
-              onClick={() => setLightboxMoment(featuredMoments[2])}
-              data-cursor="VIEW"
-              className="group flex items-center gap-1 font-sans text-[14px] font-normal tracking-[-0.01em] text-[#0c0c0c] hover:opacity-60 transition-opacity cursor-pointer border-b border-[#0c0c0c] pb-0.5"
-            >
-              <span>View moment</span>
-              <span className="transition-transform duration-200 group-hover:translate-x-1">
-                →
-              </span>
-            </button>
-          </div>
-
-          {/* Clean Grand Artwork Container */}
-          <div
-            onClick={() => setLightboxMoment(featuredMoments[2])}
-            className="flex-1 w-[calc(100%-6vw)] mx-[3vw] mb-[4vh] rounded-2xl md:rounded-3xl overflow-hidden relative shadow-md cursor-pointer group bg-[#111111]"
-          >
-            <Image
-              src={featuredMoments[2].image}
-              alt={featuredMoments[2].title}
-              fill
-              sizes="100vw"
-              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-            />
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Complete 8-Moment Archive Modal */}
-      <AnimatePresence>
-        {isArchiveOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[990] bg-[#0c0c0c]/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-8 overflow-y-auto text-white select-none"
-          >
-            {/* Modal Header */}
-            <div className="w-full flex items-center justify-between pb-6 border-b border-white/15 font-mono text-[11px] tracking-[0.08em] uppercase text-white/70">
-              <div className="flex items-center gap-3">
-                <span className="text-[#c6f432] font-semibold">● FULL ARCHIVE</span>
-                <span>//</span>
-                <span>{momentsList.length} DOCUMENTARY 35MM FRAMES</span>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <div>
+                <h2
+                  style={{ fontFamily: "var(--font-wordmark)" }}
+                  className="text-[clamp(58px,9.5vw,136px)] lowercase text-[#0c0c0c] leading-[1.06] tracking-[-0.02em]"
+                >
+                  highlights
+                </h2>
+                <p className="mt-6 max-w-[46ch] text-[16px] md:text-[18px] text-[#0c0c0c] leading-[1.5]">
+                  Three selected frames from our collective archive. Scroll to
+                  step through the reels, or enter the dedicated gallery.
+                </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsArchiveOpen(false)}
-                className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 transition-colors text-white font-mono text-[11px] cursor-pointer"
-              >
-                CLOSE [ ESC ] ✕
-              </button>
-            </div>
-
-            {/* Grid of All Moments */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 my-8 max-w-7xl mx-auto w-full">
-              {momentsList.map((moment, idx) => (
-                <div
-                  key={moment.id}
-                  onClick={() => {
-                    setIsArchiveOpen(false);
-                    setLightboxMoment(moment);
-                  }}
-                  data-cursor="INSPECT"
-                  className="group relative flex flex-col gap-2 rounded-xl overflow-hidden bg-[#161616] border border-white/15 hover:border-white transition-all cursor-pointer p-2.5"
+              {/* Direct Navigation Links (Matching The Line Studio's underlined dual links) */}
+              <div className="flex flex-wrap items-center gap-8 pb-2">
+                <TransitionLink
+                  href="/gallery"
+                  data-cursor="GALLERY"
+                  className="group inline-flex items-baseline gap-2 text-[18px] md:text-[21px] font-normal tracking-[-0.02em] text-[#0c0c0c] underline underline-offset-8 decoration-[1.5px] hover:opacity-65 transition-opacity"
                 >
-                  <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-black/40">
-                    <Image
-                      src={moment.image}
-                      alt={moment.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 300px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 backdrop-blur-md font-mono text-[9px] text-white/80 uppercase">
-                      {`FRAME 0${idx + 1}`}
-                    </div>
-                  </div>
+                  <span>The Gallery</span>
+                  <span className="text-[12px] text-[#767676] font-normal">
+                    ({momentsList.length})
+                  </span>
+                </TransitionLink>
 
-                  <div className="flex flex-col gap-1 px-1 pt-1">
-                    <div className="flex items-center justify-between font-mono text-[9px] text-white/50 uppercase">
-                      <span className="text-[#c6f432]">{moment.category}</span>
-                      <span>{moment.camera.split("//")[0]}</span>
-                    </div>
+                <a
+                  href="#home"
+                  className="group inline-flex items-baseline gap-2 text-[18px] md:text-[21px] font-normal tracking-[-0.02em] text-[#0c0c0c] underline underline-offset-8 decoration-[1.5px] hover:opacity-65 transition-opacity"
+                >
+                  <span>The Collective</span>
+                </a>
+              </div>
+            </div>
+          </div>
 
-                    <h4
-                      style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[18px] lowercase text-white leading-tight"
-                    >
-                      {moment.title}
-                    </h4>
+          {/* ─── LAYER 1: Flagship Card 1 ─── */}
+          <div
+            ref={card1Ref}
+            className="absolute inset-0 w-[106vw] -left-[3vw] h-[112vh] bg-[#e6e8ee] flex flex-col z-[10] will-change-transform"
+          >
+            {/* Card Sheet Top Header */}
+            <div className="h-[15vh] min-h-[86px] px-[5.5vw] pt-[2.5vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
+              <div className="flex items-baseline gap-4 min-w-0">
+                <h3
+                  style={{ fontFamily: "var(--font-wordmark)" }}
+                  className="text-[clamp(26px,4.2vw,60px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                >
+                  {featuredMoments[0].title}
+                </h3>
+                <span className="hidden lg:inline-block text-[14px] text-[#52525b] shrink-0">
+                  {formatLocation(
+                    featuredMoments[0].location,
+                    featuredMoments[0].year
+                  )}
+                </span>
+              </div>
 
-                    {/* Member Pills */}
-                    <div className="flex flex-wrap items-center gap-1 mt-1 pt-1 border-t border-white/10">
-                      {moment.members.map((slug) => (
-                        <TransitionLink
-                          key={slug}
-                          href={`/${slug}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white hover:text-black font-mono text-[9px] text-white/80 uppercase transition-colors"
-                        >
-                          {slug}
-                        </TransitionLink>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <div className="flex items-center gap-6 shrink-0 pb-1">
+                <button
+                  type="button"
+                  onClick={() => setLightboxMoment(featuredMoments[0])}
+                  data-cursor="INSPECT"
+                  className="text-[15px] md:text-[17px] text-[#0c0c0c] underline underline-offset-4 decoration-[1.5px] hover:opacity-60 transition-opacity cursor-pointer"
+                >
+                  View moment
+                </button>
+              </div>
             </div>
 
-            {/* Modal Bottom Status */}
-            <div className="w-full flex items-center justify-between pt-4 border-t border-white/10 font-mono text-[10px] tracking-wider text-white/40 uppercase">
-              <span>KOBRAT ARCHIVE // 2024—2025</span>
-              <span>CLICK ANY FRAME TO INSPECT FULL RESOLUTION</span>
+            {/* Massive Edge-to-Edge Artwork Frame */}
+            <div
+              onClick={() => setLightboxMoment(featuredMoments[0])}
+              data-cursor="VIEW"
+              className="relative flex-1 w-[94vw] mx-auto mb-[5vh] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
+            >
+              <div ref={card1ImgRef} className="relative w-full h-full will-change-transform">
+                <Image
+                  src={featuredMoments[0].image}
+                  alt={featuredMoments[0].title}
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-cover object-[center_58%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                />
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
 
-      {/* Fullscreen High-Resolution Lightbox Modal */}
+          {/* ─── LAYER 2: Flagship Card 2 (Slices diagonally across Card 1's photo) ─── */}
+          <div
+            ref={card2Ref}
+            className="absolute inset-0 w-[106vw] -left-[3vw] h-[112vh] bg-[#eceae4] flex flex-col z-[20] will-change-transform"
+          >
+            {/* Card Sheet Top Header */}
+            <div className="h-[15vh] min-h-[86px] px-[5.5vw] pt-[2.5vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
+              <div className="flex items-baseline gap-4 min-w-0">
+                <h3
+                  style={{ fontFamily: "var(--font-wordmark)" }}
+                  className="text-[clamp(26px,4.2vw,60px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                >
+                  {featuredMoments[1].title}
+                </h3>
+                <span className="hidden lg:inline-block text-[14px] text-[#52525b] shrink-0">
+                  {formatLocation(
+                    featuredMoments[1].location,
+                    featuredMoments[1].year
+                  )}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-6 shrink-0 pb-1">
+                <button
+                  type="button"
+                  onClick={() => setLightboxMoment(featuredMoments[1])}
+                  data-cursor="INSPECT"
+                  className="text-[15px] md:text-[17px] text-[#0c0c0c] underline underline-offset-4 decoration-[1.5px] hover:opacity-60 transition-opacity cursor-pointer"
+                >
+                  View moment
+                </button>
+              </div>
+            </div>
+
+            {/* Massive Edge-to-Edge Artwork Frame */}
+            <div
+              onClick={() => setLightboxMoment(featuredMoments[1])}
+              data-cursor="VIEW"
+              className="relative flex-1 w-[94vw] mx-auto mb-[5vh] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
+            >
+              <div ref={card2ImgRef} className="relative w-full h-full will-change-transform">
+                <Image
+                  src={featuredMoments[1].image}
+                  alt={featuredMoments[1].title}
+                  fill
+                  sizes="100vw"
+                  className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ─── LAYER 3: Flagship Card 3 (Slices across Card 2's photo) ─── */}
+          <div
+            ref={card3Ref}
+            className="absolute inset-0 w-[106vw] -left-[3vw] h-[112vh] bg-[#dfe3ec] flex flex-col z-[30] will-change-transform"
+          >
+            {/* Card Sheet Top Header */}
+            <div className="h-[15vh] min-h-[86px] px-[5.5vw] pt-[2.5vh] pb-[1.5vh] flex items-end justify-between gap-4 shrink-0">
+              <div className="flex items-baseline gap-4 min-w-0">
+                <h3
+                  style={{ fontFamily: "var(--font-wordmark)" }}
+                  className="text-[clamp(26px,4.2vw,60px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                >
+                  {featuredMoments[2].title}
+                </h3>
+                <span className="hidden lg:inline-block text-[14px] text-[#52525b] shrink-0">
+                  {formatLocation(
+                    featuredMoments[2].location,
+                    featuredMoments[2].year
+                  )}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-6 shrink-0 pb-1">
+                <button
+                  type="button"
+                  onClick={() => setLightboxMoment(featuredMoments[2])}
+                  data-cursor="INSPECT"
+                  className="text-[15px] md:text-[17px] text-[#0c0c0c] underline underline-offset-4 decoration-[1.5px] hover:opacity-60 transition-opacity cursor-pointer"
+                >
+                  View moment
+                </button>
+              </div>
+            </div>
+
+            {/* Massive Edge-to-Edge Artwork Frame */}
+            <div
+              onClick={() => setLightboxMoment(featuredMoments[2])}
+              data-cursor="VIEW"
+              className="relative flex-1 w-[94vw] mx-auto mb-[5vh] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
+            >
+              <div ref={card3ImgRef} className="relative w-full h-full will-change-transform">
+                <Image
+                  src={featuredMoments[2].image}
+                  alt={featuredMoments[2].title}
+                  fill
+                  sizes="100vw"
+                  className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Floating Bottom-Left Progress Pill (Minimal tactile indicator) */}
+          <div className="pointer-events-none absolute bottom-5 left-[3vw] z-[40] hidden sm:flex items-center gap-3 bg-[#0c0c0c] text-white px-3.5 py-1.5 text-[12px]">
+            <span>
+              {activeCardIndex + 1} of 3
+            </span>
+            <span className="text-white/40">/</span>
+            <span className="lowercase" style={{ fontFamily: "var(--font-wordmark)" }}>
+              {featuredMoments[activeCardIndex]?.title}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Editorial Bridge to the Dedicated /gallery Page ─── */}
+      <section
+        aria-label="Explore full gallery archive"
+        className="relative w-full bg-[#0c0c0c] text-white px-[3vw] py-24 md:py-32 z-[50]"
+      >
+        <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row lg:items-end justify-between gap-12">
+          <div className="space-y-4 max-w-2xl">
+            <h2
+              style={{ fontFamily: "var(--font-wordmark)" }}
+              className="text-[clamp(44px,7vw,96px)] lowercase leading-[0.92] text-white"
+            >
+              the full archive
+            </h2>
+            <p className="text-[16px] md:text-[18px] text-white/75 leading-[1.55] max-w-[52ch]">
+              Every frame from our studio sessions, Jakarta rooftops, and late
+              night road trips lives in the dedicated gallery. Browse by
+              editorial spread or interactive index.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <TransitionLink
+              href="/gallery"
+              data-cursor="OPEN GALLERY"
+              className="inline-flex items-center justify-center h-[52px] px-8 bg-white text-[#0c0c0c] text-[14px] font-medium tracking-[-0.01em] hover:bg-[#e4e6eb] active:scale-[0.97] transition-[background-color,transform] duration-150 ease-out cursor-pointer"
+            >
+              <RollingText text={`ENTER GALLERY (${momentsList.length} FRAMES)`} />
+            </TransitionLink>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Fullscreen High-Resolution Lightbox Modal ─── */}
       <AnimatePresence>
         {lightboxMoment && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[999] bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-8 select-none text-white"
+            transition={{ duration: 0.22 }}
+            className="fixed inset-0 z-[999] bg-[#0c0c0c]/95 flex flex-col justify-between p-4 md:p-8 select-none text-white"
           >
             {/* Modal Top Bar */}
-            <div className="flex items-center justify-between w-full z-10 font-mono text-[11px] tracking-[0.08em] uppercase text-white/70">
-              <div className="flex items-center gap-3">
-                <span className="text-[#c6f432] font-semibold">● FULL RESOLUTION</span>
-                <span>//</span>
+            <div className="flex items-center justify-between w-full z-10 text-[13px] text-white/80">
+              <div className="flex items-baseline gap-4">
                 <span
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[17px] lowercase text-white"
+                  className="text-[24px] lowercase text-white leading-none"
                 >
                   {lightboxMoment.title}
                 </span>
+                <span className="hidden sm:inline text-white/50">
+                  {formatLocation(lightboxMoment.location, lightboxMoment.year)}
+                </span>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setLightboxMoment(null)}
-                className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white hover:text-black border border-white/20 transition-colors text-white font-mono text-[11px] cursor-pointer"
-              >
-                CLOSE [ ESC ] ✕
-              </button>
+              <div className="flex items-center gap-3">
+                <TransitionLink
+                  href="/gallery"
+                  onClick={() => setLightboxMoment(null)}
+                  className="px-4 py-2 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px]"
+                >
+                  Open full gallery
+                </TransitionLink>
+                <button
+                  type="button"
+                  onClick={() => setLightboxMoment(null)}
+                  className="px-4 py-2 bg-white text-[#0c0c0c] hover:bg-white/85 transition-colors text-[12px] font-medium cursor-pointer active:scale-[0.97]"
+                >
+                  Close (Esc)
+                </button>
+              </div>
             </div>
 
             {/* Modal Center Image */}
-            <div className="relative flex-1 w-full max-h-[76vh] flex items-center justify-center my-4">
-              <div className="relative w-full h-full max-w-6xl rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
+            <div
+              onClick={() => setLightboxMoment(null)}
+              className="relative flex-1 w-full max-h-[78vh] flex items-center justify-center my-4 cursor-pointer"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full h-full max-w-6xl overflow-hidden"
+              >
                 <Image
                   src={lightboxMoment.image}
                   alt={lightboxMoment.title}
@@ -418,23 +593,18 @@ export default function CollectiveGallery() {
               </div>
             </div>
 
-            {/* Modal Bottom Metadata & Members */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full z-10 font-mono text-[11px] tracking-[0.06em] text-white/60 uppercase">
-              <div className="flex items-center gap-3">
-                <span>{lightboxMoment.camera}</span>
-                <span>•</span>
-                <span>{lightboxMoment.location}</span>
-                <span>•</span>
-                <span>{lightboxMoment.date}</span>
-              </div>
+            {/* Modal Bottom Description & Members */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full z-10 text-[13px] text-white/70">
+              <p className="max-w-xl text-white/80 leading-relaxed">
+                {lightboxMoment.description}
+              </p>
 
-              <div className="flex items-center gap-2">
-                <span className="text-white/40">WITH:</span>
+              <div className="flex flex-wrap items-center gap-2">
                 {lightboxMoment.members.map((slug) => (
                   <TransitionLink
                     key={slug}
                     href={`/${slug}`}
-                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white hover:text-black transition-colors text-white text-[10px]"
+                    className="px-3 py-1 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px] capitalize"
                   >
                     {slug}
                   </TransitionLink>
@@ -444,6 +614,6 @@ export default function CollectiveGallery() {
           </motion.div>
         )}
       </AnimatePresence>
-    </section>
+    </>
   );
 }
