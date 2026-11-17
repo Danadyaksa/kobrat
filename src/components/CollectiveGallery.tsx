@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -26,6 +27,7 @@ function RollingText({ text }: { text: string }) {
 
 export default function CollectiveGallery() {
   const sectionRef = useRef<HTMLElement>(null);
+  const entryStageRef = useRef<HTMLDivElement>(null);
   const stageTiltRef = useRef<HTMLDivElement>(null);
   const bgWordRef = useRef<HTMLDivElement>(null);
   const card1Ref = useRef<HTMLDivElement>(null);
@@ -127,6 +129,27 @@ export default function CollectiveGallery() {
     }
 
     const ctx = gsap.context(() => {
+      // Smooth spatial entry bloom as #gallery rises through the opening 3D Hero orbital halo
+      if (entryStageRef.current) {
+        gsap.fromTo(
+          entryStageRef.current,
+          { opacity: 0, scale: 0.88, y: 40 },
+          {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: section,
+              start: "top 90%",
+              end: "top 16%",
+              scrub: 0.35,
+              invalidateOnRefresh: true,
+            },
+          }
+        );
+      }
+
       // Card 1 starts as a compact tilted aperture ready to bloom as user scrolls down from Hero
       gsap.set(c1, {
         yPercent: 24,
@@ -311,10 +334,14 @@ export default function CollectiveGallery() {
         ref={sectionRef}
         id="gallery"
         aria-label="Selected collective highlights"
-        className="relative w-full h-[360vh] bg-white text-[#0c0c0c] select-none"
+        className="relative w-full h-[360vh] -mt-[46dvh] bg-transparent text-[#0c0c0c] select-none z-[20]"
       >
         {/* Sticky Full-Viewport Spatial Stage */}
-        <div className="sticky top-0 h-dvh w-full overflow-hidden bg-white flex flex-col justify-between">
+        <div className="sticky top-0 h-dvh w-full overflow-hidden bg-transparent">
+          <div
+            ref={entryStageRef}
+            className="relative w-full h-full flex flex-col justify-between will-change-transform"
+          >
           {/* Giant Subtle Kinetic Background Wordmark (drifts with scroll) */}
           <div
             ref={bgWordRef}
@@ -539,92 +566,100 @@ export default function CollectiveGallery() {
               Explore all {momentsList.length} frames in gallery
             </TransitionLink>
           </div>
+          </div>
         </div>
       </section>
 
-      {/* ─── Fullscreen High-Resolution Lightbox Modal ─── */}
-      <AnimatePresence>
-        {lightboxMoment && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            className="fixed inset-0 z-[999] bg-[#0c0c0c]/95 flex flex-col justify-between p-4 md:p-8 select-none text-white"
-          >
-            {/* Modal Top Bar */}
-            <div className="flex items-center justify-between w-full z-10 text-[13px] text-white/80">
-              <div className="flex items-baseline gap-4">
-                <span
-                  style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[24px] lowercase text-white leading-none"
-                >
-                  {lightboxMoment.title}
-                </span>
-                <span className="hidden sm:inline text-white/50">
-                  {formatLocation(lightboxMoment.location, lightboxMoment.year)}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <TransitionLink
-                  href="/gallery"
-                  onClick={() => setLightboxMoment(null)}
-                  className="px-4 py-2 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px]"
-                >
-                  Open full gallery
-                </TransitionLink>
-                <button
-                  type="button"
-                  onClick={() => setLightboxMoment(null)}
-                  className="px-4 py-2 bg-white text-[#0c0c0c] hover:bg-white/85 transition-colors text-[12px] font-medium cursor-pointer active:scale-[0.97]"
-                >
-                  Close (Esc)
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Center Image */}
-            <div
-              onClick={() => setLightboxMoment(null)}
-              className="relative flex-1 w-full max-h-[78vh] flex items-center justify-center my-4 cursor-pointer"
-            >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="relative w-full h-full max-w-6xl overflow-hidden"
+      {/* ─── Fullscreen High-Resolution Lightbox Modal (Portaled above Header) ─── */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {lightboxMoment && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.22 }}
+                className="fixed inset-0 z-[999] bg-[#0c0c0c]/95 flex flex-col justify-between p-4 md:p-8 select-none text-white"
               >
-                <Image
-                  src={lightboxMoment.image}
-                  alt={lightboxMoment.title}
-                  fill
-                  sizes="100vw"
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            </div>
+                {/* Modal Top Bar */}
+                <div className="flex items-center justify-between w-full z-10 text-[13px] text-white/80">
+                  <div className="flex items-baseline gap-4">
+                    <span
+                      style={{ fontFamily: "var(--font-wordmark)" }}
+                      className="text-[24px] lowercase text-white leading-none"
+                    >
+                      {lightboxMoment.title}
+                    </span>
+                    <span className="hidden sm:inline text-white/50">
+                      {formatLocation(
+                        lightboxMoment.location,
+                        lightboxMoment.year
+                      )}
+                    </span>
+                  </div>
 
-            {/* Modal Bottom Description & Members */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full z-10 text-[13px] text-white/70">
-              <p className="max-w-xl text-white/80 leading-relaxed">
-                {lightboxMoment.description}
-              </p>
+                  <div className="flex items-center gap-3">
+                    <TransitionLink
+                      href="/gallery"
+                      onClick={() => setLightboxMoment(null)}
+                      className="px-4 py-2 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px]"
+                    >
+                      Open full gallery
+                    </TransitionLink>
+                    <button
+                      type="button"
+                      onClick={() => setLightboxMoment(null)}
+                      className="px-4 py-2 bg-white text-[#0c0c0c] hover:bg-white/85 transition-colors text-[12px] font-medium cursor-pointer active:scale-[0.97]"
+                    >
+                      Close (Esc)
+                    </button>
+                  </div>
+                </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                {lightboxMoment.members.map((slug) => (
-                  <TransitionLink
-                    key={slug}
-                    href={`/${slug}`}
-                    className="px-3 py-1 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px] capitalize"
+                {/* Modal Center Image */}
+                <div
+                  onClick={() => setLightboxMoment(null)}
+                  className="relative flex-1 w-full max-h-[78vh] flex items-center justify-center my-4 cursor-pointer"
+                >
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="relative w-full h-full max-w-6xl overflow-hidden"
                   >
-                    {slug}
-                  </TransitionLink>
-                ))}
-              </div>
-            </div>
-          </motion.div>
+                    <Image
+                      src={lightboxMoment.image}
+                      alt={lightboxMoment.title}
+                      fill
+                      sizes="100vw"
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </div>
+
+                {/* Modal Bottom Description & Members */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full z-10 text-[13px] text-white/70">
+                  <p className="max-w-xl text-white/80 leading-relaxed">
+                    {lightboxMoment.description}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {lightboxMoment.members.map((slug) => (
+                      <TransitionLink
+                        key={slug}
+                        href={`/${slug}`}
+                        className="px-3 py-1 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px] capitalize"
+                      >
+                        {slug}
+                      </TransitionLink>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </>
   );
 }

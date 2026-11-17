@@ -49,6 +49,8 @@ const IrisCarousel = memo(function IrisCarousel({
     burstProgress: isBursting ? 1 : 0,
     singleCardScale: showSingleCard ? 1 : 0,
     featuredIndex: 0,
+    scrollMorph: 0,
+    prefersReducedMotion: false,
     // Reactive Scroll & Dynamic Physics (matches ellioteriksson.com)
     scrollBoost: 0,
     wheelVelocity: 0,
@@ -65,6 +67,13 @@ const IrisCarousel = memo(function IrisCarousel({
     const randomIndex = Math.floor(Math.random() * members.length);
     setFeaturedIndex(randomIndex);
     stateRef.current.featuredIndex = randomIndex;
+    stateRef.current.prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const vh = window.innerHeight || 900;
+    stateRef.current.scrollMorph = stateRef.current.prefersReducedMotion
+      ? 0
+      : Math.max(0, Math.min(1, window.scrollY / (vh * 0.92)));
   }, []);
 
   const handleHover = useCallback((id: number | null) => {
@@ -284,10 +293,35 @@ const IrisCarousel = memo(function IrisCarousel({
           (s.targetRot + s.mouseTarget - s.currentRot) * (0.08 * frameDelta);
       }
 
-      const rot = s.currentRot;
-      const rx = s.rx * burst;
-      const ry = s.ry * burst;
-      const rz = s.rz * burst;
+      const curScrollYForMorph = window.scrollY;
+      const vh = window.innerHeight || 900;
+      const rawMorph =
+        burst > 0 && !s.prefersReducedMotion
+          ? Math.max(0, Math.min(1, curScrollYForMorph / (vh * 0.92)))
+          : 0;
+      const morphSmooth = 1 - Math.pow(0.0012, dtSec);
+      s.scrollMorph += (rawMorph - s.scrollMorph) * morphSmooth;
+      if (rawMorph === 0 && s.scrollMorph < 0.0005) s.scrollMorph = 0;
+
+      const m = s.scrollMorph;
+      // Fast responsive tilt into a horizontal 3D orbital halo on initial scroll
+      const tiltT = Math.min(1, m / 0.68);
+      const tiltEase = 1 - Math.pow(1 - tiltT, 2.4);
+      // Smooth iris aperture expansion outward around the incoming highlights frame
+      const expandEase = m * m * (3 - 2 * m) + Math.pow(m, 2.4) * 0.38;
+      // Dissolve cleanly in the second half of the handoff before #gallery locks at top
+      const fadeProgress = Math.max(
+        0,
+        Math.min(1, (m - 0.36) / (0.9 - 0.36))
+      );
+      const ringFade = Math.pow(1 - fadeProgress, 1.65);
+
+      const rot = s.currentRot + m * 1.55;
+      const rx = s.rx * burst * (1 + 0.48 * expandEase);
+      const ry = s.ry * burst * (1 - 0.86 * tiltEase);
+      const rz = s.rz * burst * (1 + 0.65 * tiltEase);
+      const orbitLiftY = -vh * 0.17 * tiltEase;
+      const morphScale = 1 - 0.14 * fadeProgress;
 
       for (let i = 0; i < numCards; i++) {
         const el = cardRefs.current[i];
@@ -295,53 +329,60 @@ const IrisCarousel = memo(function IrisCarousel({
 
         if (burst === 0) {
           // Preloader state: only the randomly chosen featured card scales up in center
+          el.style.pointerEvents = "none";
           if (i === featIdx) {
-            el.style.transform = `translate3d(-50%, -50%, 0) scale(${singleScale.toFixed(3)})`;
+            const safeScale = Math.max(0.95, singleScale);
+            el.style.transform = `translate3d(-50%, -50%, 0) scale(${safeScale.toFixed(3)})`;
             el.style.opacity = singleScale > 0.01 ? "1" : "0";
             el.style.zIndex = "55"; // Visible on top of preloader black veil (z-40)
           } else {
-            el.style.transform = `translate3d(-50%, -50%, 0) scale(0)`;
+            el.style.transform = `translate3d(-50%, -50%, 0) scale(0.95)`;
             el.style.opacity = "0";
             el.style.zIndex = "1";
           }
           continue;
         }
 
-        // Active Burst / Carousel state:
+        // Release pointer capture once ring morphs into overhead halo so highlights below is interactive
+        el.style.pointerEvents = m > 0.24 ? "none" : "auto";
+
+        if (ringFade <= 0.002) {
+          el.style.opacity = "0";
+          continue;
+        }
+
+        // Active Burst / 3D Orbital Halo state:
         const phi = i * step + rot;
         const targetX = rx * Math.sin(phi);
-        const targetY = ry * Math.cos(phi);
+        const targetY = ry * Math.cos(phi) + orbitLiftY;
         const targetZ = rz * Math.cos(phi);
 
         // Depth calculation
         const norm = (targetZ + rz) / (2 * (rz || 1));
-        const depthScale = 0.74 + 0.26 * norm;
-        const depthOpacity = 0.45 + 0.55 * norm;
+        const depthScale = (0.74 + 0.26 * norm) * morphScale;
+        const depthOpacity = (0.45 + 0.55 * norm) * ringFade;
         const zIndex = Math.round(norm * 100);
+
+        const normX = targetX / (rx || 1);
+        const rotY = -normX * (12 + 20 * tiltEase);
+        const rotX = tiltEase * (24 + 10 * Math.cos(phi));
+        const rotZ = -normX * (11 * tiltEase);
 
         if (i === featIdx) {
           // Featured card smoothly interpolates from center (0, 0) into its orbit position
-          const curX = targetX;
-          const curY = targetY;
-          const curZ = targetZ;
           const scale = depthScale;
-          const rotY = -(curX / (s.rx || 1)) * 12;
 
-          el.style.transform = `translate3d(calc(-50% + ${curX.toFixed(2)}px), calc(-50% + ${curY.toFixed(2)}px), ${curZ.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+          el.style.transform = `translate3d(calc(-50% + ${targetX.toFixed(2)}px), calc(-50% + ${targetY.toFixed(2)}px), ${targetZ.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) rotateX(${rotX.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
           el.style.opacity = depthOpacity.toFixed(3);
           el.style.zIndex = zIndex.toString();
         } else {
           // The other 7 cards stagger outward from behind the featured card
           const diff = (i - featIdx + numCards) % numCards;
           const cardBurst = Math.min(1, Math.max(0, burst * 1.35 - diff * 0.04));
-          const curX = targetX;
-          const curY = targetY;
-          const curZ = targetZ;
           const scale = depthScale * cardBurst;
           const opacity = depthOpacity * cardBurst;
-          const rotY = -(curX / (s.rx || 1)) * 12;
 
-          el.style.transform = `translate3d(calc(-50% + ${curX.toFixed(2)}px), calc(-50% + ${curY.toFixed(2)}px), ${curZ.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+          el.style.transform = `translate3d(calc(-50% + ${targetX.toFixed(2)}px), calc(-50% + ${targetY.toFixed(2)}px), ${targetZ.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) rotateX(${rotX.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
           el.style.opacity = opacity.toFixed(3);
           el.style.zIndex = zIndex.toString();
         }
@@ -383,7 +424,7 @@ const IrisCarousel = memo(function IrisCarousel({
             }}
             className="absolute left-1/2 top-1/2 w-[120px] h-[160px] md:w-[130px] md:h-[172px] pointer-events-auto touch-pan-y will-change-transform select-none cursor-pointer block focus:outline-none"
             style={{
-              transform: "translate3d(-50%, -50%, 0) scale(0)",
+              transform: "translate3d(-50%, -50%, 0) scale(0.95)",
               opacity: 0,
               zIndex: i === featuredIndex ? 55 : 1,
             }}
