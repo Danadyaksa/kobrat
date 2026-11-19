@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "name": "Mohammad Atila Danadyaksa",
+    "nickname": "Aksa",
+    "image": "/uploads/cropped_1795100465291_1795100466587.jpg",
+    "instagram": "@ade3s",
+    "bio": "never better",
+    "website": "Danadyaksa.my.id",
+    "github": "github.com/Danadyaksa"
+  },
+  {
+    "id": 2,
+    "name": "Hafiz Alaudin Rasendriya",
+    "nickname": "hafiz",
+    "image": "/uploads/cropped_member_1794682940665_1794682941754.jpg",
+    "instagram": "@hafizrasendriya_",
+    "bio": "",
+    "website": "",
+    "github": ""
+  },
+  {
+    "id": 3,
+    "name": "Akmal Danendra Maulana",
+    "nickname": "Akmal",
+    "image": "/uploads/cropped_1795100286942_1795100288532.jpg",
+    "instagram": "@akmaldanendra",
+    "bio": "",
+    "website": "",
+    "github": ""
+  },
+  {
+    "id": 4,
+    "name": "Dida Attallah Elfasdi",
+    "nickname": "Dida",
+    "image": "/uploads/cropped_1795100301269_1795100303103.jpg",
+    "instagram": "@didaattallah",
+    "website": "",
+    "github": "",
+    "bio": ""
+  },
+  {
+    "id": 5,
+    "name": "Danang Adiwibowo",
+    "nickname": "Danang",
+    "image": "/uploads/cropped_1795100311683_1795100312757.jpg",
+    "instagram": "@danangadi.w",
+    "website": "",
+    "github": "",
+    "bio": ""
+  },
+  {
+    "id": 6,
+    "name": "Narindera Jati Panuntun",
+    "nickname": "Jepe",
+    "image": "/uploads/cropped_1795100321991_1795100323010.jpg",
+    "instagram": "@narendrajp_",
+    "website": "",
+    "github": "",
+    "bio": ""
+  },
+  {
+    "id": 7,
+    "name": "Raden Revano Athallah Kartika",
+    "nickname": "Vano",
+    "image": "/uploads/cropped_1795100334032_1795100335035.jpg",
+    "instagram": "@vanoathalla_",
+    "website": "",
+    "github": "",
+    "bio": ""
+  },
+  {
+    "id": 8,
+    "name": "Gorga Doli Liberto Napitupulu",
+    "nickname": "Gorga",
+    "image": "/uploads/cropped_1795100346452_1795100347306.jpg",
+    "instagram": "@ieatcasdaily",
+    "website": "",
+    "github": "",
+    "bio": ""
+  }
+]

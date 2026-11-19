@@ -3,12 +3,34 @@ import fs from "fs/promises";
 import path from "path";
 import { Moment } from "@/data/moments";
 
-const MOMENTS_FILE_PATH = path.join(process.cwd(), "src", "data", "moments.json");
-const MEMBERS_FILE_PATH = path.join(process.cwd(), "src", "data", "members.json");
+const ROOT_MOMENTS_PATH = path.join(process.cwd(), "data", "moments.json");
+const SRC_MOMENTS_PATH = path.join(process.cwd(), "src", "data", "moments.json");
+
+const ROOT_MEMBERS_PATH = path.join(process.cwd(), "data", "members.json");
+const SRC_MEMBERS_PATH = path.join(process.cwd(), "src", "data", "members.json");
+
+async function getMomentsFilePath(): Promise<string> {
+  try {
+    await fs.access(ROOT_MOMENTS_PATH);
+    return ROOT_MOMENTS_PATH;
+  } catch {
+    return SRC_MOMENTS_PATH;
+  }
+}
+
+async function getMembersFilePath(): Promise<string> {
+  try {
+    await fs.access(ROOT_MEMBERS_PATH);
+    return ROOT_MEMBERS_PATH;
+  } catch {
+    return SRC_MEMBERS_PATH;
+  }
+}
 
 async function sanitizeMomentsMembers(momentsList: Moment[]): Promise<Moment[]> {
   try {
-    const rawMembers = await fs.readFile(MEMBERS_FILE_PATH, "utf-8");
+    const memFilePath = await getMembersFilePath();
+    const rawMembers = await fs.readFile(memFilePath, "utf-8");
     const membersList: Array<{ name: string; nickname?: string }> = JSON.parse(rawMembers);
     const validSlugs = new Set<string>();
     for (const m of membersList) {
@@ -36,7 +58,8 @@ async function sanitizeMomentsMembers(momentsList: Moment[]): Promise<Moment[]> 
 
 export async function GET() {
   try {
-    const fileContent = await fs.readFile(MOMENTS_FILE_PATH, "utf-8");
+    const filePath = await getMomentsFilePath();
+    const fileContent = await fs.readFile(filePath, "utf-8");
     const moments: Moment[] = JSON.parse(fileContent);
     return NextResponse.json(moments, {
       headers: {
@@ -54,9 +77,10 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
 
     // Read current data
+    const filePath = await getMomentsFilePath();
     let currentMoments: Moment[] = [];
     try {
-      const fileContent = await fs.readFile(MOMENTS_FILE_PATH, "utf-8");
+      const fileContent = await fs.readFile(filePath, "utf-8");
       currentMoments = JSON.parse(fileContent);
     } catch {
       currentMoments = [];
@@ -97,8 +121,8 @@ export async function PUT(req: NextRequest) {
     // Sanitize member tags against actual members
     currentMoments = await sanitizeMomentsMembers(currentMoments);
 
-    // Save back to JSON file
-    await fs.writeFile(MOMENTS_FILE_PATH, JSON.stringify(currentMoments, null, 2), "utf-8");
+    // Save to ROOT data file (outside src) so Turbopack dev watcher never triggers Fast Refresh
+    await fs.writeFile(ROOT_MOMENTS_PATH, JSON.stringify(currentMoments, null, 2), "utf-8");
 
     return NextResponse.json({
       success: true,
@@ -132,9 +156,10 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    const filePath = await getMomentsFilePath();
     let currentMoments: Moment[] = [];
     try {
-      const fileContent = await fs.readFile(MOMENTS_FILE_PATH, "utf-8");
+      const fileContent = await fs.readFile(filePath, "utf-8");
       currentMoments = JSON.parse(fileContent);
     } catch {
       currentMoments = [];
@@ -150,8 +175,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Save back to JSON file
-    await fs.writeFile(MOMENTS_FILE_PATH, JSON.stringify(filtered, null, 2), "utf-8");
+    await fs.writeFile(ROOT_MOMENTS_PATH, JSON.stringify(filtered, null, 2), "utf-8");
 
     return NextResponse.json({
       success: true,

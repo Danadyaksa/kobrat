@@ -104,9 +104,15 @@ export async function getMembers(): Promise<Member[]> {
     try {
       const fs = await import("fs/promises");
       const path = await import("path");
-      const filePath = path.join(process.cwd(), "src", "data", "members.json");
-      const data = await fs.readFile(filePath, "utf-8");
-      return JSON.parse(data) as Member[];
+      const rootPath = path.join(process.cwd(), "data", "members.json");
+      const srcPath = path.join(process.cwd(), "src", "data", "members.json");
+      try {
+        const data = await fs.readFile(rootPath, "utf-8");
+        return JSON.parse(data) as Member[];
+      } catch {
+        const data = await fs.readFile(srcPath, "utf-8");
+        return JSON.parse(data) as Member[];
+      }
     } catch {
       return members;
     }

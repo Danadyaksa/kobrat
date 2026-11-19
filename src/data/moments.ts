@@ -23,9 +23,15 @@ export async function getMoments(): Promise<Moment[]> {
     try {
       const fs = await import("fs/promises");
       const path = await import("path");
-      const filePath = path.join(process.cwd(), "src", "data", "moments.json");
-      const data = await fs.readFile(filePath, "utf-8");
-      return JSON.parse(data) as Moment[];
+      const rootPath = path.join(process.cwd(), "data", "moments.json");
+      const srcPath = path.join(process.cwd(), "src", "data", "moments.json");
+      try {
+        const data = await fs.readFile(rootPath, "utf-8");
+        return JSON.parse(data) as Moment[];
+      } catch {
+        const data = await fs.readFile(srcPath, "utf-8");
+        return JSON.parse(data) as Moment[];
+      }
     } catch {
       return moments;
     }

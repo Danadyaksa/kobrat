@@ -3,11 +3,22 @@ import fs from "fs/promises";
 import path from "path";
 import { Member } from "@/data/members";
 
-const MEMBERS_FILE_PATH = path.join(process.cwd(), "src", "data", "members.json");
+const ROOT_MEMBERS_PATH = path.join(process.cwd(), "data", "members.json");
+const SRC_MEMBERS_PATH = path.join(process.cwd(), "src", "data", "members.json");
+
+async function getMembersFilePath(): Promise<string> {
+  try {
+    await fs.access(ROOT_MEMBERS_PATH);
+    return ROOT_MEMBERS_PATH;
+  } catch {
+    return SRC_MEMBERS_PATH;
+  }
+}
 
 export async function GET() {
   try {
-    const fileContent = await fs.readFile(MEMBERS_FILE_PATH, "utf-8");
+    const filePath = await getMembersFilePath();
+    const fileContent = await fs.readFile(filePath, "utf-8");
     const members: Member[] = JSON.parse(fileContent);
     return NextResponse.json(members, {
       headers: {
@@ -25,9 +36,10 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
 
     // Read current data
+    const filePath = await getMembersFilePath();
     let currentMembers: Member[] = [];
     try {
-      const fileContent = await fs.readFile(MEMBERS_FILE_PATH, "utf-8");
+      const fileContent = await fs.readFile(filePath, "utf-8");
       currentMembers = JSON.parse(fileContent);
     } catch {
       currentMembers = [];
@@ -55,8 +67,8 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Save back to JSON file
-    await fs.writeFile(MEMBERS_FILE_PATH, JSON.stringify(currentMembers, null, 2), "utf-8");
+    // Save to ROOT data file (outside src) so Turbopack dev watcher never triggers Fast Refresh
+    await fs.writeFile(ROOT_MEMBERS_PATH, JSON.stringify(currentMembers, null, 2), "utf-8");
 
     return NextResponse.json({
       success: true,

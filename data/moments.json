@@ -1,0 +1,172 @@
+[
+  {
+    "id": 1,
+    "title": "street photobox",
+    "category": "STUDIO",
+    "year": "2026",
+    "date": "August 25, 2026",
+    "location": "Surakarta",
+    "description": "Reformasi Dieng Su -> Kobrat.",
+    "camera": "",
+    "members": [
+      "aksa",
+      "hafiz",
+      "akmal",
+      "dida",
+      "danang",
+      "vano",
+      "jepe",
+      "gorga"
+    ],
+    "image": "/uploads/cropped_1795102431357_1795102481469.jpg",
+    "aspect": "4/3",
+    "featured": true,
+    "highlightSlot": 1
+  },
+  {
+    "id": 2,
+    "title": "Ngoding ampe pagi",
+    "category": "ROOFTOP",
+    "year": "2025",
+    "date": "",
+    "location": "Odds demangan",
+    "description": "nugas sampe pagi pkoknya lah",
+    "camera": "",
+    "members": [
+      "aksa",
+      "hafiz",
+      "akmal",
+      "dida",
+      "danang",
+      "vano",
+      "jepe",
+      "gorga"
+    ],
+    "image": "/uploads/cropped_1795102611645_1795102658104.jpg",
+    "aspect": "3/2",
+    "featured": true,
+    "highlightSlot": 2
+  },
+  {
+    "id": 3,
+    "title": "Midnight Escapade",
+    "category": "ON THE ROAD",
+    "year": "2024",
+    "date": "DECEMBER 19, 2024",
+    "location": "KM 88 // TOL CIPULARANG",
+    "description": "Windows all down at 02:15 AM. Danang took the wheel, Jepe captured the taillights, and the cabin was singing along to Aksa's playlist.",
+    "camera": "RICOH GR IIIx // 40MM",
+    "members": [
+      "aksa",
+      "danang",
+      "jepe",
+      "vano"
+    ],
+    "image": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1200&auto=format&fit=crop&q=85",
+    "aspect": "16/10",
+    "featured": false
+  },
+  {
+    "id": 4,
+    "title": "Post-Midnight Warkop",
+    "category": "AFTER HOURS",
+    "year": "2025",
+    "date": "JANUARY 11, 2025",
+    "location": "TEBET BARAT // JAKARTA",
+    "description": "Warm indomie, iced lemon tea, and three hours arguing whether a 120ms ease curve is noticeably better than 180ms. It was.",
+    "camera": "FUJIFILM X100V // CLASSIC CHROME",
+    "members": [
+      "aksa",
+      "hafiz",
+      "akmal",
+      "dida"
+    ],
+    "image": "https://images.unsplash.com/photo-1543807535-eceef0bc6599?w=1200&auto=format&fit=crop&q=85",
+    "aspect": "4/3",
+    "featured": false
+  },
+  {
+    "id": 5,
+    "title": "03:42 AM First Deploy",
+    "category": "STUDIO",
+    "year": "2025",
+    "date": "FEBRUARY 02, 2025",
+    "location": "HQ LAB // JAKARTA",
+    "description": "The exact moment the production server returned 200 OK without a hitch. The screen glow lit up the entire dark room.",
+    "camera": "CANON G7X MK II // FLASH ON",
+    "members": [
+      "aksa",
+      "hafiz",
+      "danang",
+      "gorga"
+    ],
+    "image": "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&auto=format&fit=crop&q=85",
+    "aspect": "3/2",
+    "featured": true
+  },
+  {
+    "id": 6,
+    "title": "street coffee night",
+    "category": "ANALOG",
+    "year": "2026",
+    "date": "August 25, 2026",
+    "location": "GETTSEE SURAKARTA",
+    "description": "Reformasi lagi",
+    "camera": "",
+    "members": [
+      "aksa",
+      "hafiz",
+      "akmal",
+      "dida",
+      "danang",
+      "vano",
+      "jepe",
+      "gorga"
+    ],
+    "image": "/uploads/cropped_1795106222925_1795106229802.jpg",
+    "aspect": "4/5",
+    "featured": true,
+    "highlightSlot": 3
+  },
+  {
+    "id": 7,
+    "title": "The Synth & Flow Session",
+    "category": "STUDIO",
+    "year": "2025",
+    "date": "MARCH 15, 2025",
+    "location": "STUDIO 08 // KEBAYORAN",
+    "description": "Finding the rhythm of interaction through sound design. Layering ambient frequencies and keyboard mechanical clicks.",
+    "camera": "SONY A7C // 35MM F1.8",
+    "members": [
+      "aksa",
+      "hafiz",
+      "jepe"
+    ],
+    "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&auto=format&fit=crop&q=85",
+    "aspect": "16/10",
+    "featured": false
+  },
+  {
+    "id": 8,
+    "title": "Full Crew // One Frequency",
+    "category": "ROOFTOP",
+    "year": "2025",
+    "date": "APRIL 04, 2025",
+    "location": "KOBRAT ROOFTOP // JAKARTA",
+    "description": "Eight distinct minds with different tastes and habits, perfectly locked into one shared frequency. The collective in one frame.",
+    "camera": "CONTAX T2 // FUJICOLOR C200",
+    "members": [
+      "aksa",
+      "hafiz",
+      "akmal",
+      "dida",
+      "danang",
+      "vano",
+      "jepe",
+      "gorga"
+    ],
+    "image": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=1200&auto=format&fit=crop&q=85",
+    "aspect": "3/2",
+    "featured": true
+  }
+]

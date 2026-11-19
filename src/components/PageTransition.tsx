@@ -50,11 +50,15 @@ export default function PageTransitionProvider({
   const curtainRef = useRef<HTMLDivElement>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [introSeen, setIntroSeen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const isNavigatingRef = useRef(false);
   const targetHrefRef = useRef<string | null>(null);
 
   // Initialize curtain safely off-screen using GSAP (never React JSX inline style)
   useEffect(() => {
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+      setIsAdmin(true);
+    }
     if (curtainRef.current) {
       gsap.set(curtainRef.current, { yPercent: 100 });
     }
@@ -63,10 +67,13 @@ export default function PageTransitionProvider({
   // Reveal new page once pathname changes
   const handlePathnameChange = useCallback((newPath: string) => {
     currentPathnameRef.current = newPath;
+    const onAdmin = newPath.startsWith("/admin");
+    setIsAdmin(onAdmin);
+
     if (!isNavigatingRef.current) return;
 
     const curtain = curtainRef.current;
-    if (!curtain) {
+    if (!curtain || onAdmin) {
       isNavigatingRef.current = false;
       setIsTransitioning(false);
       return;
@@ -97,6 +104,16 @@ export default function PageTransitionProvider({
       if (isNavigatingRef.current) return;
       if (typeof window !== "undefined" && href === window.location.pathname) return;
 
+      // When on admin or navigating to admin, perform an immediate router push with no black curtain
+      if (
+        isAdmin ||
+        href.startsWith("/admin") ||
+        (typeof window !== "undefined" && window.location.pathname.startsWith("/admin"))
+      ) {
+        router.push(href);
+        return;
+      }
+
       isNavigatingRef.current = true;
       targetHrefRef.current = href;
       setIsTransitioning(true);
@@ -124,13 +141,21 @@ export default function PageTransitionProvider({
         }
       );
     },
-    [router]
+    [router, isAdmin]
   );
 
   // Global click interception backup for standard anchors
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
       if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) {
+        return;
+      }
+
+      // Do not intercept links when inside /admin
+      if (
+        isAdmin ||
+        (typeof window !== "undefined" && window.location.pathname.startsWith("/admin"))
+      ) {
         return;
       }
 
@@ -165,7 +190,7 @@ export default function PageTransitionProvider({
         capture: true,
       });
     };
-  }, [navigateTo]);
+  }, [navigateTo, isAdmin]);
 
   return (
     <PageTransitionContext.Provider
@@ -177,40 +202,42 @@ export default function PageTransitionProvider({
 
       {children}
 
-      {/* Fullscreen Curtain Transition (Exact visual match to Elliot Eriksson) */}
-      <div
-        ref={curtainRef}
-        aria-hidden="true"
-        className={`fixed inset-0 z-[99990] bg-[#0c0c0c] text-white will-change-transform select-none ${
-          isTransitioning ? "pointer-events-auto" : "pointer-events-none"
-        }`}
-      >
-        {/* Subtle Top-Center Spinner Ring (Exact to frame_020) */}
-        <div className="absolute top-[12%] left-1/2 -translate-x-1/2 pointer-events-none">
-          <span className="w-3.5 h-3.5 rounded-full border border-white/20 border-t-white animate-spin block" />
+      {/* Fullscreen Curtain Transition - Completely omitted on /admin for instant, zero-flash editing */}
+      {!isAdmin && (
+        <div
+          ref={curtainRef}
+          aria-hidden="true"
+          className={`fixed inset-0 z-[99990] bg-[#0c0c0c] text-white will-change-transform select-none ${
+            isTransitioning ? "pointer-events-auto" : "pointer-events-none"
+          }`}
+        >
+          {/* Subtle Top-Center Spinner Ring (Exact to frame_020) */}
+          <div className="absolute top-[12%] left-1/2 -translate-x-1/2 pointer-events-none">
+            <span className="w-3.5 h-3.5 rounded-full border border-white/20 border-t-white animate-spin block" />
+          </div>
+
+          {/* Vertically Centered Metadata Row (Exact to frame_020) */}
+          <div className="absolute top-1/2 -translate-y-1/2 inset-x-0 px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-6 w-full pointer-events-none">
+            {/* Left: Kobrat Wordmark in white Gossip font */}
+            <div
+              style={{ fontFamily: "var(--font-wordmark)" }}
+              className="text-[26px] sm:text-[30px] text-white lowercase leading-none justify-self-start"
+            >
+              kobrat
+            </div>
+
+            {/* Center: Mission tagline */}
+            <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.08em] text-white/70 justify-self-center hidden sm:block">
+              8 MINDS // ONE WAVELENGTH
+            </div>
+
+            {/* Right: Collective badge */}
+            <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.08em] text-white/70 justify-self-end">
+              EST. 2024
+            </div>
+          </div>
         </div>
-
-        {/* Vertically Centered Metadata Row (Exact to frame_020) */}
-        <div className="absolute top-1/2 -translate-y-1/2 inset-x-0 px-[3vw] grid grid-cols-[1fr_auto_1fr] items-center gap-6 w-full pointer-events-none">
-          {/* Left: Kobrat Wordmark in white Gossip font */}
-          <div
-            style={{ fontFamily: "var(--font-wordmark)" }}
-            className="text-[26px] sm:text-[30px] text-white lowercase leading-none justify-self-start"
-          >
-            kobrat
-          </div>
-
-          {/* Center: Mission tagline */}
-          <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.08em] text-white/70 justify-self-center hidden sm:block">
-            8 MINDS // ONE WAVELENGTH
-          </div>
-
-          {/* Right: Collective badge */}
-          <div className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.08em] text-white/70 justify-self-end">
-            EST. 2024
-          </div>
-        </div>
-      </div>
+      )}
     </PageTransitionContext.Provider>
   );
 }
