@@ -716,7 +716,7 @@ function AdminContent() {
                             <span className="text-[#767676]">{flagshipCard1.year}</span>
                           </div>
 
-                          <div className="relative w-full aspect-[16/10] rounded-lg overflow-hidden bg-[#111] mb-3 group cursor-pointer" onClick={() => openEditMomentModal(flagshipCard1)}>
+                          <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#111] mb-3 group cursor-pointer" onClick={() => openEditMomentModal(flagshipCard1)}>
                             <Image
                               src={flagshipCard1.image}
                               alt={flagshipCard1.title}
@@ -761,7 +761,7 @@ function AdminContent() {
                             <span className="text-[#767676]">{flagshipCard2.year}</span>
                           </div>
 
-                          <div className="relative w-full aspect-[16/10] rounded-lg overflow-hidden bg-[#111] mb-3 group cursor-pointer" onClick={() => openEditMomentModal(flagshipCard2)}>
+                          <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#111] mb-3 group cursor-pointer" onClick={() => openEditMomentModal(flagshipCard2)}>
                             <Image
                               src={flagshipCard2.image}
                               alt={flagshipCard2.title}
@@ -806,7 +806,7 @@ function AdminContent() {
                             <span className="text-[#767676]">{flagshipCard3.year}</span>
                           </div>
 
-                          <div className="relative w-full aspect-[16/10] rounded-lg overflow-hidden bg-[#111] mb-3 group cursor-pointer" onClick={() => openEditMomentModal(flagshipCard3)}>
+                          <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#111] mb-3 group cursor-pointer" onClick={() => openEditMomentModal(flagshipCard3)}>
                             <Image
                               src={flagshipCard3.image}
                               alt={flagshipCard3.title}

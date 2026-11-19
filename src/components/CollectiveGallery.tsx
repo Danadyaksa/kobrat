@@ -157,7 +157,7 @@ export default function CollectiveGallery() {
         scale: 0.78,
         transformOrigin: "50% 50%",
       });
-      gsap.set(c1Img, { scale: 1.14 });
+      gsap.set(c1Img, { scale: 1.0 });
 
       // Card 2 waits below the stage at a counter-angle
       gsap.set(c2, {
@@ -166,7 +166,7 @@ export default function CollectiveGallery() {
         scale: 0.94,
         transformOrigin: "50% 50%",
       });
-      gsap.set(c2Img, { scale: 1.16 });
+      gsap.set(c2Img, { scale: 1.0 });
 
       // Card 3 waits below the stage at a positive angle
       gsap.set(c3, {
@@ -175,7 +175,7 @@ export default function CollectiveGallery() {
         scale: 0.94,
         transformOrigin: "50% 50%",
       });
-      gsap.set(c3Img, { scale: 1.16 });
+      gsap.set(c3Img, { scale: 1.0 });
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -323,9 +323,12 @@ export default function CollectiveGallery() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const formatLocation = (loc: string, year: string) => {
-    const cleanLoc = loc.split("//")[0].trim();
-    return `${cleanLoc}, ${year}`;
+  const formatLocation = (loc: string, dateOrYear?: string) => {
+    const cleanLoc = (loc || "").split("//")[0].trim();
+    if (dateOrYear && dateOrYear.trim()) {
+      return `${cleanLoc}${cleanLoc ? ", " : ""}${dateOrYear.trim()}`;
+    }
+    return cleanLoc;
   };
 
   return (
@@ -386,13 +389,13 @@ export default function CollectiveGallery() {
               {/* ── CARD 1: First Flagship Widescreen Print ── */}
               <div
                 ref={card1Ref}
-                className="absolute w-[90vw] max-w-[1260px] bg-[#eceef2] p-3 sm:p-5 flex flex-col gap-3 z-[10] will-change-transform"
+                className="absolute w-[92vw] max-w-[min(1120px,calc((100dvh-200px)*16/9))] bg-[#eceef2] p-3 sm:p-4 md:p-5 flex flex-col gap-2.5 sm:gap-3 z-[10] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d8dce6]"
               >
                 <div className="flex items-baseline justify-between gap-4 px-1">
                   <div className="flex items-baseline gap-3 min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(24px,3.4vw,46px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                      className="text-[clamp(24px,3.4vw,44px)] lowercase text-[#0c0c0c] leading-[1.08] truncate"
                     >
                       {featuredMoments[0].title}
                     </h3>
@@ -414,11 +417,11 @@ export default function CollectiveGallery() {
                   </button>
                 </div>
 
-                {/* Widescreen 16:9 / 2.2:1 Landscape Frame */}
+                {/* Exact 16:9 Landscape Frame (Zero Crop) */}
                 <div
                   onClick={() => setLightboxMoment(featuredMoments[0])}
                   data-cursor="VIEW"
-                  className="relative w-full h-[46vh] sm:h-[54vh] md:h-[58vh] max-h-[520px] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
+                  className="relative w-full aspect-[16/9] overflow-hidden bg-[#0c0c0c] cursor-pointer group rounded-[2px]"
                 >
                   <div
                     ref={card1ImgRef}
@@ -429,8 +432,8 @@ export default function CollectiveGallery() {
                       alt={featuredMoments[0].title}
                       fill
                       priority
-                      sizes="(max-width: 1280px) 90vw, 1260px"
-                      className="object-cover object-[center_62%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                      sizes="(max-width: 1280px) 92vw, 1120px"
+                      className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   </div>
                 </div>
@@ -439,13 +442,13 @@ export default function CollectiveGallery() {
               {/* ── CARD 2: Second Flagship Widescreen Print ── */}
               <div
                 ref={card2Ref}
-                className="absolute w-[90vw] max-w-[1260px] bg-[#ebe9e2] p-3 sm:p-5 flex flex-col gap-3 z-[20] will-change-transform"
+                className="absolute w-[92vw] max-w-[min(1120px,calc((100dvh-200px)*16/9))] bg-[#ebe9e2] p-3 sm:p-4 md:p-5 flex flex-col gap-2.5 sm:gap-3 z-[20] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#dedcd4]"
               >
                 <div className="flex items-baseline justify-between gap-4 px-1">
                   <div className="flex items-baseline gap-3 min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(24px,3.4vw,46px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                      className="text-[clamp(24px,3.4vw,44px)] lowercase text-[#0c0c0c] leading-[1.08] truncate"
                     >
                       {featuredMoments[1].title}
                     </h3>
@@ -467,11 +470,11 @@ export default function CollectiveGallery() {
                   </button>
                 </div>
 
-                {/* Widescreen Landscape Frame */}
+                {/* Exact 16:9 Landscape Frame (Zero Crop) */}
                 <div
                   onClick={() => setLightboxMoment(featuredMoments[1])}
                   data-cursor="VIEW"
-                  className="relative w-full h-[46vh] sm:h-[54vh] md:h-[58vh] max-h-[520px] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
+                  className="relative w-full aspect-[16/9] overflow-hidden bg-[#0c0c0c] cursor-pointer group rounded-[2px]"
                 >
                   <div
                     ref={card2ImgRef}
@@ -481,8 +484,8 @@ export default function CollectiveGallery() {
                       src={featuredMoments[1].image}
                       alt={featuredMoments[1].title}
                       fill
-                      sizes="(max-width: 1280px) 90vw, 1260px"
-                      className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                      sizes="(max-width: 1280px) 92vw, 1120px"
+                      className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   </div>
                 </div>
@@ -491,13 +494,13 @@ export default function CollectiveGallery() {
               {/* ── CARD 3: Third Flagship Widescreen Print ── */}
               <div
                 ref={card3Ref}
-                className="absolute w-[90vw] max-w-[1260px] bg-[#dfe3ec] p-3 sm:p-5 flex flex-col gap-3 z-[30] will-change-transform"
+                className="absolute w-[92vw] max-w-[min(1120px,calc((100dvh-200px)*16/9))] bg-[#dfe3ec] p-3 sm:p-4 md:p-5 flex flex-col gap-2.5 sm:gap-3 z-[30] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d2d6e2]"
               >
                 <div className="flex items-baseline justify-between gap-4 px-1">
                   <div className="flex items-baseline gap-3 min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(24px,3.4vw,46px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                      className="text-[clamp(24px,3.4vw,44px)] lowercase text-[#0c0c0c] leading-[1.08] truncate"
                     >
                       {featuredMoments[2].title}
                     </h3>
@@ -519,11 +522,11 @@ export default function CollectiveGallery() {
                   </button>
                 </div>
 
-                {/* Widescreen Landscape Frame */}
+                {/* Exact 16:9 Landscape Frame (Zero Crop) */}
                 <div
                   onClick={() => setLightboxMoment(featuredMoments[2])}
                   data-cursor="VIEW"
-                  className="relative w-full h-[46vh] sm:h-[54vh] md:h-[58vh] max-h-[520px] overflow-hidden bg-[#0c0c0c] cursor-pointer group"
+                  className="relative w-full aspect-[16/9] overflow-hidden bg-[#0c0c0c] cursor-pointer group rounded-[2px]"
                 >
                   <div
                     ref={card3ImgRef}
@@ -533,8 +536,8 @@ export default function CollectiveGallery() {
                       src={featuredMoments[2].image}
                       alt={featuredMoments[2].title}
                       fill
-                      sizes="(max-width: 1280px) 90vw, 1260px"
-                      className="object-cover object-[center_55%] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                      sizes="(max-width: 1280px) 92vw, 1120px"
+                      className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   </div>
                 </div>
@@ -545,14 +548,6 @@ export default function CollectiveGallery() {
           {/* ─── Bottom Stage Status Bar ─── */}
           <div className="relative z-[45] w-full px-[3vw] pb-5 flex items-center justify-between text-[13px] text-[#52525b]">
             <div className="flex items-center gap-3">
-              {featuredMoments[activeCardIndex]?.category && (
-                <>
-                  <span className="text-[#0c0c0c] font-medium">
-                    {featuredMoments[activeCardIndex]?.category}
-                  </span>
-                  <span>·</span>
-                </>
-              )}
               <span>
                 {featuredMoments[activeCardIndex] &&
                   formatLocation(

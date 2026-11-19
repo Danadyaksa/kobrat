@@ -246,11 +246,11 @@ export default function GalleryPage() {
                       ) : null}
                     </div>
 
-                    {/* Landscape 16:10 Contact Frame */}
+                    {/* Landscape 16:9 Contact Frame (Zero Crop) */}
                     <div
                       onClick={() => setLightboxIndex(idx)}
                       data-cursor="VIEW"
-                      className="relative w-full aspect-[16/10] bg-[#111] overflow-hidden cursor-pointer mb-3.5"
+                      className="relative w-full aspect-[16/9] bg-[#111] overflow-hidden cursor-pointer mb-3.5 rounded-[2px]"
                     >
                       <Image
                         src={moment.image}
@@ -258,7 +258,7 @@ export default function GalleryPage() {
                         fill
                         priority={idx < 3}
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover object-[center_58%] transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                        className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                       />
                     </div>
 
@@ -344,14 +344,14 @@ export default function GalleryPage() {
                       x: springX,
                       y: springY,
                     }}
-                    className="pointer-events-none fixed top-0 left-0 z-[80] hidden lg:block w-[420px] aspect-[16/10] bg-[#111] p-1.5 overflow-hidden"
+                    className="pointer-events-none fixed top-0 left-0 z-[80] hidden lg:block w-[420px] aspect-[16/9] bg-[#111] p-1.5 overflow-hidden"
                   >
                     <Image
                       src={hoveredMoment.image}
                       alt={hoveredMoment.title}
                       fill
                       sizes="420px"
-                      className="object-cover object-[center_58%]"
+                      className="object-cover object-center"
                     />
                   </motion.div>
                 )}
