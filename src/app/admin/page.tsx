@@ -83,6 +83,7 @@ function AdminContent() {
     description: string;
     highlightSlot: 1 | 2 | 3 | 0;
     imageUrl: string;
+    members: string[];
   }>({
     title: "",
     category: "STUDIO",
@@ -93,6 +94,7 @@ function AdminContent() {
     description: "",
     highlightSlot: 0,
     imageUrl: "",
+    members: [],
   });
 
   const [momentUploadedFile, setMomentUploadedFile] = useState<File | null>(null);
@@ -266,9 +268,36 @@ function AdminContent() {
       description: moment.description || "",
       highlightSlot: (moment.highlightSlot as 1 | 2 | 3) || 0,
       imageUrl: moment.image || "",
+      members: Array.isArray(moment.members) ? moment.members : [],
     });
     setMomentPreviewUrl(moment.image);
     setMomentUploadedFile(null);
+  };
+
+  const handleMomentDelete = async (momentId: number, momentTitle: string) => {
+    const ok = window.confirm(
+      `Apakah Anda yakin ingin menghapus moment "${momentTitle}"? Tindakan ini permanen dan foto akan dihapus dari arsip.`
+    );
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`/api/moments?id=${momentId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Gagal menghapus moment");
+      }
+      const data = await res.json();
+      if (data.moments) setMoments(data.moments);
+      else await loadMoments();
+
+      showToast(`Moment "${momentTitle}" berhasil dihapus`);
+      closeEditMomentModal();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Gagal menghapus moment";
+      alert(msg);
+    }
   };
 
   const closeEditMomentModal = () => {
@@ -341,6 +370,7 @@ function AdminContent() {
         location: momentFormData.location.trim(),
         camera: momentFormData.camera.trim(),
         description: momentFormData.description.trim(),
+        members: momentFormData.members,
         image: finalImageUrl,
         highlightSlot:
           momentFormData.highlightSlot === 0 ? null : momentFormData.highlightSlot,
@@ -897,9 +927,20 @@ function AdminContent() {
                             <button
                               type="button"
                               onClick={() => openEditMomentModal(moment)}
-                              className="w-full h-[32px] rounded-md bg-[#0c0c0c] hover:bg-[#27272a] text-white font-mono text-[10px] uppercase tracking-[0.06em] transition-colors cursor-pointer flex items-center justify-center gap-1"
+                              className="flex-1 h-[32px] rounded-md bg-[#0c0c0c] hover:bg-[#27272a] text-white font-mono text-[10px] uppercase tracking-[0.06em] transition-colors cursor-pointer flex items-center justify-center gap-1"
                             >
                               <span>EDIT FOTO & INFO</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMomentDelete(moment.id, moment.title);
+                              }}
+                              title="Hapus foto ini dari galeri"
+                              className="w-[32px] h-[32px] rounded-md border border-[#fecaca] bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center font-mono text-[12px] cursor-pointer transition-colors"
+                            >
+                              🗑
                             </button>
                           </div>
                         </div>
@@ -1436,17 +1477,80 @@ function AdminContent() {
                     className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-lg text-[11px] font-mono uppercase text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
                   />
                 </div>
+
+                {/* Tag Anggota dalam Foto (Dynamic Member Tagging) */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676]">
+                      TAG ANGGOTA DALAM FOTO
+                    </label>
+                    <span className="text-[9px] font-mono text-[#a1a1aa] uppercase font-semibold">
+                      {momentFormData.members.length} ANGGOTA DIPILIH
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 p-3.5 bg-[#f9fafb] border border-[#e5e7eb] rounded-xl">
+                    {members.map((m) => {
+                      const slug = getMemberSlug(m).toLowerCase();
+                      const nick = (m.nickname || "").toLowerCase();
+                      const isSelected =
+                        momentFormData.members.includes(slug) ||
+                        momentFormData.members.includes(nick);
+
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => {
+                            setMomentFormData((prev) => {
+                              const already =
+                                prev.members.includes(slug) ||
+                                prev.members.includes(nick);
+                              const next = already
+                                ? prev.members.filter(
+                                    (s) => s !== slug && s !== nick
+                                  )
+                                : [...prev.members, slug];
+                              return { ...prev, members: next };
+                            });
+                          }}
+                          className={`px-3 py-1.5 rounded-full font-mono text-[11px] transition-all cursor-pointer flex items-center gap-1.5 ${
+                            isSelected
+                              ? "bg-[#0c0c0c] text-white shadow-sm ring-1 ring-[#0c0c0c]"
+                              : "bg-white border border-[#e5e7eb] text-[#71717a] hover:border-[#0c0c0c] hover:text-[#0c0c0c]"
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              isSelected ? "bg-emerald-400" : "bg-[#d4d4d8]"
+                            }`}
+                          />
+                          <span>{m.nickname || m.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="font-mono text-[9px] text-[#767676] mt-1.5">
+                    Pilih siapa saja kawan yang ada di foto ini. Tag nama mereka akan muncul secara dinamis di galeri.
+                  </p>
+                </div>
               </form>
 
               {/* Modal Sticky Footer */}
               <div className="shrink-0 px-6 sm:px-8 py-4 bg-[#fbfbfb] border-t border-[#e5e7eb] flex items-center justify-between gap-3 z-20">
-                <div className="font-mono text-[10px] text-[#767676] uppercase hidden sm:block">
-                  {momentUploadedFile
-                    ? "● FOTO BARU SIAP DIUNGGAH"
-                    : "SIAP SIMPAN PERUBAHAN MOMENT"}
-                </div>
+                {/* Delete Button */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleMomentDelete(editingMoment.id, editingMoment.title)
+                  }
+                  disabled={isMomentSaving}
+                  className="h-[40px] px-4 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-[11px] font-mono uppercase tracking-[0.04em] transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>🗑 HAPUS MOMENT</span>
+                </button>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={closeEditMomentModal}

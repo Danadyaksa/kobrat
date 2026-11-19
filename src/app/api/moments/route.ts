@@ -77,3 +77,57 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Failed to update moments" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const idParam = searchParams.get("id");
+    let targetId: number | null = idParam ? Number(idParam) : null;
+
+    if (!targetId) {
+      try {
+        const body = await req.json();
+        if (body && body.id) targetId = Number(body.id);
+      } catch {
+        // ignore JSON parse error if body empty
+      }
+    }
+
+    if (!targetId) {
+      return NextResponse.json(
+        { error: "Missing moment id to delete" },
+        { status: 400 }
+      );
+    }
+
+    let currentMoments: Moment[] = [];
+    try {
+      const fileContent = await fs.readFile(MOMENTS_FILE_PATH, "utf-8");
+      currentMoments = JSON.parse(fileContent);
+    } catch {
+      currentMoments = [];
+    }
+
+    const initialLength = currentMoments.length;
+    const filtered = currentMoments.filter((m) => m.id !== targetId);
+
+    if (filtered.length === initialLength) {
+      return NextResponse.json(
+        { error: "Moment not found" },
+        { status: 404 }
+      );
+    }
+
+    // Save back to JSON file
+    await fs.writeFile(MOMENTS_FILE_PATH, JSON.stringify(filtered, null, 2), "utf-8");
+
+    return NextResponse.json({
+      success: true,
+      deletedId: targetId,
+      moments: filtered,
+    });
+  } catch (err) {
+    console.error("Failed to delete moment:", err);
+    return NextResponse.json({ error: "Failed to delete moment" }, { status: 500 });
+  }
+}

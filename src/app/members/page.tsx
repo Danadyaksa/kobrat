@@ -638,9 +638,6 @@ export default function MembersPage() {
             >
               kobrat
             </TransitionLink>
-            <p className="mt-2 text-[14px] text-[#52525b]">
-              Eight minds on one wavelength. Jakarta & Remote.
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#0c0c0c]">

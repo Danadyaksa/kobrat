@@ -59,31 +59,36 @@ export default function Home() {
         <CollectiveGallery />
       </main>
 
-      {/* Clean Bottom Meta */}
-      <footer className="w-full bg-[#fcfcfc] border-t border-[#f0f0f0] px-[3vw] py-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono tracking-[0.04em] text-[#767676] uppercase gap-4 z-[50]">
-        <div className="flex items-center gap-3">
-          <span className="font-semibold text-[#0c0c0c]">© 2025 KOBRAT</span>
-          <span>//</span>
-          <span>JAKARTA & REMOTE</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <a href="#home" className="hover:text-[#0c0c0c] transition-colors cursor-pointer">
-            ↑ BACK TO TOP
-          </a>
-          <span>{"//"}</span>
-          <TransitionLink
-            href="/members"
-            className="hover:text-[#0c0c0c] transition-colors"
-          >
-            MEMBERS
-          </TransitionLink>
-          <span>{"//"}</span>
-          <TransitionLink
-            href="/gallery"
-            className="hover:text-[#0c0c0c] transition-colors"
-          >
-            GALLERY ARCHIVE
-          </TransitionLink>
+      {/* ─── Designed Footer Close (Full-width Wordmark Return) ─── */}
+      <footer className="w-full bg-[#f4f5f7] px-[3vw] py-16">
+        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+          <div>
+            <TransitionLink
+              href="/"
+              style={{ fontFamily: "var(--font-wordmark)" }}
+              className="text-[clamp(48px,8vw,112px)] lowercase text-[#0c0c0c] leading-[1.04] inline-block hover:opacity-70 transition-opacity"
+            >
+              kobrat
+            </TransitionLink>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#0c0c0c]">
+            <a href="#home" className="underline hover:opacity-65 cursor-pointer">
+              Back to top
+            </a>
+            <TransitionLink
+              href="/members"
+              className="underline hover:opacity-65"
+            >
+              Collective members
+            </TransitionLink>
+            <TransitionLink
+              href="/gallery"
+              className="underline hover:opacity-65"
+            >
+              Collective gallery
+            </TransitionLink>
+          </div>
         </div>
       </footer>
     </div>

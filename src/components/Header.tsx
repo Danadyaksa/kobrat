@@ -24,6 +24,23 @@ function RollingText({ text }: { text: string }) {
 }
 
 
+function RollingWordmark({ text }: { text: string }) {
+  return (
+    <span className="wordmark-chars" aria-hidden="true">
+      {text.split("").map((char, index) => (
+        <span
+          key={index}
+          className="wordmark-col"
+          style={{ "--i": index } as React.CSSProperties}
+        >
+          <span className="wordmark-cell">{char}</span>
+          <span className="wordmark-cell">{char}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export default function Header({ introComplete = true }: HeaderProps) {
   const [time, setTime] = useState<string>("--:--");
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
@@ -66,13 +83,14 @@ export default function Header({ introComplete = true }: HeaderProps) {
           <time className="text-[#767676]">{time}</time>
         </div>
 
-        {/* Center: Wordmark in exact Gossip font */}
+        {/* Center: Wordmark in exact Gossip font with non-clipping rolling animation */}
         <TransitionLink
           href="/"
           style={{ fontFamily: "var(--font-wordmark)" }}
-          className="text-[26px] text-[#0c0c0c] lowercase leading-normal select-none inline-flex items-center cursor-pointer hover:opacity-70 transition-opacity"
+          className="wordmark-link text-[26px] text-[#0c0c0c] lowercase select-none inline-flex items-center cursor-pointer"
         >
-          kobrat
+          <span className="sr-only">kobrat</span>
+          <RollingWordmark text="kobrat" />
         </TransitionLink>
 
         {/* Right: Nav items with vertical rolling chars on hover */}
@@ -101,23 +119,6 @@ export default function Header({ introComplete = true }: HeaderProps) {
             <span className="sr-only">Gallery</span>
             <RollingText text="GALLERY" />
           </TransitionLink>
-          <div className="flex items-center text-[#767676] font-mono text-[12px] uppercase ml-1">
-            <button
-              type="button"
-              className="nav-item !px-1.5 text-[#0c0c0c]"
-              aria-label="Bahasa Indonesia"
-            >
-              <RollingText text="ID" />
-            </button>
-            <span className="text-[#a1a1aa] mx-0.5">/</span>
-            <button
-              type="button"
-              className="nav-item !px-1.5"
-              aria-label="English"
-            >
-              <RollingText text="EN" />
-            </button>
-          </div>
         </nav>
       </div>
     </header>

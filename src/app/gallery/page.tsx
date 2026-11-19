@@ -20,8 +20,7 @@ export default function GalleryPage() {
   const [momentsList, setMomentsList] = useState<Moment[]>(staticMoments);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
-  const [viewMode, setViewMode] = useState<"3col" | "2col" | "index">("3col");
+  const [viewMode, setViewMode] = useState<"3col" | "index">("3col");
   const [hoveredMoment, setHoveredMoment] = useState<Moment | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -61,12 +60,7 @@ export default function GalleryPage() {
     };
   }, []);
 
-  const filteredMoments = useMemo(() => {
-    if (selectedCategory === "ALL") return momentsList;
-    return momentsList.filter(
-      (m) => m.category.toUpperCase() === selectedCategory
-    );
-  }, [momentsList, selectedCategory]);
+  const filteredMoments = momentsList;
 
   // Keyboard navigation for Lightbox (Escape, Left, Right)
   useEffect(() => {
@@ -95,9 +89,12 @@ export default function GalleryPage() {
     springY.set(e.clientY - 130);
   };
 
-  const formatLocation = (loc: string, year: string) => {
-    const cleanLoc = loc.split("//")[0].trim();
-    return `${cleanLoc}, ${year}`;
+  const formatLocation = (loc: string, date?: string) => {
+    const cleanLoc = (loc || "").split("//")[0].trim();
+    if (date && date.trim()) {
+      return cleanLoc ? `${cleanLoc} · ${date.trim()}` : date.trim();
+    }
+    return cleanLoc;
   };
 
   const activeLightboxMoment =
@@ -124,96 +121,63 @@ export default function GalleryPage() {
               </h1>
             </div>
 
-            <div className="lg:col-span-5 flex flex-col justify-between gap-4">
-              <p className="text-[16px] md:text-[17px] text-[#0c0c0c] leading-[1.55] max-w-[46ch]">
-                Eight friends documented across late-night studio sessions,
-                Jakarta rooftops, and 35mm road rolls. Click any frame to
-                inspect in full resolution.
+            <div className="lg:col-span-5 flex flex-col justify-end">
+              <p className="text-[15px] md:text-[16px] text-[#52525b] leading-[1.5] max-w-[42ch]">
+                Dokumentasi visual 8 kawan. Klik frame untuk melihat resolusi penuh.
               </p>
             </div>
           </div>
 
           {/* ─── Filter & Column Switcher Bar ─── */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-4 mb-10 bg-[#f4f5f7] px-5">
-            {/* Category Filter Buttons */}
-            <div
-              role="tablist"
-              aria-label="Filter gallery by category"
-              className="flex flex-wrap items-center gap-2"
-            >
-              {CATEGORIES.map((category) => {
-                const isActive = selectedCategory === category;
-                const count =
-                  category === "ALL"
-                    ? momentsList.length
-                    : momentsList.filter(
-                        (m) => m.category.toUpperCase() === category
-                      ).length;
-
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`px-3.5 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
-                      isActive
-                        ? "bg-[#0c0c0c] text-white font-medium"
-                        : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
-                    }`}
-                  >
-                    <span className="capitalize">
-                      {category.toLowerCase()}
-                    </span>{" "}
-                    <span
-                      className={
-                        isActive
-                          ? "text-white/60 text-[11px]"
-                          : "text-[#767676] text-[11px]"
-                      }
-                    >
-                      ({count})
-                    </span>
-                  </button>
-                );
-              })}
+          <div className="flex items-center justify-between gap-4 py-3.5 mb-10 bg-[#f4f5f7] px-5 rounded-[6px]">
+            {/* Archive Frame Count */}
+            <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[#0c0c0c]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>ARCHIVE FRAMES ({momentsList.length})</span>
             </div>
 
-            {/* Grid Column & Index Switcher */}
-            <div className="flex items-center gap-2 self-start md:self-auto">
+            {/* Grid Column & Index Switcher with Minimalist Icons */}
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setViewMode("3col")}
-                className={`px-3.5 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
+                title="Grid view (3 kolom)"
+                aria-label="Grid view (3 kolom)"
+                className={`h-[34px] w-[36px] flex items-center justify-center rounded-[4px] transition-all cursor-pointer ${
                   viewMode === "3col"
-                    ? "bg-[#0c0c0c] text-white font-medium"
-                    : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
+                    ? "bg-[#0c0c0c] text-white shadow-sm"
+                    : "bg-white text-[#71717a] hover:text-[#0c0c0c] hover:bg-[#e4e6eb]"
                 }`}
               >
-                3 Columns
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+                  <rect x="1" y="1" width="3.5" height="3.5" rx="0.5" />
+                  <rect x="6.25" y="1" width="3.5" height="3.5" rx="0.5" />
+                  <rect x="11.5" y="1" width="3.5" height="3.5" rx="0.5" />
+                  <rect x="1" y="6.25" width="3.5" height="3.5" rx="0.5" />
+                  <rect x="6.25" y="6.25" width="3.5" height="3.5" rx="0.5" />
+                  <rect x="11.5" y="6.25" width="3.5" height="3.5" rx="0.5" />
+                  <rect x="1" y="11.5" width="3.5" height="3.5" rx="0.5" />
+                  <rect x="6.25" y="11.5" width="3.5" height="3.5" rx="0.5" />
+                  <rect x="11.5" y="11.5" width="3.5" height="3.5" rx="0.5" />
+                </svg>
               </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("2col")}
-                className={`px-3.5 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
-                  viewMode === "2col"
-                    ? "bg-[#0c0c0c] text-white font-medium"
-                    : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
-                }`}
-              >
-                2 Columns
-              </button>
+
               <button
                 type="button"
                 onClick={() => setViewMode("index")}
-                className={`px-3.5 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
+                title="List view (arsip index)"
+                aria-label="List view (arsip index)"
+                className={`h-[34px] w-[36px] flex items-center justify-center rounded-[4px] transition-all cursor-pointer ${
                   viewMode === "index"
-                    ? "bg-[#0c0c0c] text-white font-medium"
-                    : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
+                    ? "bg-[#0c0c0c] text-white shadow-sm"
+                    : "bg-white text-[#71717a] hover:text-[#0c0c0c] hover:bg-[#e4e6eb]"
                 }`}
               >
-                Archive index
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+                  <rect x="1.5" y="2" width="13" height="2.2" rx="0.6" />
+                  <rect x="1.5" y="6.9" width="13" height="2.2" rx="0.6" />
+                  <rect x="1.5" y="11.8" width="13" height="2.2" rx="0.6" />
+                </svg>
               </button>
             </div>
           </div>
@@ -244,32 +208,17 @@ export default function GalleryPage() {
                 style={{ fontFamily: "var(--font-wordmark)" }}
                 className="text-[36px] lowercase text-[#0c0c0c]"
               >
-                no frames in this category
+                no frames found
               </h2>
               <p className="text-[15px] text-[#52525b] max-w-md mx-auto">
-                There are no photographs tagged under{" "}
-                <span className="lowercase">{selectedCategory}</span> yet. Reset
-                the filter to view all rolls.
+                Belum ada foto yang tersimpan di dalam arsip galeri.
               </p>
-              <button
-                type="button"
-                onClick={() => setSelectedCategory("ALL")}
-                className="px-6 py-2.5 bg-[#0c0c0c] text-white text-[13px] cursor-pointer active:scale-[0.97]"
-              >
-                Show all frames
-              </button>
             </div>
           ) : viewMode !== "index" ? (
             /* ═══════════════════════════════════════════════════════════════════ */
-            /* MODE 1: FRAMELESS AWWWARDS CONTACT SHEET (3 / 2 COLUMNS + FOCUS)   */
+            /* MODE 1: FRAMELESS AWWWARDS CONTACT SHEET (3 COLUMNS + FOCUS)        */
             /* ═══════════════════════════════════════════════════════════════════ */
-            <div
-              className={`group/grid grid gap-x-8 gap-y-14 ${
-                viewMode === "3col"
-                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-                  : "grid-cols-1 md:grid-cols-2"
-              }`}
-            >
+            <div className="group/grid grid gap-x-8 gap-y-14 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredMoments.map((moment, idx) => (
                 <motion.article
                   key={moment.id}
@@ -285,18 +234,16 @@ export default function GalleryPage() {
                   className="group flex flex-col justify-between transition-opacity duration-300 group-hover/grid:opacity-45 hover:!opacity-100"
                 >
                   <div>
-                    {/* Top Frame Caption */}
-                    <div className="flex items-center justify-between gap-2 text-[12px] text-[#767676] mb-2">
-                      {moment.category ? (
-                        <span className="capitalize text-[#0c0c0c] font-medium">
-                          {moment.category.toLowerCase()}
+                    {/* Top Frame Caption: Location & Date only (no category, no hardcoded year) */}
+                    <div className="flex items-center justify-between gap-2 text-[11px] font-mono uppercase tracking-[0.04em] text-[#767676] mb-2">
+                      <span className="text-[#0c0c0c] font-medium">
+                        {formatLocation(moment.location)}
+                      </span>
+                      {moment.date && moment.date.trim() ? (
+                        <span className="text-[#767676]">
+                          {moment.date.trim()}
                         </span>
-                      ) : (
-                        <span className="text-[#0c0c0c] font-medium">
-                          {moment.year}
-                        </span>
-                      )}
-                      <span>{formatLocation(moment.location, moment.year)}</span>
+                      ) : null}
                     </div>
 
                     {/* Landscape 16:10 Contact Frame */}
@@ -310,11 +257,7 @@ export default function GalleryPage() {
                         alt={moment.title}
                         fill
                         priority={idx < 3}
-                        sizes={
-                          viewMode === "3col"
-                            ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            : "(max-width: 768px) 100vw, 50vw"
-                        }
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover object-[center_58%] transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                       />
                     </div>
@@ -338,18 +281,20 @@ export default function GalleryPage() {
                     </div>
                   </div>
 
-                  {/* Subtle Member Links */}
-                  <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                    {moment.members.map((slug) => (
-                      <TransitionLink
-                        key={slug}
-                        href={`/${slug}`}
-                        className="px-2 py-0.5 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[11px] text-[#52525b] capitalize transition-colors"
-                      >
-                        {slug}
-                      </TransitionLink>
-                    ))}
-                  </div>
+                  {/* Dynamic Member Tags */}
+                  {moment.members && moment.members.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                      {moment.members.map((slug) => (
+                        <TransitionLink
+                          key={slug}
+                          href={`/${slug.toLowerCase()}`}
+                          className="px-2 py-0.5 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[11px] font-mono text-[#52525b] uppercase transition-colors rounded-[2px]"
+                        >
+                          {slug}
+                        </TransitionLink>
+                      ))}
+                    </div>
+                  )}
                 </motion.article>
               ))}
             </div>
@@ -377,15 +322,10 @@ export default function GalleryPage() {
                       >
                         {moment.title}
                       </h2>
-                      {moment.category && (
-                        <span className="text-[14px] text-[#767676] group-hover:text-white/70 capitalize">
-                          {moment.category.toLowerCase()}
-                        </span>
-                      )}
                     </div>
 
-                    <div className="flex items-center gap-8 text-[14px] text-[#52525b] group-hover:text-white/80">
-                      <span>{formatLocation(moment.location, moment.year)}</span>
+                    <div className="flex items-center gap-8 text-[13px] font-mono uppercase text-[#52525b] group-hover:text-white/80">
+                      <span>{formatLocation(moment.location, moment.date)}</span>
                       <span className="underline">Inspect</span>
                     </div>
                   </div>
@@ -432,9 +372,6 @@ export default function GalleryPage() {
             >
               kobrat
             </TransitionLink>
-            <p className="mt-2 text-[14px] text-[#52525b]">
-              Eight minds on one wavelength. Jakarta & Remote.
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#0c0c0c]">
@@ -538,9 +475,8 @@ export default function GalleryPage() {
                 <p className="text-white/50 text-[12px]">
                   {formatLocation(
                     activeLightboxMoment.location,
-                    activeLightboxMoment.year
-                  )}{" "}
-                  · {activeLightboxMoment.date}
+                    activeLightboxMoment.date
+                  )}
                 </p>
               </div>
 

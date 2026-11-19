@@ -1,61 +1,82 @@
 [
   {
     "id": 1,
-    "name": "Aksa",
-    "nickname": "aksa",
-    "image": "/uploads/cropped_member_1794682253349_1794682254673.jpg",
+    "name": "Mohammad Atila Danadyaksa",
+    "nickname": "Aksa",
+    "image": "/uploads/cropped_1795100465291_1795100466587.jpg",
     "instagram": "@ade3s",
-    "bio": "never better"
+    "bio": "never better",
+    "website": "Danadyaksa.my.id",
+    "github": "github.com/Danadyaksa"
   },
   {
     "id": 2,
-    "name": "Hafiz",
+    "name": "Hafiz Alaudin Rasendriya",
     "nickname": "hafiz",
     "image": "/uploads/cropped_member_1794682940665_1794682941754.jpg",
-    "instagram": "@apis",
-    "bio": "anu"
+    "instagram": "@hafizrasendriya_",
+    "bio": "",
+    "website": "",
+    "github": ""
   },
   {
     "id": 3,
-    "name": "Jepe",
-    "nickname": "JP",
-    "image": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80",
-    "instagram": "@jepe",
-    "bio": ""
+    "name": "Akmal Danendra Maulana",
+    "nickname": "Akmal",
+    "image": "/uploads/cropped_1795100286942_1795100288532.jpg",
+    "instagram": "@akmaldanendra",
+    "bio": "",
+    "website": "",
+    "github": ""
   },
   {
     "id": 4,
-    "name": "Reza",
-    "nickname": "reza",
-    "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&auto=format&fit=crop&q=80",
-    "instagram": "@reza"
+    "name": "Dida Attallah Elfasdi",
+    "nickname": "Dida",
+    "image": "/uploads/cropped_1795100301269_1795100303103.jpg",
+    "instagram": "@didaattallah",
+    "website": "",
+    "github": "",
+    "bio": ""
   },
   {
     "id": 5,
-    "name": "Farhan",
-    "nickname": "farhan",
-    "image": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600&auto=format&fit=crop&q=80",
-    "instagram": "@farhan"
+    "name": "Danang Adiwibowo",
+    "nickname": "Danang",
+    "image": "/uploads/cropped_1795100311683_1795100312757.jpg",
+    "instagram": "@danangadi.w",
+    "website": "",
+    "github": "",
+    "bio": ""
   },
   {
     "id": 6,
-    "name": "Bagas",
-    "nickname": "bagas",
-    "image": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&auto=format&fit=crop&q=80",
-    "instagram": "@bagas"
+    "name": "Narindera Jati Panuntun",
+    "nickname": "Jepe",
+    "image": "/uploads/cropped_1795100321991_1795100323010.jpg",
+    "instagram": "@narendrajp_",
+    "website": "",
+    "github": "",
+    "bio": ""
   },
   {
     "id": 7,
-    "name": "Arya",
-    "nickname": "arya",
-    "image": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80",
-    "instagram": "@arya"
+    "name": "Raden Revano Athallah Kartika",
+    "nickname": "Vano",
+    "image": "/uploads/cropped_1795100334032_1795100335035.jpg",
+    "instagram": "@vanoathalla_",
+    "website": "",
+    "github": "",
+    "bio": ""
   },
   {
     "id": 8,
-    "name": "Gilang",
-    "nickname": "gilang",
-    "image": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=600&auto=format&fit=crop&q=80",
-    "instagram": "@gilang"
+    "name": "Gorga Doli Liberto Napitupulu",
+    "nickname": "Gorga",
+    "image": "/uploads/cropped_1795100346452_1795100347306.jpg",
+    "instagram": "@ieatcasdaily",
+    "website": "",
+    "github": "",
+    "bio": ""
   }
 ]
