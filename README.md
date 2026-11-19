@@ -22,7 +22,7 @@
 ### 2. Studio Rack & Backstage Passes (`/members`)
 - **3D Hanging Lanyard Passes:** Interactive ID badge cards with realistic lanyard straps, rivets, and physics tilt on hover.
 - **Fully Responsive 2-Column Mobile Layout:** Scales gracefully from desktop studio rack to dual-column mobile festival passes without horizontal overflow.
-- **Dynamic Member Profiles (`/[slug]`):** Dedicated pages for each member (e.g., `/hafiz`, `/aksa`, `/dimas`) featuring stylized nickname typography, bio, social links, full 3D interactive ID card, and "The Circle" dock navigation.
+- **Dynamic Member Profiles (`/[slug]`):** Dedicated pages for each member (e.g., `/hafiz`, `/aksa`, `/akmal`, `/dida`) featuring stylized nickname typography, bio, social links, full 3D interactive ID card, and "The Circle" dock navigation.
 
 ### 3. Archival Contact Sheet (`/gallery`)
 - **Curated Archive:** High-resolution contact-sheet grid documenting collective moments.
@@ -145,14 +145,14 @@ kobrat/
 
 ## ✦ Collective Members
 
-- **Aksa** (Mohammad Atila Danadyaksa)
-- **Hafiz** (Hafiz Alaudin Rasendriya)
-- **Dimas** (Dimas Septian)
-- **Farhan** (Farhan Maulana)
-- **Bagas** (Bagas Dwi Kurniawan)
-- **Arya** (Arya Bima Pratama)
-- **Gilang** (Gilang Ramadhan)
-- **Gorga** (Gorga Martua)
+- **Aksa** (Mohammad Atila Danadyaksa) — `@ade3s`
+- **Hafiz** (Hafiz Alaudin Rasendriya) — `@hafizrasendriya_`
+- **Akmal** (Akmal Danendra Maulana) — `@akmaldanendra`
+- **Dida** (Dida Attallah Elfasdi) — `@didaattallah`
+- **Danang** (Danang Adiwibowo) — `@danangadi.w`
+- **Jepe** (Narindera Jati Panuntun) — `@narendrajp_`
+- **Vano** (Raden Revano Athallah Kartika) — `@vanoathalla_`
+- **Gorga** (Gorga Doli Liberto Napitupulu) — `@ieatcasdaily`
 
 ---
 
