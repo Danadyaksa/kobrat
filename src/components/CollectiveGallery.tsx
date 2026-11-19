@@ -379,11 +379,11 @@ export default function CollectiveGallery() {
           </div>
 
           {/* ─── Top Persistent Editorial HUD Bar ─── */}
-          <div className="relative z-[45] w-full px-3 sm:px-[3vw] pt-[76px] sm:pt-[70px] md:pt-[64px] pb-2 flex items-end justify-between gap-3 sm:gap-4">
+          <div className="relative z-[45] w-full px-3 sm:px-[3vw] pt-[62px] sm:pt-[58px] md:pt-[54px] pb-1.5 flex items-end justify-between gap-3 sm:gap-4">
             <div className="flex items-baseline gap-2.5 sm:gap-4 shrink-0">
               <h2
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[clamp(26px,4.5vw,58px)] lowercase text-[#0c0c0c] leading-[1.18] pb-0.5 sm:pb-1"
+                className="text-[clamp(24px,3.8vw,48px)] lowercase text-[#0c0c0c] leading-[1.18] pb-0.5 sm:pb-1"
               >
                 highlights
               </h2>
@@ -404,7 +404,7 @@ export default function CollectiveGallery() {
           </div>
 
           {/* ─── Center 3D Perspective Stack Stage ─── */}
-          <div className="relative flex-1 w-full flex items-center justify-center perspective-1200 z-[20] pt-3 sm:pt-5 md:pt-7">
+          <div className="relative flex-1 w-full flex items-center justify-center perspective-1200 z-[20] pt-1 sm:pt-2">
             <div
               ref={stageTiltRef}
               className="relative w-full h-full flex items-center justify-center transform-style-3d will-change-transform"
@@ -413,7 +413,7 @@ export default function CollectiveGallery() {
               <div
                 ref={card1Ref}
                 style={{ willChange: "transform, filter" }}
-                className={`absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1100px,calc((100dvh-270px)*16/9))] bg-[#eceef2] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[10] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d8dce6] rounded-[4px] ${
+                className={`absolute w-[96vw] sm:w-[94vw] md:w-[93vw] lg:w-[92vw] max-w-[min(1380px,calc((100dvh-100px)*16/9))] bg-[#eceef2] p-2.5 sm:p-3.5 md:p-4 flex flex-col gap-1.5 sm:gap-2.5 z-[10] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d8dce6] rounded-[4px] ${
                   activeCardIndex === 0
                     ? "pointer-events-auto"
                     : "pointer-events-none"
@@ -423,7 +423,7 @@ export default function CollectiveGallery() {
                   <div className="min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(18px,3.8vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
+                      className="text-[clamp(18px,3.2vw,36px)] lowercase text-[#0c0c0c] leading-[1.24] pt-0.5 pb-1 overflow-visible tracking-normal whitespace-nowrap"
                     >
                       {featuredMoments[0].title}
                     </h3>
@@ -464,7 +464,7 @@ export default function CollectiveGallery() {
                       alt={featuredMoments[0].title}
                       fill
                       priority
-                      sizes="(max-width: 1280px) 92vw, 1120px"
+                      sizes="(max-width: 1280px) 94vw, 1380px"
                       className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   </div>
@@ -475,7 +475,7 @@ export default function CollectiveGallery() {
               <div
                 ref={card2Ref}
                 style={{ willChange: "transform, filter" }}
-                className={`absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1100px,calc((100dvh-270px)*16/9))] bg-[#ebe9e2] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[20] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#dedcd4] rounded-[4px] ${
+                className={`absolute w-[96vw] sm:w-[94vw] md:w-[93vw] lg:w-[92vw] max-w-[min(1380px,calc((100dvh-100px)*16/9))] bg-[#ebe9e2] p-2.5 sm:p-3.5 md:p-4 flex flex-col gap-1.5 sm:gap-2.5 z-[20] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#dedcd4] rounded-[4px] ${
                   activeCardIndex === 1
                     ? "pointer-events-auto"
                     : "pointer-events-none"
@@ -485,7 +485,7 @@ export default function CollectiveGallery() {
                   <div className="min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(18px,3.8vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
+                      className="text-[clamp(18px,3.2vw,36px)] lowercase text-[#0c0c0c] leading-[1.24] pt-0.5 pb-1 overflow-visible tracking-normal whitespace-nowrap"
                     >
                       {featuredMoments[1].title}
                     </h3>
@@ -525,7 +525,7 @@ export default function CollectiveGallery() {
                       src={featuredMoments[1].image}
                       alt={featuredMoments[1].title}
                       fill
-                      sizes="(max-width: 1280px) 96vw, 1120px"
+                      sizes="(max-width: 1280px) 94vw, 1380px"
                       className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   </div>
@@ -536,7 +536,7 @@ export default function CollectiveGallery() {
               <div
                 ref={card3Ref}
                 style={{ willChange: "transform, filter" }}
-                className={`absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1100px,calc((100dvh-270px)*16/9))] bg-[#dfe3ec] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[30] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d2d6e2] rounded-[4px] ${
+                className={`absolute w-[96vw] sm:w-[94vw] md:w-[93vw] lg:w-[92vw] max-w-[min(1380px,calc((100dvh-100px)*16/9))] bg-[#dfe3ec] p-2.5 sm:p-3.5 md:p-4 flex flex-col gap-1.5 sm:gap-2.5 z-[30] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d2d6e2] rounded-[4px] ${
                   activeCardIndex === 2
                     ? "pointer-events-auto"
                     : "pointer-events-none"
@@ -546,7 +546,7 @@ export default function CollectiveGallery() {
                   <div className="min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(18px,3.8vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
+                      className="text-[clamp(18px,3.2vw,36px)] lowercase text-[#0c0c0c] leading-[1.24] pt-0.5 pb-1 overflow-visible tracking-normal whitespace-nowrap"
                     >
                       {featuredMoments[2].title}
                     </h3>
@@ -586,7 +586,7 @@ export default function CollectiveGallery() {
                       src={featuredMoments[2].image}
                       alt={featuredMoments[2].title}
                       fill
-                      sizes="(max-width: 1280px) 96vw, 1120px"
+                      sizes="(max-width: 1280px) 94vw, 1380px"
                       className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   </div>
