@@ -157,27 +157,33 @@ export default function CollectiveGallery() {
 
       // Card 1 starts as a compact tilted aperture ready to bloom as user scrolls down from Hero
       gsap.set(c1, {
-        yPercent: 24,
-        rotation: 2.2,
-        scale: 0.78,
+        yPercent: 22,
+        rotation: 1.8,
+        scale: 0.8,
+        filter: "blur(0px)",
+        opacity: 1,
         transformOrigin: "50% 50%",
       });
       gsap.set(c1Img, { scale: 1.0 });
 
       // Card 2 waits below the stage at a counter-angle
       gsap.set(c2, {
-        yPercent: 112,
-        rotation: -4.2,
+        yPercent: 115,
+        rotation: -3.8,
         scale: 0.94,
+        filter: "blur(10px)",
+        opacity: 0.3,
         transformOrigin: "50% 50%",
       });
       gsap.set(c2Img, { scale: 1.0 });
 
       // Card 3 waits below the stage at a positive angle
       gsap.set(c3, {
-        yPercent: 112,
-        rotation: 3.8,
+        yPercent: 115,
+        rotation: 3.4,
         scale: 0.94,
+        filter: "blur(14px)",
+        opacity: 0.2,
         transformOrigin: "50% 50%",
       });
       gsap.set(c3Img, { scale: 1.0 });
@@ -216,9 +222,11 @@ export default function CollectiveGallery() {
       tl.to(
         c1,
         {
-          yPercent: 0,
-          rotation: -0.6,
+          yPercent: 3,
+          rotation: -0.5,
           scale: 1,
+          filter: "blur(0px)",
+          opacity: 1,
           ease: "power2.out",
           duration: 0.28,
         },
@@ -233,13 +241,15 @@ export default function CollectiveGallery() {
         0
       );
 
-      // ── ACT 2 (0.28 -> 0.62): Card 1 recedes upward into 3D stack; Card 2 slices in diagonally ──
+      // ── ACT 2 (0.28 -> 0.62): Card 1 recedes upward into 3D stack & blurs; Card 2 slices in and sharpens ──
       tl.to(
         c1,
         {
-          yPercent: -11,
-          rotation: -2.1,
-          scale: 0.91,
+          yPercent: -4,
+          rotation: -1.8,
+          scale: 0.92,
+          filter: "blur(8px)",
+          opacity: 0.45,
           ease: "power2.inOut",
           duration: 0.32,
         },
@@ -248,9 +258,11 @@ export default function CollectiveGallery() {
         .to(
           c2,
           {
-            yPercent: 2,
-            rotation: 1.1,
+            yPercent: 3,
+            rotation: 0.8,
             scale: 1,
+            filter: "blur(0px)",
+            opacity: 1,
             ease: "power2.out",
             duration: 0.32,
           },
@@ -266,13 +278,15 @@ export default function CollectiveGallery() {
           0.3
         );
 
-      // ── ACT 3 (0.62 -> 0.94): Card 1 & Card 2 form a stacked fan at the top; Card 3 takes foreground ──
+      // ── ACT 3 (0.62 -> 0.94): Card 1 & Card 2 form blurred stack behind; Card 3 takes foreground & sharpens ──
       tl.to(
         c1,
         {
-          yPercent: -18,
-          rotation: -2.8,
-          scale: 0.85,
+          yPercent: -7,
+          rotation: -2.4,
+          scale: 0.86,
+          filter: "blur(12px)",
+          opacity: 0.25,
           ease: "power2.inOut",
           duration: 0.3,
         },
@@ -281,9 +295,11 @@ export default function CollectiveGallery() {
         .to(
           c2,
           {
-            yPercent: -9,
-            rotation: 2.0,
+            yPercent: -3,
+            rotation: 1.6,
             scale: 0.93,
+            filter: "blur(8px)",
+            opacity: 0.45,
             ease: "power2.inOut",
             duration: 0.3,
           },
@@ -293,8 +309,10 @@ export default function CollectiveGallery() {
           c3,
           {
             yPercent: 4,
-            rotation: -0.8,
+            rotation: -0.6,
             scale: 1,
+            filter: "blur(0px)",
+            opacity: 1,
             ease: "power2.out",
             duration: 0.32,
           },
@@ -311,7 +329,7 @@ export default function CollectiveGallery() {
         );
 
       // Final settle (0.94 -> 1.00)
-      tl.to(c3, { yPercent: 2, rotation: -0.3, duration: 0.06 }, 0.94);
+      tl.to(c3, { yPercent: 3, rotation: -0.2, filter: "blur(0px)", opacity: 1, duration: 0.06 }, 0.94);
     }, section);
 
     return () => ctx.revert();
@@ -386,7 +404,7 @@ export default function CollectiveGallery() {
           </div>
 
           {/* ─── Center 3D Perspective Stack Stage ─── */}
-          <div className="relative flex-1 w-full flex items-center justify-center perspective-1200 z-[20]">
+          <div className="relative flex-1 w-full flex items-center justify-center perspective-1200 z-[20] pt-3 sm:pt-5 md:pt-7">
             <div
               ref={stageTiltRef}
               className="relative w-full h-full flex items-center justify-center transform-style-3d will-change-transform"
@@ -394,7 +412,12 @@ export default function CollectiveGallery() {
               {/* ── CARD 1: First Flagship Widescreen Print ── */}
               <div
                 ref={card1Ref}
-                className="absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1120px,calc((100dvh-170px)*16/9))] bg-[#eceef2] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[10] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d8dce6] rounded-[4px]"
+                style={{ willChange: "transform, filter" }}
+                className={`absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1100px,calc((100dvh-270px)*16/9))] bg-[#eceef2] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[10] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d8dce6] rounded-[4px] ${
+                  activeCardIndex === 0
+                    ? "pointer-events-auto"
+                    : "pointer-events-none"
+                }`}
               >
                 <div className="flex items-center justify-between gap-2 sm:gap-4 px-1 py-0.5">
                   <div className="min-w-0">
@@ -451,7 +474,12 @@ export default function CollectiveGallery() {
               {/* ── CARD 2: Second Flagship Widescreen Print ── */}
               <div
                 ref={card2Ref}
-                className="absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1120px,calc((100dvh-170px)*16/9))] bg-[#ebe9e2] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[20] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#dedcd4] rounded-[4px]"
+                style={{ willChange: "transform, filter" }}
+                className={`absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1100px,calc((100dvh-270px)*16/9))] bg-[#ebe9e2] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[20] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#dedcd4] rounded-[4px] ${
+                  activeCardIndex === 1
+                    ? "pointer-events-auto"
+                    : "pointer-events-none"
+                }`}
               >
                 <div className="flex items-center justify-between gap-2 sm:gap-4 px-1 py-0.5">
                   <div className="min-w-0">
@@ -507,7 +535,12 @@ export default function CollectiveGallery() {
               {/* ── CARD 3: Third Flagship Widescreen Print ── */}
               <div
                 ref={card3Ref}
-                className="absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1120px,calc((100dvh-170px)*16/9))] bg-[#dfe3ec] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[30] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d2d6e2] rounded-[4px]"
+                style={{ willChange: "transform, filter" }}
+                className={`absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1100px,calc((100dvh-270px)*16/9))] bg-[#dfe3ec] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[30] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d2d6e2] rounded-[4px] ${
+                  activeCardIndex === 2
+                    ? "pointer-events-auto"
+                    : "pointer-events-none"
+                }`}
               >
                 <div className="flex items-center justify-between gap-2 sm:gap-4 px-1 py-0.5">
                   <div className="min-w-0">
