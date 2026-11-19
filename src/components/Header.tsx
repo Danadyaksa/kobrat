@@ -90,21 +90,15 @@ export default function Header({ introComplete = true }: HeaderProps) {
           <time className="text-[#767676]">{time}</time>
         </div>
 
-        {/* Center: Official Brand Logo strictly centered */}
+        {/* Center: Wordmark in exact Gossip font with rolling scroll animation */}
         <div className="flex justify-center items-center">
           <TransitionLink
             href="/"
-            className="group flex items-center justify-center select-none cursor-pointer py-1"
-            aria-label="kobrat home"
+            style={{ fontFamily: "var(--font-wordmark)" }}
+            className="wordmark-link text-[24px] sm:text-[26px] text-[#0c0c0c] lowercase select-none inline-flex items-center cursor-pointer"
           >
-            <Image
-              src="/logo.png"
-              alt="kobrat"
-              width={72}
-              height={64}
-              priority
-              className="h-[30px] sm:h-[34px] w-auto object-contain transition-transform duration-300 group-hover:scale-108 group-active:scale-95"
-            />
+            <span className="sr-only">kobrat</span>
+            <RollingWordmark text="kobrat" />
           </TransitionLink>
         </div>
 

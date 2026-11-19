@@ -73,48 +73,39 @@ export default function Preloader({
     let renderedCount = 0;
 
     const setupMask = () => {
-      try {
-        const bbox = textBase.getBBox();
-        const padY = Math.max(36, bbox.height * 0.6);
-        const padX = Math.max(26, bbox.width * 0.2);
+      const vw = 400;
+      const vh = 120;
+      const vx = -200;
+      const vy = -60;
 
-        const vx = bbox.x - padX;
-        const vy = bbox.y - padY;
-        const vw = bbox.width + 2 * padX;
-        const vh = bbox.height + 2 * padY;
+      svg.setAttribute("viewBox", `${vx} ${vy} ${vw} ${vh}`);
 
-        svg.setAttribute("viewBox", `${vx} ${vy} ${vw} ${vh}`);
+      const cellSize = 8;
+      const cols = Math.ceil(vw / cellSize);
+      const rows = Math.ceil(vh / cellSize);
 
-        const cellSize = Math.max(6, bbox.height / 10);
-        const cols = Math.ceil(vw / cellSize);
-        const rows = Math.ceil(vh / cellSize);
-
-        cells = [];
-        for (let c = 0; c < cols; c++) {
-          for (let r = 0; r < rows; r++) {
-            const x = vx + c * cellSize;
-            const y = vy + r * cellSize;
-            const hash =
-              Math.sin(12.9898 * c + 78.233 * r) * 43758.5453;
-            const rand = hash - Math.floor(hash);
-            cells.push({
-              x,
-              y,
-              size: cellSize,
-              order: c + 3.5 * rand,
-            });
-          }
+      cells = [];
+      for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+          const x = vx + c * cellSize;
+          const y = vy + r * cellSize;
+          const hash =
+            Math.sin(12.9898 * c + 78.233 * r) * 43758.5453;
+          const rand = hash - Math.floor(hash);
+          cells.push({
+            x,
+            y,
+            size: cellSize,
+            order: c + 3.5 * rand,
+          });
         }
-        cells.sort((a, b) => a.order - b.order);
-      } catch {
-        svg.setAttribute("viewBox", "-30 -80 440 160");
       }
+      cells.sort((a, b) => a.order - b.order);
     };
 
+    setupMask();
     if (document.fonts) {
       document.fonts.ready.then(setupMask);
-    } else {
-      setupMask();
     }
 
     const ctx = gsap.context(() => {
@@ -318,6 +309,7 @@ export default function Preloader({
         >
           <svg
             ref={svgRef}
+            viewBox="-200 -60 400 120"
             overflow="visible"
             className="w-full h-auto overflow-visible select-none will-change-transform"
           >
@@ -341,8 +333,8 @@ export default function Preloader({
             {/* Base Dimmed Text */}
             <text
               ref={textBaseRef}
-              x="50%"
-              y="55%"
+              x="0"
+              y="18"
               textAnchor="middle"
               fill="#ffffff35"
               style={{
@@ -357,8 +349,8 @@ export default function Preloader({
             {/* Solid White Revealed Text */}
             <text
               ref={textFillRef}
-              x="50%"
-              y="55%"
+              x="0"
+              y="18"
               textAnchor="middle"
               fill="#ffffff"
               mask="url(#intro-name-mask)"

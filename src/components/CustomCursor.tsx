@@ -18,6 +18,16 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
   const [pillText, setPillText] = useState<string>("VIEW PROFILE");
   const [cursorKind, setCursorKind] = useState<"default" | "link" | "pill">("default");
   const [isPressed, setIsPressed] = useState<boolean>(false);
+  const [isFinePointer, setIsFinePointer] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(hover: hover) and (pointer: fine)");
+    setIsFinePointer(media.matches);
+    const handler = (e: MediaQueryListEvent) => setIsFinePointer(e.matches);
+    media.addEventListener?.("change", handler);
+    return () => media.removeEventListener?.("change", handler);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -161,12 +171,15 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
     };
   }, []);
 
+  if (!isFinePointer) return null;
+
   return (
     <>
       {/* Default Soft Dot / Circular Translucent Lens on Link Hover */}
       <div
         ref={dotWrapRef}
-        className="fixed top-0 left-0 pointer-events-none z-[99998] will-change-transform flex items-center justify-center"
+        style={{ visibility: "hidden" }}
+        className="fixed top-0 left-0 pointer-events-none z-[99998] will-change-transform hidden md:flex items-center justify-center opacity-0"
       >
         <div
           className={`rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
@@ -190,7 +203,8 @@ export default function CustomCursor({ isDark = false }: CustomCursorProps) {
       {/* Floating Pill Badge when hovering cards (Exact match to Elliot Eriksson) */}
       <div
         ref={pillRef}
-        className="fixed top-0 left-0 pointer-events-none z-[99999] will-change-transform flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#0c0c0c] text-white font-mono text-[11px] uppercase tracking-[0.02em] shadow-[0_8px_24px_rgba(0,0,0,0.25)] border border-white/10 select-none"
+        style={{ visibility: "hidden" }}
+        className="fixed top-0 left-0 pointer-events-none z-[99999] will-change-transform hidden md:flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#0c0c0c] text-white font-mono text-[11px] uppercase tracking-[0.02em] shadow-[0_8px_24px_rgba(0,0,0,0.25)] border border-white/10 select-none opacity-0"
       >
         <ThreePixelEye />
         <span className="whitespace-nowrap font-medium leading-none">
