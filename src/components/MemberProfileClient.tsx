@@ -780,12 +780,21 @@ export default function MemberProfileClient({
                         style={{ transform: "translateZ(16px)" }}
                         className="flex items-center justify-between text-[12px] text-[#52525b] px-1"
                       >
-                        <span
-                          style={{ fontFamily: "var(--font-wordmark)" }}
-                          className="text-[20px] lowercase text-[#0c0c0c] leading-none"
-                        >
-                          kobrat
-                        </span>
+                        <div className="flex items-center gap-1.5 text-[#0c0c0c]">
+                          <Image
+                            src="/logo.png"
+                            alt="kobrat"
+                            width={22}
+                            height={22}
+                            className="w-3.5 h-3.5 object-contain shrink-0"
+                          />
+                          <span
+                            style={{ fontFamily: "var(--font-wordmark)" }}
+                            className="text-[20px] lowercase text-[#0c0c0c] leading-none"
+                          >
+                            kobrat
+                          </span>
+                        </div>
                         <span className="tabular-nums font-medium">
                           {credentialCode}
                         </span>

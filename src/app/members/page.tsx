@@ -386,7 +386,13 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
               className="px-3 sm:px-5 md:px-7 flex items-center justify-between gap-1 sm:gap-3 pt-1 sm:pt-2"
             >
               <div className="flex items-center gap-1.5 sm:gap-2 text-[#0c0c0c]">
-                <PixelSeal className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
+                <Image
+                  src="/logo.png"
+                  alt="kobrat"
+                  width={28}
+                  height={28}
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain shrink-0"
+                />
                 <span
                   style={{ fontFamily: "var(--font-wordmark)" }}
                   className="text-[17px] sm:text-[20px] md:text-[22px] lowercase leading-[1.25] pt-0.5 inline-block"

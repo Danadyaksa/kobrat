@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import TransitionLink from "./TransitionLink";
 
 interface HeaderProps {
@@ -89,15 +90,21 @@ export default function Header({ introComplete = true }: HeaderProps) {
           <time className="text-[#767676]">{time}</time>
         </div>
 
-        {/* Center: Wordmark in exact Gossip font strictly centered */}
+        {/* Center: Official Brand Logo strictly centered */}
         <div className="flex justify-center items-center">
           <TransitionLink
             href="/"
-            style={{ fontFamily: "var(--font-wordmark)" }}
-            className="wordmark-link text-[24px] sm:text-[26px] text-[#0c0c0c] lowercase select-none inline-flex items-center cursor-pointer"
+            className="group flex items-center justify-center select-none cursor-pointer py-1"
+            aria-label="kobrat home"
           >
-            <span className="sr-only">kobrat</span>
-            <RollingWordmark text="kobrat" />
+            <Image
+              src="/logo.png"
+              alt="kobrat"
+              width={72}
+              height={64}
+              priority
+              className="h-[30px] sm:h-[34px] w-auto object-contain transition-transform duration-300 group-hover:scale-108 group-active:scale-95"
+            />
           </TransitionLink>
         </div>
 
