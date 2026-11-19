@@ -548,7 +548,7 @@ export default function MemberProfileClient({
         {/* ═══════════════════════════════════════════════════════════════════ */}
         <section
           ref={heroSectionRef}
-          className="relative w-full pt-[128px] pb-20 px-[3vw] overflow-x-clip"
+          className="relative w-full pt-[96px] sm:pt-[118px] md:pt-[128px] pb-14 sm:pb-20 px-4 sm:px-[3vw] overflow-x-clip"
         >
           {/* Scroll-Scrubbed Giant Gothic Watermark */}
           <div
@@ -562,17 +562,17 @@ export default function MemberProfileClient({
 
           <div className="relative z-10 max-w-[1340px] mx-auto">
             {/* Top Breadcrumb Back to Members */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <TransitionLink
                 href="/members"
-                className="inline-flex items-center gap-2 text-[14px] text-[#52525b] hover:text-[#0c0c0c] transition-colors"
+                className="inline-flex items-center gap-2 text-[13px] sm:text-[14px] text-[#52525b] hover:text-[#0c0c0c] transition-colors"
               >
                 <span>←</span>
                 <span className="underline underline-offset-4">All members</span>
               </TransitionLink>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
               {/* Left Column: Interactive Split-Letter Gothic Nickname, Scramble Name & Magnetic Links */}
               <div className="lg:col-span-7 flex flex-col justify-between">
                 <div>
@@ -580,7 +580,7 @@ export default function MemberProfileClient({
                   <h1
                     aria-label={nicknameDisplay}
                     style={{ fontFamily: "var(--font-wordmark)" }}
-                    className="text-[clamp(62px,9.4vw,136px)] lowercase text-[#0c0c0c] leading-[1.14] tracking-[-0.02em] flex flex-wrap"
+                    className="text-[clamp(44px,9.2vw,136px)] lowercase text-[#0c0c0c] leading-[1.14] tracking-[-0.02em] flex flex-wrap"
                   >
                     {nicknameDisplay.split("").map((char, idx) => (
                       <motion.span
@@ -617,7 +617,7 @@ export default function MemberProfileClient({
                       delay: 0.14,
                       ease: [0.23, 1, 0.32, 1],
                     }}
-                    className="mt-7 text-[21px] md:text-[25px] font-medium text-[#0c0c0c] leading-[1.3]"
+                    className="mt-4 sm:mt-7 text-[18px] sm:text-[21px] md:text-[25px] font-medium text-[#0c0c0c] leading-[1.3]"
                   >
                     {scrambledFullName}
                   </motion.p>
@@ -632,7 +632,7 @@ export default function MemberProfileClient({
                         delay: 0.22,
                         ease: [0.23, 1, 0.32, 1],
                       }}
-                      className="mt-6 text-[18px] md:text-[21px] text-[#3f3f46] leading-[1.55] max-w-[46ch]"
+                      className="mt-4 sm:mt-6 text-[15px] sm:text-[18px] md:text-[21px] text-[#3f3f46] leading-[1.55] max-w-[46ch]"
                     >
                       “{member.bio}”
                     </motion.blockquote>
@@ -986,25 +986,25 @@ export default function MemberProfileClient({
         {/* ═══════════════════════════════════════════════════════════════════ */}
         {/* SECTION 3: INTERACTIVE 8-MEMBER DOCK + PREV / NEXT ROSTER PORTAL    */}
         {/* ═══════════════════════════════════════════════════════════════════ */}
-        <section className="w-full py-24 px-[3vw] bg-white">
-          <div className="max-w-[1340px] mx-auto space-y-12">
+        <section className="w-full py-14 sm:py-24 px-4 sm:px-[3vw] bg-white">
+          <div className="max-w-[1340px] mx-auto space-y-10 sm:space-y-12">
             {/* Interactive 8-Mind Magnification Dock */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 rounded-[16px] bg-[#f4f5f7]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6 p-4 sm:p-6 rounded-[14px] sm:rounded-[16px] bg-[#f4f5f7]">
               <div>
                 <h2
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(26px,3vw,38px)] lowercase text-[#0c0c0c] leading-[1.12]"
+                  className="text-[clamp(24px,3vw,38px)] lowercase text-[#0c0c0c] leading-[1.12]"
                 >
                   the circle
                 </h2>
-                <p className="text-[13px] text-[#52525b] mt-0.5">
+                <p className="text-[12px] sm:text-[13px] text-[#52525b] mt-0.5">
                   Jump directly to any member of Kobrat
                 </p>
               </div>
 
               <div
                 onMouseLeave={() => setHoveredDockId(null)}
-                className="flex flex-wrap items-center gap-2.5"
+                className="flex flex-wrap items-center gap-2 sm:gap-2.5"
               >
                 {membersList.map((m) => {
                   const mSlug = getMemberSlug(m);
@@ -1031,7 +1031,7 @@ export default function MemberProfileClient({
                           stiffness: 360,
                           damping: 20,
                         }}
-                        className={`relative w-[48px] h-[62px] rounded-[8px] overflow-hidden bg-[#111] will-change-transform ${
+                        className={`relative w-[40px] sm:w-[48px] h-[52px] sm:h-[62px] rounded-[6px] sm:rounded-[8px] overflow-hidden bg-[#111] will-change-transform ${
                           isCurrent
                             ? "ring-2 ring-[#0c0c0c] ring-offset-2 ring-offset-[#f4f5f7]"
                             : "opacity-75 hover:opacity-100"
@@ -1046,7 +1046,7 @@ export default function MemberProfileClient({
                         />
                       </motion.div>
                       <span
-                        className={`mt-1.5 text-[11px] lowercase transition-colors ${
+                        className={`mt-1 text-[10px] sm:text-[11px] lowercase transition-colors ${
                           isCurrent || isHovered
                             ? "text-[#0c0c0c] font-semibold"
                             : "text-[#71717a]"
@@ -1062,13 +1062,13 @@ export default function MemberProfileClient({
 
             {/* Previous / Next Member Cards */}
             {membersList.length > 1 && prevMember && nextMember && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <TransitionLink
                   href={`/${getMemberSlug(prevMember)}`}
                   data-cursor="PREV MEMBER"
-                  className="group p-5 sm:p-6 rounded-[14px] bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white transition-[background-color,color] duration-200 flex items-center gap-5"
+                  className="group p-4 sm:p-6 rounded-[12px] sm:rounded-[14px] bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white transition-[background-color,color] duration-200 flex items-center gap-4 sm:gap-5"
                 >
-                  <div className="relative w-[64px] aspect-[3/4] rounded-[8px] bg-[#111] overflow-hidden shrink-0">
+                  <div className="relative w-[52px] sm:w-[64px] aspect-[3/4] rounded-[8px] bg-[#111] overflow-hidden shrink-0">
                     <Image
                       src={prevMember.image}
                       alt={prevMember.name}
@@ -1078,16 +1078,16 @@ export default function MemberProfileClient({
                     />
                   </div>
                   <div className="min-w-0">
-                    <span className="block text-[12px] text-[#767676] group-hover:text-white/60 mb-1">
+                    <span className="block text-[11px] sm:text-[12px] text-[#767676] group-hover:text-white/60 mb-0.5 sm:mb-1">
                       ← Previous member
                     </span>
                     <span
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="block text-[clamp(26px,3vw,38px)] lowercase leading-[1.24] py-1"
+                      className="block text-[clamp(22px,3vw,38px)] lowercase leading-[1.24] py-0.5 sm:py-1"
                     >
                       {prevMember.nickname || prevMember.name}
                     </span>
-                    <span className="block text-[13px] text-[#52525b] group-hover:text-white/75 truncate mt-1">
+                    <span className="block text-[12px] sm:text-[13px] text-[#52525b] group-hover:text-white/75 truncate mt-0.5 sm:mt-1">
                       {prevMember.name}
                     </span>
                   </div>
@@ -1096,23 +1096,23 @@ export default function MemberProfileClient({
                 <TransitionLink
                   href={`/${getMemberSlug(nextMember)}`}
                   data-cursor="NEXT MEMBER"
-                  className="group p-5 sm:p-6 rounded-[14px] bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white transition-[background-color,color] duration-200 flex items-center justify-between gap-5 text-right"
+                  className="group p-4 sm:p-6 rounded-[12px] sm:rounded-[14px] bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white transition-[background-color,color] duration-200 flex items-center justify-between gap-4 sm:gap-5 text-right"
                 >
                   <div className="min-w-0 flex-1">
-                    <span className="block text-[12px] text-[#767676] group-hover:text-white/60 mb-1">
+                    <span className="block text-[11px] sm:text-[12px] text-[#767676] group-hover:text-white/60 mb-0.5 sm:mb-1">
                       Next member →
                     </span>
                     <span
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="block text-[clamp(26px,3vw,38px)] lowercase leading-[1.24] py-1"
+                      className="block text-[clamp(22px,3vw,38px)] lowercase leading-[1.24] py-0.5 sm:py-1"
                     >
                       {nextMember.nickname || nextMember.name}
                     </span>
-                    <span className="block text-[13px] text-[#52525b] group-hover:text-white/75 truncate mt-1">
+                    <span className="block text-[12px] sm:text-[13px] text-[#52525b] group-hover:text-white/75 truncate mt-0.5 sm:mt-1">
                       {nextMember.name}
                     </span>
                   </div>
-                  <div className="relative w-[64px] aspect-[3/4] rounded-[8px] bg-[#111] overflow-hidden shrink-0">
+                  <div className="relative w-[52px] sm:w-[64px] aspect-[3/4] rounded-[8px] bg-[#111] overflow-hidden shrink-0">
                     <Image
                       src={nextMember.image}
                       alt={nextMember.name}
@@ -1129,19 +1129,19 @@ export default function MemberProfileClient({
       </main>
 
       {/* ─── Designed Footer Close ─── */}
-      <footer className="w-full bg-[#f4f5f7] px-[3vw] py-16">
-        <div className="max-w-[1340px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+      <footer className="w-full bg-[#f4f5f7] px-4 sm:px-[3vw] py-10 sm:py-16">
+        <div className="max-w-[1340px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-6 sm:gap-8">
           <div>
             <TransitionLink
               href="/"
               style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(48px,8vw,112px)] lowercase text-[#0c0c0c] leading-[1.04] inline-block hover:opacity-70 transition-opacity"
+              className="text-[clamp(42px,9vw,112px)] lowercase text-[#0c0c0c] leading-[1.12] inline-block hover:opacity-70 transition-opacity"
             >
               kobrat
             </TransitionLink>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#0c0c0c]">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-[13px] sm:text-[14px] text-[#0c0c0c]">
             <TransitionLink href="/" className="underline hover:opacity-65">
               Back to home
             </TransitionLink>

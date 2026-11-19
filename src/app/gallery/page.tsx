@@ -113,31 +113,30 @@ export default function GalleryPage() {
       {/* Top Navigation */}
       <Header introComplete={true} />
 
-      <main className="flex-1 w-full pt-[148px] pb-24 px-[3vw]">
+      <main className="flex-1 w-full pt-[116px] sm:pt-[148px] pb-20 sm:pb-24 px-3.5 sm:px-[3vw]">
         <div className="max-w-[1440px] mx-auto">
           {/* ─── Editorial Masthead ─── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end pb-12">
-            <div className="lg:col-span-7 pt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-end pb-8 sm:pb-12">
+            <div className="lg:col-span-7 pt-2 sm:pt-4">
               <h1
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[clamp(42px,5.4vw,80px)] lowercase text-[#0c0c0c] leading-[1.15] tracking-[-0.02em]"
+                className="text-[clamp(38px,5.4vw,80px)] lowercase text-[#0c0c0c] leading-[1.15] tracking-[-0.02em]"
               >
                 collective archive
               </h1>
             </div>
 
             <div className="lg:col-span-5 flex flex-col justify-end">
-              <p className="text-[15px] md:text-[16px] text-[#52525b] leading-[1.5] max-w-[42ch]">
+              <p className="text-[14px] sm:text-[16px] text-[#52525b] leading-[1.5] max-w-[42ch]">
                 Raw rolls, late-night drift, and unscripted frames from the circle.
               </p>
             </div>
           </div>
 
           {/* ─── Filter & Column Switcher Bar ─── */}
-          <div className="flex items-center justify-between gap-4 py-3.5 mb-10 bg-[#f4f5f7] px-5 rounded-[6px]">
-            {/* Archive Frame Count */}
-            <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-[#0c0c0c]">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="flex items-center justify-between gap-4 py-3 mb-8 sm:mb-10 bg-[#f4f5f7] px-4 sm:px-5 rounded-[6px]">
+            {/* Archive Frame Count (breathing green dot removed) */}
+            <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.06em] text-[#0c0c0c]">
               <span>ARCHIVE FRAMES ({momentsList.length})</span>
             </div>
 
@@ -221,9 +220,9 @@ export default function GalleryPage() {
             </div>
           ) : viewMode !== "index" ? (
             /* ═══════════════════════════════════════════════════════════════════ */
-            /* MODE 1: FRAMELESS AWWWARDS CONTACT SHEET (3 COLUMNS + FOCUS)        */
+            /* MODE 1: FRAMELESS AWWWARDS CONTACT SHEET (2 COLS MOBILE, 3 COLS DESKTOP) */
             /* ═══════════════════════════════════════════════════════════════════ */
-            <div className="group/grid grid gap-x-8 gap-y-14 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="group/grid grid gap-x-3.5 sm:gap-x-6 lg:gap-x-8 gap-y-7 sm:gap-y-11 lg:gap-y-14 grid-cols-2 lg:grid-cols-3">
               {filteredMoments.map((moment, idx) => (
                 <motion.article
                   key={moment.id}
@@ -240,12 +239,12 @@ export default function GalleryPage() {
                 >
                   <div>
                     {/* Top Frame Caption: Location & Date only (no category, no hardcoded year) */}
-                    <div className="flex items-center justify-between gap-2 text-[11px] font-mono uppercase tracking-[0.04em] text-[#767676] mb-2">
-                      <span className="text-[#0c0c0c] font-medium">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[9.5px] sm:text-[11px] font-mono uppercase tracking-[0.04em] text-[#767676] mb-1.5 sm:mb-2">
+                      <span className="text-[#0c0c0c] font-medium truncate">
                         {formatLocation(moment.location)}
                       </span>
                       {moment.date && moment.date.trim() ? (
-                        <span className="text-[#767676]">
+                        <span className="text-[#767676] shrink-0">
                           {moment.date.trim()}
                         </span>
                       ) : null}
@@ -255,23 +254,23 @@ export default function GalleryPage() {
                     <div
                       onClick={() => setLightboxIndex(idx)}
                       data-cursor="VIEW"
-                      className="relative w-full aspect-[16/9] bg-[#111] overflow-hidden cursor-pointer mb-3.5 rounded-[2px]"
+                      className="relative w-full aspect-[16/9] bg-[#111] overflow-hidden cursor-pointer mb-2.5 sm:mb-3.5 rounded-[2px]"
                     >
                       <Image
                         src={moment.image}
                         alt={moment.title}
                         fill
                         priority={idx < 3}
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        sizes="(max-width: 1024px) 50vw, 33vw"
                         className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                       />
                     </div>
 
-                    <div className="flex items-baseline justify-between gap-3">
+                    <div className="flex items-baseline justify-between gap-2 sm:gap-3">
                       <h2
                         onClick={() => setLightboxIndex(idx)}
                         style={{ fontFamily: "var(--font-wordmark)" }}
-                        className="text-[clamp(24px,2.4vw,34px)] lowercase text-[#0c0c0c] leading-[1.24] cursor-pointer"
+                        className="text-[clamp(17px,2.4vw,34px)] lowercase text-[#0c0c0c] leading-[1.24] cursor-pointer truncate"
                       >
                         {moment.title}
                       </h2>
@@ -279,7 +278,7 @@ export default function GalleryPage() {
                       <button
                         type="button"
                         onClick={() => setLightboxIndex(idx)}
-                        className="text-[12px] text-[#767676] group-hover:text-[#0c0c0c] underline underline-offset-4 cursor-pointer shrink-0"
+                        className="text-[10px] sm:text-[12px] text-[#767676] group-hover:text-[#0c0c0c] underline underline-offset-4 cursor-pointer shrink-0"
                       >
                         Inspect
                       </button>
@@ -288,7 +287,7 @@ export default function GalleryPage() {
 
                   {/* Dynamic Member Tags (Filtered to Real Members Only) */}
                   {moment.members && moment.members.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 mt-2 sm:mt-3">
                       {moment.members
                         .filter((slug) => Boolean(findMemberBySlug(staticMembers, slug)))
                         .map((slug) => {
@@ -300,7 +299,7 @@ export default function GalleryPage() {
                             <TransitionLink
                               key={slug}
                               href={`/${targetSlug}`}
-                              className="px-2 py-0.5 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[11px] font-mono text-[#52525b] uppercase transition-colors rounded-[2px]"
+                              className="px-1.5 sm:px-2 py-0.5 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[9.5px] sm:text-[11px] font-mono text-[#52525b] uppercase transition-colors rounded-[2px]"
                             >
                               {label}
                             </TransitionLink>
@@ -375,19 +374,19 @@ export default function GalleryPage() {
       </main>
 
       {/* ─── Designed Footer Close (Full-width Wordmark Return) ─── */}
-      <footer className="w-full bg-[#f4f5f7] px-[3vw] py-16">
-        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+      <footer className="w-full bg-[#f4f5f7] px-4 sm:px-[3vw] py-10 sm:py-16">
+        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-6 sm:gap-8">
           <div>
             <TransitionLink
               href="/"
               style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(48px,8vw,112px)] lowercase text-[#0c0c0c] leading-[1.04] inline-block hover:opacity-70 transition-opacity"
+              className="text-[clamp(42px,9vw,112px)] lowercase text-[#0c0c0c] leading-[1.12] inline-block hover:opacity-70 transition-opacity"
             >
               kobrat
             </TransitionLink>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#0c0c0c]">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-[13px] sm:text-[14px] text-[#0c0c0c]">
             <TransitionLink href="/" className="underline hover:opacity-65">
               Back to home
             </TransitionLink>

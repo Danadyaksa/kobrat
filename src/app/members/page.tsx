@@ -293,10 +293,10 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
       {/* ─── Elastic Woven Lanyard Strap & Studio Rail Anchor ─── */}
       <div
         aria-hidden="true"
-        className="relative w-[280px] h-[68px] pointer-events-none z-[30] overflow-visible"
+        className="relative w-[140px] sm:w-[220px] md:w-[280px] h-[46px] sm:h-[58px] md:h-[68px] pointer-events-none z-[30] overflow-visible"
       >
         {/* Top Architectural Ceiling Bracket */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-11 h-2 bg-[#0c0c0c] rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 sm:w-11 h-1.5 sm:h-2 bg-[#0c0c0c] rounded-full" />
 
         {/* Dynamic Elastic SVG Lanyard Ribbon */}
         <svg
@@ -326,10 +326,10 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
         {/* Metal Badge Clip Locked Into the Card's Die-Cut Slot */}
         <motion.div
           style={{ transform: claspTransform }}
-          className="absolute bottom-[-8px] left-1/2 -ml-[15px] w-[30px] h-[20px] bg-[#18181b] rounded-[4px] flex flex-col items-center justify-between py-1 z-[35]"
+          className="absolute bottom-[-6px] sm:bottom-[-8px] left-1/2 -ml-[12px] sm:-ml-[15px] w-[24px] sm:w-[30px] h-[16px] sm:h-[20px] bg-[#18181b] rounded-[4px] flex flex-col items-center justify-between py-0.5 sm:py-1 z-[35]"
         >
-          <span className="w-3.5 h-1 bg-[#71717a] rounded-full" />
-          <span className="w-2 h-2 rounded-full bg-[#a1a1aa]" />
+          <span className="w-2.5 sm:w-3.5 h-0.5 sm:h-1 bg-[#71717a] rounded-full" />
+          <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-[#a1a1aa]" />
         </motion.div>
       </div>
 
@@ -349,25 +349,25 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
             rotateZ: swingZ,
             transformOrigin: "50% 0%",
           }}
-          className={`relative w-full min-h-[300px] sm:min-h-[324px] transform-style-3d will-change-transform touch-pan-y cursor-grab active:cursor-grabbing ${
+          className={`relative w-full min-h-[260px] sm:min-h-[300px] md:min-h-[324px] transform-style-3d will-change-transform touch-pan-y cursor-grab active:cursor-grabbing ${
             isDragging ? "z-[60]" : "z-[20]"
           }`}
         >
           {/* Physical PVC Card Core Thickness Edge Layer */}
           <div
             aria-hidden="true"
-            className="absolute inset-0 rounded-[16px] bg-[#d4d6dc] pointer-events-none"
+            className="absolute inset-0 rounded-[14px] sm:rounded-[16px] bg-[#d4d6dc] pointer-events-none"
           />
 
           {/* ─── Studio ID Card Surface ─── */}
           <div
             style={{ transform: "translateZ(3px)" }}
-            className={`relative w-full min-h-[300px] sm:min-h-[324px] rounded-[16px] ${stockBg} pt-6 flex flex-col justify-between overflow-hidden`}
+            className={`relative w-full min-h-[260px] sm:min-h-[300px] md:min-h-[324px] rounded-[14px] sm:rounded-[16px] ${stockBg} pt-4 sm:pt-6 flex flex-col justify-between overflow-hidden`}
           >
             {/* Die-Cut Lanyard Punch Hole at Top Center */}
             <div
               aria-hidden="true"
-              className="absolute top-2.5 left-1/2 -translate-x-1/2 w-14 h-3 rounded-full bg-white"
+              className="absolute top-2 sm:top-2.5 left-1/2 -translate-x-1/2 w-10 sm:w-14 h-2 sm:h-3 rounded-full bg-white"
             />
 
             {/* Dynamic Studio Acrylic Light Sheen Overlay */}
@@ -383,31 +383,31 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
             {/* Card Top Header Row */}
             <div
               style={{ transform: "translateZ(16px)" }}
-              className="px-5 sm:px-7 flex items-center justify-between gap-3 pt-2"
+              className="px-3 sm:px-5 md:px-7 flex items-center justify-between gap-1 sm:gap-3 pt-1 sm:pt-2"
             >
-              <div className="flex items-center gap-2 text-[#0c0c0c]">
-                <PixelSeal className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[#0c0c0c]">
+                <PixelSeal className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
                 <span
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[22px] lowercase leading-[1.25] pt-0.5 inline-block"
+                  className="text-[17px] sm:text-[20px] md:text-[22px] lowercase leading-[1.25] pt-0.5 inline-block"
                 >
                   kobrat
                 </span>
               </div>
 
-              <span className="text-[12px] text-[#52525b] tabular-nums font-medium">
+              <span className="text-[9.5px] sm:text-[11px] md:text-[12px] text-[#52525b] tabular-nums font-medium truncate">
                 {credentialCode}
               </span>
             </div>
 
-            {/* Card Center Body: Left 3:4 ID Portrait + Right Stacked Nickname / Full Name / IG */}
+            {/* Card Center Body: Reflows Vertically on Mobile 2-Col, Horizontally on Desktop */}
             <div
               style={{ transform: "translateZ(24px)" }}
-              className="px-5 sm:px-7 my-auto py-3.5 flex flex-row items-center gap-5 sm:gap-6"
+              className="px-3 sm:px-5 md:px-7 my-auto py-2 sm:py-3.5 flex flex-col sm:flex-row items-center gap-2.5 sm:gap-5 md:gap-6 text-center sm:text-left"
             >
               {/* Authentic 3:4 ID Portrait Window */}
-              <div className="relative w-[112px] sm:w-[138px] aspect-[3/4] shrink-0 rounded-[10px] bg-[#111] p-1 overflow-hidden">
-                <div className="relative w-full h-full rounded-[7px] overflow-hidden">
+              <div className="relative w-[76px] sm:w-[112px] md:w-[138px] aspect-[3/4] shrink-0 rounded-[8px] sm:rounded-[10px] bg-[#111] p-1 overflow-hidden mx-auto sm:mx-0">
+                <div className="relative w-full h-full rounded-[6px] sm:rounded-[7px] overflow-hidden">
                   <Image
                     src={member.image}
                     alt={fullNameDisplay}
@@ -419,30 +419,30 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
                 </div>
               </div>
 
-              {/* Right Identity Details: Big Nickname -> Small Full Name -> IG Underneath */}
-              <div className="flex-1 min-w-0 flex flex-col justify-center">
+              {/* Identity Details */}
+              <div className="flex-1 min-w-0 w-full flex flex-col justify-center">
                 {/* 1. Nama Panggilan (Big Gothic) */}
                 <h2
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(34px,3.8vw,52px)] lowercase text-[#0c0c0c] leading-[1.26] pt-1.5 pb-0.5 overflow-visible"
+                  className="text-[clamp(20px,3.8vw,52px)] lowercase text-[#0c0c0c] leading-[1.2] pt-0.5 sm:pt-1.5 pb-0.5 overflow-visible truncate max-w-full"
                 >
                   {nicknameDisplay}
                 </h2>
 
                 {/* 2. Nama Panjang (Small Crisp Text Underneath) */}
-                <p className="mt-1.5 text-[14px] sm:text-[15px] font-medium text-[#18181b] leading-[1.35] break-words">
+                <p className="mt-0.5 sm:mt-1.5 text-[11px] sm:text-[14px] md:text-[15px] font-medium text-[#18181b] leading-[1.3] truncate max-w-full">
                   {fullNameDisplay}
                 </p>
 
-                {/* 3. Social & Portfolio Links (Stacked Directly Below Full Name) */}
+                {/* 3. Social & Portfolio Links */}
                 {(igInfo || ghInfo || webInfo) && (
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3.5 gap-y-1">
+                  <div className="mt-1 sm:mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-x-2 sm:gap-x-3.5 gap-y-1">
                     {igInfo && (
                       <a
                         href={igInfo.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-[12.5px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4"
+                        className="inline-flex items-center gap-1 text-[10.5px] sm:text-[12.5px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4 truncate max-w-[140px]"
                       >
                         <svg
                           viewBox="0 0 16 16"
@@ -450,13 +450,13 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
                           stroke="currentColor"
                           strokeWidth="1.4"
                           aria-hidden="true"
-                          className="w-3.5 h-3.5 shrink-0"
+                          className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0"
                         >
                           <rect x="2" y="2" width="12" height="12" rx="3.5" />
                           <circle cx="8" cy="8" r="2.75" />
                           <circle cx="11.6" cy="4.4" r="0.7" fill="currentColor" stroke="none" />
                         </svg>
-                        <span>{igInfo.label}</span>
+                        <span className="truncate">{igInfo.label}</span>
                       </a>
                     )}
 
@@ -465,47 +465,25 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
                         href={ghInfo.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-[12.5px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4"
+                        className="inline-flex items-center gap-1 text-[10.5px] sm:text-[12.5px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4 truncate max-w-[140px]"
                       >
                         <svg
                           viewBox="0 0 16 16"
                           fill="currentColor"
                           aria-hidden="true"
-                          className="w-3.5 h-3.5 shrink-0"
+                          className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0"
                         >
                           <path d="M8 1.2a6.8 6.8 0 0 0-2.15 13.25c.34.06.46-.15.46-.33v-1.15c-1.89.41-2.29-.91-2.29-.91-.31-.78-.75-.99-.75-.99-.62-.42.05-.41.05-.41.68.05 1.04.7 1.04.7.61 1.04 1.59.74 1.98.57.06-.44.24-.74.43-.91-1.51-.17-3.1-.76-3.1-3.37 0-.74.27-1.35.7-1.83-.07-.17-.3-.86.07-1.8 0 0 .57-.18 1.87.7a6.5 6.5 0 0 1 3.4 0c1.3-.88 1.87-.7 1.87-.7.37.94.14 1.63.07 1.8.44.48.7 1.09.7 1.83 0 2.62-1.59 3.2-3.11 3.37.24.21.46.62.46 1.26v1.87c0 .18.12.39.47.33A6.8 6.8 0 0 0 8 1.2Z" />
                         </svg>
-                        <span>{ghInfo.username}</span>
-                      </a>
-                    )}
-
-                    {webInfo && (
-                      <a
-                        href={webInfo.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-[12.5px] text-[#3f3f46] hover:text-[#0c0c0c] underline underline-offset-4"
-                      >
-                        <svg
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.4"
-                          aria-hidden="true"
-                          className="w-3.5 h-3.5 shrink-0"
-                        >
-                          <circle cx="8" cy="8" r="6" />
-                          <path d="M2.2 8h11.6M8 2a9.8 9.8 0 0 1 2.4 6A9.8 9.8 0 0 1 8 14a9.8 9.8 0 0 1-2.4-6A9.8 9.8 0 0 1 8 2Z" />
-                        </svg>
-                        <span className="truncate max-w-[160px]">{webInfo.label}</span>
+                        <span className="truncate">{ghInfo.username}</span>
                       </a>
                     )}
                   </div>
                 )}
 
-                {/* Optional Bio Quote */}
+                {/* Optional Bio Quote (shown on tablet/desktop) */}
                 {member.bio && (
-                  <p className="mt-2.5 text-[13px] text-[#52525b] line-clamp-2 leading-[1.45]">
+                  <p className="hidden sm:block mt-2.5 text-[13px] text-[#52525b] line-clamp-2 leading-[1.45]">
                     “{member.bio}”
                   </p>
                 )}
@@ -515,14 +493,16 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
             {/* Card Bottom Barcode & Profile Button */}
             <div
               style={{ transform: "translateZ(18px)" }}
-              className="w-full bg-black/[0.045] px-5 sm:px-7 py-3.5 flex items-center justify-between gap-3"
+              className="w-full bg-black/[0.045] px-2.5 sm:px-5 md:px-7 py-2 sm:py-3.5 flex items-center justify-between gap-2"
             >
-              <MemberBarcode seed={`${member.id}-${fullNameDisplay}-${slug}`} />
+              <div className="hidden sm:block">
+                <MemberBarcode seed={`${member.id}-${fullNameDisplay}-${slug}`} />
+              </div>
 
               <TransitionLink
                 href={`/${slug}`}
                 data-cursor="VIEW PROFILE"
-                className="px-4 py-1.5 rounded-[6px] bg-[#0c0c0c] text-white text-[12px] font-medium hover:bg-[#27272a] active:scale-[0.97] transition-[background-color,transform] duration-150"
+                className="w-full sm:w-auto text-center px-3 py-1 sm:px-4 sm:py-1.5 rounded-[5px] sm:rounded-[6px] bg-[#0c0c0c] text-white text-[11px] sm:text-[12px] font-medium hover:bg-[#27272a] active:scale-[0.97] transition-[background-color,transform] duration-150"
               >
                 Profile
               </TransitionLink>
@@ -573,13 +553,13 @@ export default function MembersPage() {
       {/* Top Navigation */}
       <Header introComplete={true} />
 
-      <main className="flex-1 w-full pt-[148px] pb-28 px-[3vw]">
+      <main className="flex-1 w-full pt-[116px] sm:pt-[148px] pb-20 sm:pb-28 px-3 sm:px-[3vw]">
         <div className="max-w-[1320px] mx-auto">
           {/* ─── Clean Editorial Masthead ─── */}
-          <div className="pb-12 pt-4">
+          <div className="pb-8 sm:pb-12 pt-2 sm:pt-4">
             <h1
               style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(44px,5.8vw,86px)] lowercase text-[#0c0c0c] leading-[1.14] tracking-[-0.02em]"
+              className="text-[clamp(38px,5.8vw,86px)] lowercase text-[#0c0c0c] leading-[1.14] tracking-[-0.02em]"
             >
               members
             </h1>
@@ -613,8 +593,8 @@ export default function MembersPage() {
               </h2>
             </div>
           ) : (
-            /* ─── 2-Column Hanging 3D ID Cards Studio Rack ─── */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 lg:gap-x-16 gap-y-12">
+            /* ─── 2-Column Hanging 3D ID Cards Studio Rack (2 Cols on All Screen Sizes) ─── */
+            <div className="grid grid-cols-2 gap-x-2.5 sm:gap-x-6 md:gap-x-10 lg:gap-x-16 gap-y-6 sm:gap-y-10 md:gap-y-12">
               {membersList.map((member, idx) => (
                 <InteractiveIdCard
                   key={member.id}
@@ -628,19 +608,19 @@ export default function MembersPage() {
       </main>
 
       {/* ─── Designed Footer Close ─── */}
-      <footer className="w-full bg-[#f4f5f7] px-[3vw] py-16">
-        <div className="max-w-[1320px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+      <footer className="w-full bg-[#f4f5f7] px-4 sm:px-[3vw] py-10 sm:py-16">
+        <div className="max-w-[1320px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-6 sm:gap-8">
           <div>
             <TransitionLink
               href="/"
               style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(48px,8vw,112px)] lowercase text-[#0c0c0c] leading-[1.04] inline-block hover:opacity-70 transition-opacity"
+              className="text-[clamp(42px,9vw,112px)] lowercase text-[#0c0c0c] leading-[1.12] inline-block hover:opacity-70 transition-opacity"
             >
               kobrat
             </TransitionLink>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#0c0c0c]">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-[13px] sm:text-[14px] text-[#0c0c0c]">
             <TransitionLink href="/" className="underline hover:opacity-65">
               Back to home
             </TransitionLink>

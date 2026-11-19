@@ -60,19 +60,19 @@ export default function Home() {
       </main>
 
       {/* ─── Designed Footer Close (Full-width Wordmark Return) ─── */}
-      <footer className="w-full bg-[#f4f5f7] px-[3vw] py-16">
-        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+      <footer className="w-full bg-[#f4f5f7] px-4 sm:px-[3vw] py-10 sm:py-16">
+        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-6 sm:gap-8">
           <div>
             <TransitionLink
               href="/"
               style={{ fontFamily: "var(--font-wordmark)" }}
-              className="text-[clamp(48px,8vw,112px)] lowercase text-[#0c0c0c] leading-[1.04] inline-block hover:opacity-70 transition-opacity"
+              className="text-[clamp(42px,9vw,112px)] lowercase text-[#0c0c0c] leading-[1.12] inline-block hover:opacity-70 transition-opacity"
             >
               kobrat
             </TransitionLink>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#0c0c0c]">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-[13px] sm:text-[14px] text-[#0c0c0c]">
             <a href="#home" className="underline hover:opacity-65 cursor-pointer">
               Back to top
             </a>

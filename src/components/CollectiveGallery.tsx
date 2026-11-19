@@ -361,24 +361,24 @@ export default function CollectiveGallery() {
           </div>
 
           {/* ─── Top Persistent Editorial HUD Bar ─── */}
-          <div className="relative z-[45] w-full px-[3vw] pt-[64px] pb-2 flex items-end justify-between gap-4">
-            <div className="flex items-baseline gap-4">
+          <div className="relative z-[45] w-full px-3 sm:px-[3vw] pt-[76px] sm:pt-[70px] md:pt-[64px] pb-2 flex items-end justify-between gap-3 sm:gap-4">
+            <div className="flex items-baseline gap-2.5 sm:gap-4 shrink-0">
               <h2
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[clamp(32px,4.5vw,58px)] lowercase text-[#0c0c0c] leading-[1.18] pb-1"
+                className="text-[clamp(26px,4.5vw,58px)] lowercase text-[#0c0c0c] leading-[1.18] pb-0.5 sm:pb-1"
               >
                 highlights
               </h2>
-              <span className="text-[13px] text-[#767676]">
+              <span className="text-[11px] sm:text-[13px] text-[#767676] font-mono tracking-tight whitespace-nowrap">
                 {activeCardIndex + 1} of 3
               </span>
             </div>
 
-            <div className="flex items-center gap-6 pb-1">
+            <div className="flex items-center gap-3 sm:gap-6 pb-1 shrink-0">
               <TransitionLink
                 href="/gallery"
                 data-cursor="OPEN GALLERY"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0c0c0c] text-white text-[12px] hover:bg-[#27272a] active:scale-[0.97] transition-[background-color,transform] duration-150 ease-out"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#0c0c0c] text-white text-[11px] sm:text-[12px] whitespace-nowrap hover:bg-[#27272a] active:scale-[0.97] transition-[background-color,transform] duration-150 ease-out"
               >
                 <RollingText text={`FULL GALLERY (${momentsList.length})`} />
               </TransitionLink>
@@ -394,19 +394,19 @@ export default function CollectiveGallery() {
               {/* ── CARD 1: First Flagship Widescreen Print ── */}
               <div
                 ref={card1Ref}
-                className="absolute w-[92vw] max-w-[min(1120px,calc((100dvh-200px)*16/9))] bg-[#eceef2] p-3 sm:p-4 md:p-5 flex flex-col gap-2.5 sm:gap-3 z-[10] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d8dce6]"
+                className="absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1120px,calc((100dvh-170px)*16/9))] bg-[#eceef2] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[10] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d8dce6] rounded-[4px]"
               >
-                <div className="flex items-center justify-between gap-4 px-1 py-0.5">
+                <div className="flex items-center justify-between gap-2 sm:gap-4 px-1 py-0.5">
                   <div className="min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(22px,2.9vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
+                      className="text-[clamp(18px,3.8vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
                     >
                       {featuredMoments[0].title}
                     </h3>
                   </div>
 
-                  <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
                     {featuredMoments[0].location && (
                       <span className="hidden sm:inline-block font-mono text-[11px] uppercase tracking-[0.05em] text-[#767676]">
                         {formatLocation(
@@ -419,7 +419,7 @@ export default function CollectiveGallery() {
                       type="button"
                       onClick={() => setLightboxMoment(featuredMoments[0])}
                       data-cursor="INSPECT"
-                      className="text-[12px] md:text-[13px] font-mono uppercase tracking-[0.04em] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity"
+                      className="text-[11px] sm:text-[13px] font-mono uppercase tracking-[0.04em] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity whitespace-nowrap"
                     >
                       Inspect frame
                     </button>
@@ -451,19 +451,19 @@ export default function CollectiveGallery() {
               {/* ── CARD 2: Second Flagship Widescreen Print ── */}
               <div
                 ref={card2Ref}
-                className="absolute w-[92vw] max-w-[min(1120px,calc((100dvh-200px)*16/9))] bg-[#ebe9e2] p-3 sm:p-4 md:p-5 flex flex-col gap-2.5 sm:gap-3 z-[20] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#dedcd4]"
+                className="absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1120px,calc((100dvh-170px)*16/9))] bg-[#ebe9e2] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[20] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#dedcd4] rounded-[4px]"
               >
-                <div className="flex items-center justify-between gap-4 px-1 py-0.5">
+                <div className="flex items-center justify-between gap-2 sm:gap-4 px-1 py-0.5">
                   <div className="min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(22px,2.9vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
+                      className="text-[clamp(18px,3.8vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
                     >
                       {featuredMoments[1].title}
                     </h3>
                   </div>
 
-                  <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
                     {featuredMoments[1].location && (
                       <span className="hidden sm:inline-block font-mono text-[11px] uppercase tracking-[0.05em] text-[#767676]">
                         {formatLocation(
@@ -476,7 +476,7 @@ export default function CollectiveGallery() {
                       type="button"
                       onClick={() => setLightboxMoment(featuredMoments[1])}
                       data-cursor="INSPECT"
-                      className="text-[12px] md:text-[13px] font-mono uppercase tracking-[0.04em] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity"
+                      className="text-[11px] sm:text-[13px] font-mono uppercase tracking-[0.04em] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity whitespace-nowrap"
                     >
                       Inspect frame
                     </button>
@@ -497,7 +497,7 @@ export default function CollectiveGallery() {
                       src={featuredMoments[1].image}
                       alt={featuredMoments[1].title}
                       fill
-                      sizes="(max-width: 1280px) 92vw, 1120px"
+                      sizes="(max-width: 1280px) 96vw, 1120px"
                       className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   </div>
@@ -507,19 +507,19 @@ export default function CollectiveGallery() {
               {/* ── CARD 3: Third Flagship Widescreen Print ── */}
               <div
                 ref={card3Ref}
-                className="absolute w-[92vw] max-w-[min(1120px,calc((100dvh-200px)*16/9))] bg-[#dfe3ec] p-3 sm:p-4 md:p-5 flex flex-col gap-2.5 sm:gap-3 z-[30] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d2d6e2]"
+                className="absolute w-[96vw] sm:w-[93vw] md:w-[90vw] max-w-[min(1120px,calc((100dvh-170px)*16/9))] bg-[#dfe3ec] p-2.5 sm:p-4 md:p-5 flex flex-col gap-2 sm:gap-3 z-[30] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d2d6e2] rounded-[4px]"
               >
-                <div className="flex items-center justify-between gap-4 px-1 py-0.5">
+                <div className="flex items-center justify-between gap-2 sm:gap-4 px-1 py-0.5">
                   <div className="min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(22px,2.9vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
+                      className="text-[clamp(18px,3.8vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
                     >
                       {featuredMoments[2].title}
                     </h3>
                   </div>
 
-                  <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
                     {featuredMoments[2].location && (
                       <span className="hidden sm:inline-block font-mono text-[11px] uppercase tracking-[0.05em] text-[#767676]">
                         {formatLocation(
@@ -532,7 +532,7 @@ export default function CollectiveGallery() {
                       type="button"
                       onClick={() => setLightboxMoment(featuredMoments[2])}
                       data-cursor="INSPECT"
-                      className="text-[12px] md:text-[13px] font-mono uppercase tracking-[0.04em] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity"
+                      className="text-[11px] sm:text-[13px] font-mono uppercase tracking-[0.04em] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity whitespace-nowrap"
                     >
                       Inspect frame
                     </button>
@@ -553,7 +553,7 @@ export default function CollectiveGallery() {
                       src={featuredMoments[2].image}
                       alt={featuredMoments[2].title}
                       fill
-                      sizes="(max-width: 1280px) 92vw, 1120px"
+                      sizes="(max-width: 1280px) 96vw, 1120px"
                       className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   </div>
@@ -563,9 +563,9 @@ export default function CollectiveGallery() {
           </div>
 
           {/* ─── Bottom Stage Status Bar ─── */}
-          <div className="relative z-[45] w-full px-[3vw] pb-5 flex items-center justify-between text-[13px] text-[#52525b]">
-            <div className="flex items-center gap-3">
-              <span>
+          <div className="relative z-[45] w-full px-3 sm:px-[3vw] pb-3 sm:pb-5 flex items-center justify-between text-[11px] sm:text-[13px] text-[#52525b] gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 truncate">
+              <span className="truncate">
                 {featuredMoments[activeCardIndex] &&
                   formatLocation(
                     featuredMoments[activeCardIndex].location,
@@ -577,7 +577,7 @@ export default function CollectiveGallery() {
             <TransitionLink
               href="/gallery"
               data-cursor="ALL FRAMES"
-              className="text-[#0c0c0c] underline underline-offset-4 hover:opacity-65 transition-opacity"
+              className="text-[#0c0c0c] underline underline-offset-4 hover:opacity-65 transition-opacity whitespace-nowrap shrink-0"
             >
               Explore all {momentsList.length} frames in gallery
             </TransitionLink>
