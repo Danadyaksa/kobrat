@@ -128,7 +128,7 @@ export default function GalleryPage() {
 
             <div className="lg:col-span-5 flex flex-col justify-end">
               <p className="text-[15px] md:text-[16px] text-[#52525b] leading-[1.5] max-w-[42ch]">
-                Dokumentasi visual 8 kawan. Klik frame untuk melihat resolusi penuh.
+                Raw rolls, late-night drift, and unscripted frames from the circle.
               </p>
             </div>
           </div>

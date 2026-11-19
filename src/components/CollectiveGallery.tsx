@@ -365,7 +365,7 @@ export default function CollectiveGallery() {
             <div className="flex items-baseline gap-4">
               <h2
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[clamp(32px,4.5vw,58px)] lowercase text-[#0c0c0c] leading-[1.08]"
+                className="text-[clamp(32px,4.5vw,58px)] lowercase text-[#0c0c0c] leading-[1.18] pb-1"
               >
                 highlights
               </h2>
@@ -396,30 +396,34 @@ export default function CollectiveGallery() {
                 ref={card1Ref}
                 className="absolute w-[92vw] max-w-[min(1120px,calc((100dvh-200px)*16/9))] bg-[#eceef2] p-3 sm:p-4 md:p-5 flex flex-col gap-2.5 sm:gap-3 z-[10] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d8dce6]"
               >
-                <div className="flex items-baseline justify-between gap-4 px-1">
-                  <div className="flex items-baseline gap-3 min-w-0">
+                <div className="flex items-center justify-between gap-4 px-1 py-0.5">
+                  <div className="min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(24px,3.4vw,44px)] lowercase text-[#0c0c0c] leading-[1.08] truncate"
+                      className="text-[clamp(22px,2.9vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
                     >
                       {featuredMoments[0].title}
                     </h3>
-                    <span className="hidden md:inline text-[13px] text-[#52525b]">
-                      {formatLocation(
-                        featuredMoments[0].location,
-                        featuredMoments[0].year
-                      )}
-                    </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setLightboxMoment(featuredMoments[0])}
-                    data-cursor="INSPECT"
-                    className="text-[13px] md:text-[14px] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity shrink-0"
-                  >
-                    Inspect frame
-                  </button>
+                  <div className="flex items-center gap-4 shrink-0">
+                    {featuredMoments[0].location && (
+                      <span className="hidden sm:inline-block font-mono text-[11px] uppercase tracking-[0.05em] text-[#767676]">
+                        {formatLocation(
+                          featuredMoments[0].location,
+                          featuredMoments[0].year
+                        )}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setLightboxMoment(featuredMoments[0])}
+                      data-cursor="INSPECT"
+                      className="text-[12px] md:text-[13px] font-mono uppercase tracking-[0.04em] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity"
+                    >
+                      Inspect frame
+                    </button>
+                  </div>
                 </div>
 
                 {/* Exact 16:9 Landscape Frame (Zero Crop) */}
@@ -449,30 +453,34 @@ export default function CollectiveGallery() {
                 ref={card2Ref}
                 className="absolute w-[92vw] max-w-[min(1120px,calc((100dvh-200px)*16/9))] bg-[#ebe9e2] p-3 sm:p-4 md:p-5 flex flex-col gap-2.5 sm:gap-3 z-[20] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#dedcd4]"
               >
-                <div className="flex items-baseline justify-between gap-4 px-1">
-                  <div className="flex items-baseline gap-3 min-w-0">
+                <div className="flex items-center justify-between gap-4 px-1 py-0.5">
+                  <div className="min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(24px,3.4vw,44px)] lowercase text-[#0c0c0c] leading-[1.08] truncate"
+                      className="text-[clamp(22px,2.9vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
                     >
                       {featuredMoments[1].title}
                     </h3>
-                    <span className="hidden md:inline text-[13px] text-[#52525b]">
-                      {formatLocation(
-                        featuredMoments[1].location,
-                        featuredMoments[1].year
-                      )}
-                    </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setLightboxMoment(featuredMoments[1])}
-                    data-cursor="INSPECT"
-                    className="text-[13px] md:text-[14px] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity shrink-0"
-                  >
-                    Inspect frame
-                  </button>
+                  <div className="flex items-center gap-4 shrink-0">
+                    {featuredMoments[1].location && (
+                      <span className="hidden sm:inline-block font-mono text-[11px] uppercase tracking-[0.05em] text-[#767676]">
+                        {formatLocation(
+                          featuredMoments[1].location,
+                          featuredMoments[1].year
+                        )}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setLightboxMoment(featuredMoments[1])}
+                      data-cursor="INSPECT"
+                      className="text-[12px] md:text-[13px] font-mono uppercase tracking-[0.04em] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity"
+                    >
+                      Inspect frame
+                    </button>
+                  </div>
                 </div>
 
                 {/* Exact 16:9 Landscape Frame (Zero Crop) */}
@@ -501,30 +509,34 @@ export default function CollectiveGallery() {
                 ref={card3Ref}
                 className="absolute w-[92vw] max-w-[min(1120px,calc((100dvh-200px)*16/9))] bg-[#dfe3ec] p-3 sm:p-4 md:p-5 flex flex-col gap-2.5 sm:gap-3 z-[30] will-change-transform shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-[#d2d6e2]"
               >
-                <div className="flex items-baseline justify-between gap-4 px-1">
-                  <div className="flex items-baseline gap-3 min-w-0">
+                <div className="flex items-center justify-between gap-4 px-1 py-0.5">
+                  <div className="min-w-0">
                     <h3
                       style={{ fontFamily: "var(--font-wordmark)" }}
-                      className="text-[clamp(24px,3.4vw,44px)] lowercase text-[#0c0c0c] leading-[1.08] truncate"
+                      className="text-[clamp(22px,2.9vw,38px)] lowercase text-[#0c0c0c] leading-[1.28] pt-0.5 pb-1.5 overflow-visible tracking-normal whitespace-nowrap"
                     >
                       {featuredMoments[2].title}
                     </h3>
-                    <span className="hidden md:inline text-[13px] text-[#52525b]">
-                      {formatLocation(
-                        featuredMoments[2].location,
-                        featuredMoments[2].year
-                      )}
-                    </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setLightboxMoment(featuredMoments[2])}
-                    data-cursor="INSPECT"
-                    className="text-[13px] md:text-[14px] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity shrink-0"
-                  >
-                    Inspect frame
-                  </button>
+                  <div className="flex items-center gap-4 shrink-0">
+                    {featuredMoments[2].location && (
+                      <span className="hidden sm:inline-block font-mono text-[11px] uppercase tracking-[0.05em] text-[#767676]">
+                        {formatLocation(
+                          featuredMoments[2].location,
+                          featuredMoments[2].year
+                        )}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setLightboxMoment(featuredMoments[2])}
+                      data-cursor="INSPECT"
+                      className="text-[12px] md:text-[13px] font-mono uppercase tracking-[0.04em] text-[#0c0c0c] underline underline-offset-4 cursor-pointer hover:opacity-60 transition-opacity"
+                    >
+                      Inspect frame
+                    </button>
+                  </div>
                 </div>
 
                 {/* Exact 16:9 Landscape Frame (Zero Crop) */}
