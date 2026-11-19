@@ -5,8 +5,6 @@ import Image from "next/image";
 import { motion, AnimatePresence, useSpring } from "motion/react";
 import Header from "@/components/Header";
 import TransitionLink from "@/components/TransitionLink";
-import LightTableCanvas from "@/components/LightTableCanvas";
-import { useExperience } from "@/components/ExperienceProvider";
 import { Moment, moments as staticMoments } from "@/data/moments";
 
 const CATEGORIES = [
@@ -19,14 +17,11 @@ const CATEGORIES = [
 ] as const;
 
 export default function GalleryPage() {
-  const { openRoulette } = useExperience();
   const [momentsList, setMomentsList] = useState<Moment[]>(staticMoments);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
-  const [viewMode, setViewMode] = useState<"3col" | "2col" | "table" | "index">(
-    "3col"
-  );
+  const [viewMode, setViewMode] = useState<"3col" | "2col" | "index">("3col");
   const [hoveredMoment, setHoveredMoment] = useState<Moment | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -185,8 +180,8 @@ export default function GalleryPage() {
               })}
             </div>
 
-            {/* Grid Column, Light Table & Index Switcher */}
-            <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+            {/* Grid Column & Index Switcher */}
+            <div className="flex items-center gap-2 self-start md:self-auto">
               <button
                 type="button"
                 onClick={() => setViewMode("3col")}
@@ -211,17 +206,6 @@ export default function GalleryPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode("table")}
-                className={`px-3.5 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
-                  viewMode === "table"
-                    ? "bg-[#0c0c0c] text-white font-medium"
-                    : "bg-white text-[#0c0c0c] hover:bg-[#e4e6eb]"
-                }`}
-              >
-                Light table
-              </button>
-              <button
-                type="button"
                 onClick={() => setViewMode("index")}
                 className={`px-3.5 py-2 text-[13px] transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97] ${
                   viewMode === "index"
@@ -230,13 +214,6 @@ export default function GalleryPage() {
                 }`}
               >
                 Archive index
-              </button>
-              <button
-                type="button"
-                onClick={openRoulette}
-                className="px-3.5 py-2 text-[13px] bg-white text-[#0c0c0c] hover:bg-[#0c0c0c] hover:text-white transition-[background-color,color,transform] duration-150 ease-out cursor-pointer active:scale-[0.97]"
-              >
-                Random roll
               </button>
             </div>
           </div>
@@ -282,14 +259,6 @@ export default function GalleryPage() {
                 Show all frames
               </button>
             </div>
-          ) : viewMode === "table" ? (
-            /* ═══════════════════════════════════════════════════════════════════ */
-            /* MODE 3: INTERACTIVE STUDIO LIGHT TABLE (DRAG & TOSS POLAROIDS)      */
-            /* ═══════════════════════════════════════════════════════════════════ */
-            <LightTableCanvas
-              moments={filteredMoments}
-              onInspect={(idx) => setLightboxIndex(idx)}
-            />
           ) : viewMode !== "index" ? (
             /* ═══════════════════════════════════════════════════════════════════ */
             /* MODE 1: FRAMELESS AWWWARDS CONTACT SHEET (3 / 2 COLUMNS + FOCUS)   */
@@ -318,9 +287,15 @@ export default function GalleryPage() {
                   <div>
                     {/* Top Frame Caption */}
                     <div className="flex items-center justify-between gap-2 text-[12px] text-[#767676] mb-2">
-                      <span className="capitalize text-[#0c0c0c] font-medium">
-                        {moment.category.toLowerCase()}
-                      </span>
+                      {moment.category ? (
+                        <span className="capitalize text-[#0c0c0c] font-medium">
+                          {moment.category.toLowerCase()}
+                        </span>
+                      ) : (
+                        <span className="text-[#0c0c0c] font-medium">
+                          {moment.year}
+                        </span>
+                      )}
                       <span>{formatLocation(moment.location, moment.year)}</span>
                     </div>
 
@@ -402,9 +377,11 @@ export default function GalleryPage() {
                       >
                         {moment.title}
                       </h2>
-                      <span className="text-[14px] text-[#767676] group-hover:text-white/70 capitalize">
-                        {moment.category.toLowerCase()}
-                      </span>
+                      {moment.category && (
+                        <span className="text-[14px] text-[#767676] group-hover:text-white/70 capitalize">
+                          {moment.category.toLowerCase()}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-8 text-[14px] text-[#52525b] group-hover:text-white/80">
@@ -482,8 +459,7 @@ export default function GalleryPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22 }}
-            data-darkroom-keep="true"
-            className="fixed inset-0 z-[9998] bg-[#0c0c0c]/95 flex flex-col justify-between p-4 md:p-8 select-none text-white"
+            className="fixed inset-0 z-[999] bg-[#0c0c0c]/95 flex flex-col justify-between p-4 md:p-8 select-none text-white"
           >
             {/* Top Bar */}
             <div className="flex items-center justify-between w-full z-10 text-[13px]">

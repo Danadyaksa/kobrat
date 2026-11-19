@@ -545,10 +545,14 @@ export default function CollectiveGallery() {
           {/* ─── Bottom Stage Status Bar ─── */}
           <div className="relative z-[45] w-full px-[3vw] pb-5 flex items-center justify-between text-[13px] text-[#52525b]">
             <div className="flex items-center gap-3">
-              <span className="text-[#0c0c0c] font-medium">
-                {featuredMoments[activeCardIndex]?.category}
-              </span>
-              <span>·</span>
+              {featuredMoments[activeCardIndex]?.category && (
+                <>
+                  <span className="text-[#0c0c0c] font-medium">
+                    {featuredMoments[activeCardIndex]?.category}
+                  </span>
+                  <span>·</span>
+                </>
+              )}
               <span>
                 {featuredMoments[activeCardIndex] &&
                   formatLocation(

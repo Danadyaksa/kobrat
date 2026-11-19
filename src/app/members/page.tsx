@@ -349,7 +349,6 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
             rotateZ: swingZ,
             transformOrigin: "50% 0%",
           }}
-          data-lanyard-card="true"
           className={`relative w-full min-h-[300px] sm:min-h-[324px] transform-style-3d will-change-transform touch-pan-y cursor-grab active:cursor-grabbing ${
             isDragging ? "z-[60]" : "z-[20]"
           }`}
@@ -390,7 +389,7 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
                 <PixelSeal className="w-3.5 h-3.5" />
                 <span
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[22px] lowercase leading-none"
+                  className="text-[22px] lowercase leading-[1.25] pt-0.5 inline-block"
                 >
                   kobrat
                 </span>
@@ -425,7 +424,7 @@ function InteractiveIdCard({ member, index }: InteractiveIdCardProps) {
                 {/* 1. Nama Panggilan (Big Gothic) */}
                 <h2
                   style={{ fontFamily: "var(--font-wordmark)" }}
-                  className="text-[clamp(36px,4vw,54px)] lowercase text-[#0c0c0c] leading-[1.04] truncate"
+                  className="text-[clamp(34px,3.8vw,52px)] lowercase text-[#0c0c0c] leading-[1.26] pt-1.5 pb-0.5 overflow-visible"
                 >
                   {nicknameDisplay}
                 </h2>

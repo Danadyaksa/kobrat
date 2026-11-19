@@ -893,9 +893,15 @@ export default function MemberProfileClient({
                     className="group lg:w-[540px] xl:w-[600px] shrink-0 cursor-pointer"
                   >
                     <div className="flex items-center justify-between text-[12px] text-white/55 mb-2.5">
-                      <span className="capitalize text-white font-medium">
-                        {moment.category.toLowerCase()}
-                      </span>
+                      {moment.category ? (
+                        <span className="capitalize text-white font-medium">
+                          {moment.category.toLowerCase()}
+                        </span>
+                      ) : (
+                        <span className="text-white font-medium">
+                          {moment.year}
+                        </span>
+                      )}
                       <span>{formatLocation(moment.location, moment.year)}</span>
                     </div>
 
@@ -1166,8 +1172,7 @@ export default function MemberProfileClient({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22 }}
-            data-darkroom-keep="true"
-            className="fixed inset-0 z-[9998] bg-[#0c0c0c]/95 flex flex-col justify-between p-4 md:p-8 select-none text-white"
+            className="fixed inset-0 z-[999] bg-[#0c0c0c]/95 flex flex-col justify-between p-4 md:p-8 select-none text-white"
           >
             <div className="flex items-center justify-between w-full z-10 text-[13px]">
               <div className="flex items-baseline gap-4">

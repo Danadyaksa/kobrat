@@ -320,7 +320,7 @@ function AdminContent() {
     if (!editingMoment) return;
 
     setIsMomentSaving(true);
-    let finalImageUrl = momentFormData.imageUrl.trim() || editingMoment.image;
+    let finalImageUrl = editingMoment.image;
 
     try {
       if (momentUploadedFile) {
@@ -335,13 +335,22 @@ function AdminContent() {
         if (!uploadRes.ok) throw new Error("Gagal mengunggah foto moment");
         const uploadData = await uploadRes.json();
         finalImageUrl = uploadData.url;
+      } else if (momentPreviewUrl && !momentPreviewUrl.startsWith("blob:")) {
+        finalImageUrl = momentPreviewUrl;
       }
+
+      // Automatically derive year from date (e.g. "OCTOBER 14, 2024" -> "2024") if present, or keep existing year
+      const parsedYear =
+        (momentFormData.date.match(/\b(20\d\d)\b/) || [])[1] ||
+        momentFormData.year?.trim() ||
+        editingMoment.year ||
+        "2025";
 
       const updatedMoment: Moment = {
         ...editingMoment,
         title: momentFormData.title.trim(),
-        category: momentFormData.category.trim().toUpperCase(),
-        year: momentFormData.year.trim(),
+        category: (editingMoment.category || "MOMENT").toUpperCase(),
+        year: parsedYear,
         date: momentFormData.date.trim(),
         location: momentFormData.location.trim(),
         camera: momentFormData.camera.trim(),
@@ -688,7 +697,7 @@ function AdminContent() {
                             <span className="px-2 py-0.5 rounded bg-[#0c0c0c] text-white font-medium">
                               CARD 01 // FIRST
                             </span>
-                            <span className="text-[#767676]">{flagshipCard1.category}</span>
+                            <span className="text-[#767676]">{flagshipCard1.year}</span>
                           </div>
 
                           <div className="relative w-full aspect-[16/10] rounded-lg overflow-hidden bg-[#111] mb-3 group cursor-pointer" onClick={() => openEditMomentModal(flagshipCard1)}>
@@ -733,7 +742,7 @@ function AdminContent() {
                             <span className="px-2 py-0.5 rounded bg-[#0c0c0c] text-white font-medium">
                               CARD 02 // MIDDLE
                             </span>
-                            <span className="text-[#767676]">{flagshipCard2.category}</span>
+                            <span className="text-[#767676]">{flagshipCard2.year}</span>
                           </div>
 
                           <div className="relative w-full aspect-[16/10] rounded-lg overflow-hidden bg-[#111] mb-3 group cursor-pointer" onClick={() => openEditMomentModal(flagshipCard2)}>
@@ -778,7 +787,7 @@ function AdminContent() {
                             <span className="px-2 py-0.5 rounded bg-[#0c0c0c] text-white font-medium">
                               CARD 03 // FINAL
                             </span>
-                            <span className="text-[#767676]">{flagshipCard3.category}</span>
+                            <span className="text-[#767676]">{flagshipCard3.year}</span>
                           </div>
 
                           <div className="relative w-full aspect-[16/10] rounded-lg overflow-hidden bg-[#111] mb-3 group cursor-pointer" onClick={() => openEditMomentModal(flagshipCard3)}>
@@ -880,7 +889,7 @@ function AdminContent() {
                             <div className="space-y-1">
                               <div className="flex items-center justify-between font-mono text-[9px] text-[#767676] uppercase">
                                 <span className="font-medium text-[#0c0c0c]">
-                                  {moment.category}
+                                  {moment.date || moment.year}
                                 </span>
                                 <span>{moment.year}</span>
                               </div>
@@ -1313,22 +1322,10 @@ function AdminContent() {
                       )}
                     </div>
 
-                    {/* Or URL input */}
-                    <div className="pt-2 border-t border-[#e5e7eb]/80">
-                      <label className="block text-[9px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1">
-                        ATAU MASUKKAN URL GAMBAR LANGSUNG (UNSPLASH / CDN):
-                      </label>
-                      <input
-                        type="url"
-                        value={momentFormData.imageUrl}
-                        onChange={(e) => {
-                          setMomentFormData({ ...momentFormData, imageUrl: e.target.value });
-                          setMomentPreviewUrl(e.target.value);
-                          setMomentUploadedFile(null);
-                        }}
-                        placeholder="https://images.unsplash.com/photo-..."
-                        className="w-full h-[36px] px-3 bg-white border border-[#e5e7eb] rounded-lg text-[12px] font-mono text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
-                      />
+                    <div className="font-mono text-[10px] text-[#71717a] pt-1">
+                      {momentUploadedFile
+                        ? `✓ ${momentUploadedFile.name} (siap disimpan)`
+                        : "Upload foto dari komputermu (JPG, PNG, WEBP). Gunakan crop 16:9 agar pas di layar."}
                     </div>
                   </div>
                 </div>
@@ -1371,7 +1368,7 @@ function AdminContent() {
                     onChange={(e) =>
                       setMomentFormData({ ...momentFormData, title: e.target.value })
                     }
-                    placeholder="e.g. The Midnight Brainstorm"
+                    placeholder="Contoh: The Midnight Brainstorm"
                     className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-lg text-[13px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
                   />
                   {momentFormData.title && (
@@ -1389,25 +1386,37 @@ function AdminContent() {
                   )}
                 </div>
 
-                {/* Category, Date & Location */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Description */}
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
+                    DESKRIPSI / CATATAN MOMENT
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={momentFormData.description}
+                    onChange={(e) =>
+                      setMomentFormData({ ...momentFormData, description: e.target.value })
+                    }
+                    placeholder="Cerita atau kenangan singkat saat momen ini difoto..."
+                    className="w-full p-3 bg-white border border-[#e5e7eb] rounded-lg text-[12px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors resize-none"
+                  />
+                </div>
+
+                {/* Location & Date */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                      KATEGORI
+                      TEMPAT / LOKASI
                     </label>
-                    <select
-                      value={momentFormData.category}
+                    <input
+                      type="text"
+                      value={momentFormData.location}
                       onChange={(e) =>
-                        setMomentFormData({ ...momentFormData, category: e.target.value })
+                        setMomentFormData({ ...momentFormData, location: e.target.value })
                       }
-                      className="w-full h-[38px] px-2.5 bg-white border border-[#e5e7eb] rounded-lg text-[11px] font-mono uppercase text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
-                    >
-                      <option value="STUDIO">STUDIO</option>
-                      <option value="ROOFTOP">ROOFTOP</option>
-                      <option value="ON THE ROAD">ON THE ROAD</option>
-                      <option value="AFTER HOURS">AFTER HOURS</option>
-                      <option value="ANALOG">ANALOG</option>
-                    </select>
+                      placeholder="Contoh: HQ LAB // JAKARTA SELATAN"
+                      className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-lg text-[11px] font-mono uppercase text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
+                    />
                   </div>
 
                   <div>
@@ -1420,73 +1429,25 @@ function AdminContent() {
                       onChange={(e) =>
                         setMomentFormData({ ...momentFormData, date: e.target.value })
                       }
-                      placeholder="e.g. OCTOBER 14, 2024"
-                      className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-lg text-[11px] font-mono uppercase text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                      TAHUN
-                    </label>
-                    <input
-                      type="text"
-                      value={momentFormData.year}
-                      onChange={(e) =>
-                        setMomentFormData({ ...momentFormData, year: e.target.value })
-                      }
-                      placeholder="2025"
+                      placeholder="Contoh: 14 OKTOBER 2024"
                       className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-lg text-[11px] font-mono uppercase text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
                     />
                   </div>
                 </div>
 
-                {/* Location & Camera */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                      LOKASI
-                    </label>
-                    <input
-                      type="text"
-                      value={momentFormData.location}
-                      onChange={(e) =>
-                        setMomentFormData({ ...momentFormData, location: e.target.value })
-                      }
-                      placeholder="e.g. HQ LAB // JAKARTA SELATAN"
-                      className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-lg text-[11px] font-mono uppercase text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                      KAMERA & LENSA
-                    </label>
-                    <input
-                      type="text"
-                      value={momentFormData.camera}
-                      onChange={(e) =>
-                        setMomentFormData({ ...momentFormData, camera: e.target.value })
-                      }
-                      placeholder="e.g. LEICA M6 // 35MM SUMMICRON"
-                      className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-lg text-[11px] font-mono uppercase text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* Description */}
+                {/* Camera (Optional) */}
                 <div>
                   <label className="block text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676] mb-1.5">
-                    CATATAN / NARASI MOMENT
+                    KAMERA & LENSA (OPSIONAL)
                   </label>
-                  <textarea
-                    rows={2}
-                    value={momentFormData.description}
+                  <input
+                    type="text"
+                    value={momentFormData.camera}
                     onChange={(e) =>
-                      setMomentFormData({ ...momentFormData, description: e.target.value })
+                      setMomentFormData({ ...momentFormData, camera: e.target.value })
                     }
-                    placeholder="Cerita atau kenangan singkat saat momen ini difoto..."
-                    className="w-full p-3 bg-white border border-[#e5e7eb] rounded-lg text-[12px] text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors resize-none"
+                    placeholder="Contoh: LEICA M6 // 35MM (bisa dikosongkan)"
+                    className="w-full h-[38px] px-3 bg-white border border-[#e5e7eb] rounded-lg text-[11px] font-mono uppercase text-[#0c0c0c] focus:outline-none focus:border-[#0c0c0c] transition-colors"
                   />
                 </div>
               </form>
