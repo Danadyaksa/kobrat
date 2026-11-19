@@ -23,20 +23,6 @@ function RollingText({ text }: { text: string }) {
   );
 }
 
-function RollingWordmark({ text }: { text: string }) {
-  return (
-    <span className="wordmark-chars" aria-hidden="true">
-      {text.split("").map((char, index) => (
-        <span
-          key={index}
-          style={{ "--i": index } as React.CSSProperties}
-        >
-          {char === " " ? "\u00A0" : char}
-        </span>
-      ))}
-    </span>
-  );
-}
 
 export default function Header({ introComplete = true }: HeaderProps) {
   const [time, setTime] = useState<string>("--:--");
@@ -80,14 +66,13 @@ export default function Header({ introComplete = true }: HeaderProps) {
           <time className="text-[#767676]">{time}</time>
         </div>
 
-        {/* Center: Wordmark in exact Gossip font with rolling scroll animation */}
+        {/* Center: Wordmark in exact Gossip font */}
         <TransitionLink
           href="/"
           style={{ fontFamily: "var(--font-wordmark)" }}
-          className="header-wordmark text-[24px] text-[#0c0c0c] lowercase py-1 select-none inline-flex items-center cursor-pointer"
+          className="text-[26px] text-[#0c0c0c] lowercase leading-normal select-none inline-flex items-center cursor-pointer hover:opacity-70 transition-opacity"
         >
-          <span className="sr-only">kobrat</span>
-          <RollingWordmark text="kobrat" />
+          kobrat
         </TransitionLink>
 
         {/* Right: Nav items with vertical rolling chars on hover */}

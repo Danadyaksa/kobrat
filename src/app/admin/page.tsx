@@ -25,20 +25,6 @@ function RollingText({ text }: { text: string }) {
   );
 }
 
-function RollingWordmark({ text }: { text: string }) {
-  return (
-    <span className="wordmark-chars" aria-hidden="true">
-      {text.split("").map((char, index) => (
-        <span
-          key={index}
-          style={{ "--i": index } as React.CSSProperties}
-        >
-          {char === " " ? "\u00A0" : char}
-        </span>
-      ))}
-    </span>
-  );
-}
 
 function AdminContent() {
   const searchParams = useSearchParams();
@@ -418,14 +404,14 @@ function AdminContent() {
           <div className="flex items-center gap-3 justify-self-start">
             <TransitionLink
               href="/"
-              className="nav-item !px-0 text-[#0c0c0c] hover:opacity-75 transition-opacity flex items-center"
+              className="text-[#0c0c0c] hover:opacity-75 transition-opacity flex items-center gap-1.5"
             >
               <span className="font-mono text-[11px] tracking-[0.04em]">←</span>
               <span
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[20px] lowercase leading-none inline-block ml-1"
+                className="text-[22px] lowercase leading-normal inline-block"
               >
-                <RollingWordmark text="kobrat" />
+                kobrat
               </span>
             </TransitionLink>
             <span className="text-[#d4d4d8] font-mono text-[11px]">/</span>

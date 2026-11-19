@@ -142,7 +142,7 @@ export default function Hero({
               We’re{" "}
               <span
                 style={{ fontFamily: "var(--font-wordmark)" }}
-                className="text-[1.24em] lowercase leading-none inline-block text-[#0c0c0c]"
+                className="text-[1.24em] lowercase leading-[1.2] inline-block text-[#0c0c0c] align-baseline"
               >
                 kobrat
               </span>
