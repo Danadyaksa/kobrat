@@ -7,6 +7,11 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence, motion } from "motion/react";
 import { Moment, moments as staticMoments } from "@/data/moments";
+import {
+  members as staticMembers,
+  findMemberBySlug,
+  getMemberSlug,
+} from "@/data/members";
 import TransitionLink from "./TransitionLink";
 
 if (typeof window !== "undefined") {
@@ -643,15 +648,23 @@ export default function CollectiveGallery() {
                   </p>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    {lightboxMoment.members.map((slug) => (
-                      <TransitionLink
-                        key={slug}
-                        href={`/${slug}`}
-                        className="px-3 py-1 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px] capitalize"
-                      >
-                        {slug}
-                      </TransitionLink>
-                    ))}
+                    {lightboxMoment.members
+                      .filter((slug) => Boolean(findMemberBySlug(staticMembers, slug)))
+                      .map((slug) => {
+                        const member = findMemberBySlug(staticMembers, slug);
+                        const targetSlug = member ? getMemberSlug(member) : slug.toLowerCase();
+                        const label = member ? (member.nickname || member.name) : slug;
+
+                        return (
+                          <TransitionLink
+                            key={slug}
+                            href={`/${targetSlug}`}
+                            className="px-3 py-1 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px] capitalize"
+                          >
+                            {label}
+                          </TransitionLink>
+                        );
+                      })}
                   </div>
                 </div>
               </motion.div>

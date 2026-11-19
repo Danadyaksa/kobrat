@@ -258,6 +258,17 @@ function AdminContent() {
   // ─── Moment Actions ───────────────────────────────────────────────────────
   const openEditMomentModal = (moment: Moment) => {
     setEditingMoment(moment);
+    // Sanitize initial members against active members list so phantom/dummy names are stripped immediately
+    const validSlugs = new Set(
+      members.flatMap((m) => [
+        getMemberSlug(m).toLowerCase(),
+        (m.nickname || "").toLowerCase(),
+      ]).filter(Boolean)
+    );
+    const initialMembers = (Array.isArray(moment.members) ? moment.members : [])
+      .map((s) => s.toLowerCase().trim())
+      .filter((s) => validSlugs.has(s));
+
     setMomentFormData({
       title: moment.title,
       category: moment.category || "STUDIO",
@@ -268,7 +279,7 @@ function AdminContent() {
       description: moment.description || "",
       highlightSlot: (moment.highlightSlot as 1 | 2 | 3) || 0,
       imageUrl: moment.image || "",
-      members: Array.isArray(moment.members) ? moment.members : [],
+      members: initialMembers,
     });
     setMomentPreviewUrl(moment.image);
     setMomentUploadedFile(null);
@@ -361,6 +372,21 @@ function AdminContent() {
         editingMoment.year ||
         "2025";
 
+      // Strictly sanitize members before saving against actual roster members
+      const validSlugs = new Set(
+        members.flatMap((m) => [
+          getMemberSlug(m).toLowerCase(),
+          (m.nickname || "").toLowerCase(),
+        ]).filter(Boolean)
+      );
+      const cleanMembers = Array.from(
+        new Set(
+          momentFormData.members
+            .map((s) => s.toLowerCase().trim())
+            .filter((s) => validSlugs.has(s))
+        )
+      );
+
       const updatedMoment: Moment = {
         ...editingMoment,
         title: momentFormData.title.trim(),
@@ -370,7 +396,7 @@ function AdminContent() {
         location: momentFormData.location.trim(),
         camera: momentFormData.camera.trim(),
         description: momentFormData.description.trim(),
-        members: momentFormData.members,
+        members: cleanMembers,
         image: finalImageUrl,
         highlightSlot:
           momentFormData.highlightSlot === 0 ? null : momentFormData.highlightSlot,
@@ -1481,12 +1507,36 @@ function AdminContent() {
                 {/* Tag Anggota dalam Foto (Dynamic Member Tagging) */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676]">
-                      TAG ANGGOTA DALAM FOTO
-                    </label>
-                    <span className="text-[9px] font-mono text-[#a1a1aa] uppercase font-semibold">
-                      {momentFormData.members.length} ANGGOTA DIPILIH
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <label className="text-[10px] font-mono uppercase tracking-[0.06em] text-[#767676]">
+                        TAG ANGGOTA DALAM FOTO
+                      </label>
+                      <span className="text-[9px] font-mono text-[#a1a1aa] uppercase font-semibold">
+                        ({momentFormData.members.length} dari {members.length} terpilih)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const allSlugs = members.map((m) => getMemberSlug(m).toLowerCase());
+                          setMomentFormData((prev) => ({ ...prev, members: allSlugs }));
+                        }}
+                        className="text-[10px] font-mono text-[#52525b] hover:text-[#0c0c0c] underline cursor-pointer"
+                      >
+                        Pilih Semua
+                      </button>
+                      <span className="text-[#d4d4d8]">·</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMomentFormData((prev) => ({ ...prev, members: [] }));
+                        }}
+                        className="text-[10px] font-mono text-[#52525b] hover:text-[#0c0c0c] underline cursor-pointer"
+                      >
+                        Kosongkan
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2 p-3.5 bg-[#f9fafb] border border-[#e5e7eb] rounded-xl">

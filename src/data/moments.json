@@ -11,8 +11,12 @@
     "members": [
       "aksa",
       "hafiz",
-      "dimas",
-      "reza"
+      "akmal",
+      "dida",
+      "danang",
+      "vano",
+      "jepe",
+      "gorga"
     ],
     "image": "/uploads/cropped_1795102431357_1795102481469.jpg",
     "aspect": "4/3",
@@ -23,7 +27,7 @@
     "id": 2,
     "title": "Ngoding ampe pagi",
     "category": "ROOFTOP",
-    "year": "",
+    "year": "2025",
     "date": "",
     "location": "Odds demangan",
     "description": "nugas sampe pagi pkoknya lah",
@@ -31,12 +35,12 @@
     "members": [
       "aksa",
       "hafiz",
-      "dimas",
-      "reza",
-      "farhan",
-      "bagas",
-      "arya",
-      "gilang"
+      "akmal",
+      "dida",
+      "danang",
+      "vano",
+      "jepe",
+      "gorga"
     ],
     "image": "/uploads/cropped_1795102611645_1795102658104.jpg",
     "aspect": "3/2",
@@ -50,13 +54,13 @@
     "year": "2024",
     "date": "DECEMBER 19, 2024",
     "location": "KM 88 // TOL CIPULARANG",
-    "description": "Windows all down at 02:15 AM. Farhan took the wheel, Bagas captured the taillights, and the cabin was singing along to Reza's playlist.",
+    "description": "Windows all down at 02:15 AM. Danang took the wheel, Jepe captured the taillights, and the cabin was singing along to Aksa's playlist.",
     "camera": "RICOH GR IIIx // 40MM",
     "members": [
-      "farhan",
-      "bagas",
-      "arya",
-      "gilang"
+      "aksa",
+      "danang",
+      "jepe",
+      "vano"
     ],
     "image": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1200&auto=format&fit=crop&q=85",
     "aspect": "16/10",
@@ -74,9 +78,8 @@
     "members": [
       "aksa",
       "hafiz",
-      "dimas",
-      "farhan",
-      "bagas"
+      "akmal",
+      "dida"
     ],
     "image": "https://images.unsplash.com/photo-1543807535-eceef0bc6599?w=1200&auto=format&fit=crop&q=85",
     "aspect": "4/3",
@@ -94,9 +97,8 @@
     "members": [
       "aksa",
       "hafiz",
-      "reza",
-      "arya",
-      "gilang"
+      "danang",
+      "gorga"
     ],
     "image": "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&auto=format&fit=crop&q=85",
     "aspect": "3/2",
@@ -104,24 +106,24 @@
   },
   {
     "id": 6,
-    "title": "Kota Tua 35mm Roll",
+    "title": "street coffee night",
     "category": "ANALOG",
-    "year": "2025",
-    "date": "FEBRUARY 22, 2025",
-    "location": "KOTA TUA // JAKARTA BARAT",
-    "description": "Bagas brought an old mechanical Nikon and only allowed one frame per location. These unposed moments tell the truest story.",
-    "camera": "NIKON FM2 // KODAK TRI-X 400",
+    "year": "2026",
+    "date": "August 25, 2026",
+    "location": "GETTSEE SURAKARTA",
+    "description": "Reformasi lagi",
+    "camera": "",
     "members": [
       "aksa",
       "hafiz",
-      "dimas",
-      "reza",
-      "farhan",
-      "bagas",
-      "arya",
-      "gilang"
+      "akmal",
+      "dida",
+      "danang",
+      "vano",
+      "jepe",
+      "gorga"
     ],
-    "image": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&auto=format&fit=crop&q=85",
+    "image": "/uploads/cropped_1795106222925_1795106229802.jpg",
     "aspect": "4/5",
     "featured": true,
     "highlightSlot": 3
@@ -136,9 +138,9 @@
     "description": "Finding the rhythm of interaction through sound design. Layering ambient frequencies and keyboard mechanical clicks.",
     "camera": "SONY A7C // 35MM F1.8",
     "members": [
-      "reza",
-      "dimas",
-      "gilang"
+      "aksa",
+      "hafiz",
+      "jepe"
     ],
     "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&auto=format&fit=crop&q=85",
     "aspect": "16/10",
@@ -156,12 +158,12 @@
     "members": [
       "aksa",
       "hafiz",
-      "dimas",
-      "reza",
-      "farhan",
-      "bagas",
-      "arya",
-      "gilang"
+      "akmal",
+      "dida",
+      "danang",
+      "vano",
+      "jepe",
+      "gorga"
     ],
     "image": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=1200&auto=format&fit=crop&q=85",
     "aspect": "3/2",

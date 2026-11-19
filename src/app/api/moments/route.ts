@@ -4,6 +4,35 @@ import path from "path";
 import { Moment } from "@/data/moments";
 
 const MOMENTS_FILE_PATH = path.join(process.cwd(), "src", "data", "moments.json");
+const MEMBERS_FILE_PATH = path.join(process.cwd(), "src", "data", "members.json");
+
+async function sanitizeMomentsMembers(momentsList: Moment[]): Promise<Moment[]> {
+  try {
+    const rawMembers = await fs.readFile(MEMBERS_FILE_PATH, "utf-8");
+    const membersList: Array<{ name: string; nickname?: string }> = JSON.parse(rawMembers);
+    const validSlugs = new Set<string>();
+    for (const m of membersList) {
+      const src = (m.nickname || m.name || "").trim().toLowerCase();
+      const slug = src.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
+      if (slug) validSlugs.add(slug);
+      if (m.nickname) validSlugs.add(m.nickname.trim().toLowerCase());
+    }
+    return momentsList.map((m) => {
+      const cleaned = Array.isArray(m.members)
+        ? Array.from(
+            new Set(
+              m.members
+                .map((s) => s.toLowerCase().trim())
+                .filter((s) => validSlugs.has(s))
+            )
+          )
+        : [];
+      return { ...m, members: cleaned };
+    });
+  } catch {
+    return momentsList;
+  }
+}
 
 export async function GET() {
   try {
@@ -64,6 +93,9 @@ export async function PUT(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Sanitize member tags against actual members
+    currentMoments = await sanitizeMomentsMembers(currentMoments);
 
     // Save back to JSON file
     await fs.writeFile(MOMENTS_FILE_PATH, JSON.stringify(currentMoments, null, 2), "utf-8");

@@ -6,6 +6,11 @@ import { motion, AnimatePresence, useSpring } from "motion/react";
 import Header from "@/components/Header";
 import TransitionLink from "@/components/TransitionLink";
 import { Moment, moments as staticMoments } from "@/data/moments";
+import {
+  members as staticMembers,
+  findMemberBySlug,
+  getMemberSlug,
+} from "@/data/members";
 
 const CATEGORIES = [
   "ALL",
@@ -281,18 +286,26 @@ export default function GalleryPage() {
                     </div>
                   </div>
 
-                  {/* Dynamic Member Tags */}
+                  {/* Dynamic Member Tags (Filtered to Real Members Only) */}
                   {moment.members && moment.members.length > 0 && (
                     <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                      {moment.members.map((slug) => (
-                        <TransitionLink
-                          key={slug}
-                          href={`/${slug.toLowerCase()}`}
-                          className="px-2 py-0.5 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[11px] font-mono text-[#52525b] uppercase transition-colors rounded-[2px]"
-                        >
-                          {slug}
-                        </TransitionLink>
-                      ))}
+                      {moment.members
+                        .filter((slug) => Boolean(findMemberBySlug(staticMembers, slug)))
+                        .map((slug) => {
+                          const member = findMemberBySlug(staticMembers, slug);
+                          const targetSlug = member ? getMemberSlug(member) : slug.toLowerCase();
+                          const label = member ? (member.nickname || member.name) : slug;
+
+                          return (
+                            <TransitionLink
+                              key={slug}
+                              href={`/${targetSlug}`}
+                              className="px-2 py-0.5 bg-[#f4f5f7] hover:bg-[#0c0c0c] hover:text-white text-[11px] font-mono text-[#52525b] uppercase transition-colors rounded-[2px]"
+                            >
+                              {label}
+                            </TransitionLink>
+                          );
+                        })}
                     </div>
                   )}
                 </motion.article>
@@ -481,15 +494,23 @@ export default function GalleryPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                {activeLightboxMoment.members.map((slug) => (
-                  <TransitionLink
-                    key={slug}
-                    href={`/${slug}`}
-                    className="px-3 py-1 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px] capitalize"
-                  >
-                    {slug}
-                  </TransitionLink>
-                ))}
+                {activeLightboxMoment.members
+                  .filter((slug) => Boolean(findMemberBySlug(staticMembers, slug)))
+                  .map((slug) => {
+                    const member = findMemberBySlug(staticMembers, slug);
+                    const targetSlug = member ? getMemberSlug(member) : slug.toLowerCase();
+                    const label = member ? (member.nickname || member.name) : slug;
+
+                    return (
+                      <TransitionLink
+                        key={slug}
+                        href={`/${targetSlug}`}
+                        className="px-3 py-1 bg-white/10 hover:bg-white hover:text-[#0c0c0c] transition-colors text-white text-[12px] capitalize"
+                      >
+                        {label}
+                      </TransitionLink>
+                    );
+                  })}
               </div>
             </div>
           </motion.div>
